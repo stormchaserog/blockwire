@@ -222,7 +222,7 @@ export function AuthLayout() {
           <Header className={css.AuthHeader} size="600" variant="Surface">
             <Box grow="Yes" direction="Row" gap="300" alignItems="Center">
               <img className={css.AuthLogo} src={LogoSVG} alt="Sable Logo" />
-              <Text size="H3">Sable</Text>
+              <Text size="H3">{SABLE_PRODUCT_NAME}</Text>
             </Box>
             {isAddingAccount && (
               <Box gap="200" alignItems="Center" style={{ marginLeft: 'auto' }}>

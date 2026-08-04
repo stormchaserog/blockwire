@@ -1,14 +1,14 @@
 {
-  "name": "Sable",
-  "short_name": "Sable",
-  "description": "An almost stable Matrix client",
+  "name": "BlockWire",
+  "short_name": "BlockWire",
+  "description": "Secure messaging for crypto communities. Connect. Build. Empower.",
   "dir": "auto",
   "lang": "en-US",
   "display": "standalone",
   "orientation": "portrait",
   "start_url": "./",
-  "background_color": "#1b1a21",
-  "theme_color": "#1b1a21",
+  "background_color": "#0A0A0A",
+  "theme_color": "#0A0A0A",
   "icons": [
     {
       "src": "./public/svg/logo-maskable.svg",

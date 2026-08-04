@@ -1,0 +1,33 @@
+{
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "headers": [
+        {
+            "source": "/.well-known/matrix/(.*)",
+            "headers": [
+                {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                },
+                {
+                    "key": "Access-Control-Allow-Origin",
+                    "value": "*"
+                }
+            ]
+        }
+    ],
+    "rewrites": [
+        {
+            "source": "/.well-known/matrix/server",
+            "destination": "/.well-known/matrix/server.json"
+        },
+        {
+            "source": "/.well-known/matrix/client",
+            "destination": "/.well-known/matrix/client.json"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ],
+    "outputDirectory": "."
+}

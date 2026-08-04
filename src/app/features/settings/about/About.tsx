@@ -261,7 +261,7 @@ export function About({ requestBack, requestClose }: Readonly<AboutProps>) {
                 <Box direction="Column" gap="300">
                   <Box direction="Column" gap="100">
                     <Box gap="100" alignItems="End">
-                      <Text size="H3">Sable</Text>
+                      <Text size="H3">{SABLE_PRODUCT_NAME}</Text>
                       <Text size="T200">{`v${APP_VERSION}${devLabel}${buildLabel}`}</Text>
                     </Box>
                     <Text>An almost stable Matrix client.</Text>
