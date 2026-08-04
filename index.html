@@ -1,6 +1,23 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script>
+      // Boot guard: this app routes any unknown top-level path as a room to
+      // join ("/:spaceIdOrAlias"), so landing on /index.html made it try to
+      // join a room literally called "index.html". Home Screen icons created
+      // by the previous client launch exactly that URL. An edge redirect
+      // cannot save us here — the service worker serves the cached app
+      // without ever hitting the network — so normalise the path in the
+      // document itself, before the router reads it.
+      (function () {
+        var p = window.location.pathname;
+        if (/\/index\.html$/.test(p)) {
+          var rest = window.location.search + window.location.hash;
+          window.history.replaceState(null, '', p.replace(/index\.html$/, '') + rest);
+        }
+      })();
+    </script>
+
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta

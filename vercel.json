@@ -29,5 +29,12 @@
             "destination": "/index.html"
         }
     ],
-    "outputDirectory": "."
+    "outputDirectory": ".",
+    "redirects": [
+        {
+            "source": "/index.html",
+            "destination": "/",
+            "permanent": false
+        }
+    ]
 }

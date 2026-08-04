@@ -6,7 +6,7 @@
   "lang": "en-US",
   "display": "standalone",
   "orientation": "portrait",
-  "start_url": "./",
+  "start_url": "/",
   "background_color": "#0A0A0A",
   "theme_color": "#0A0A0A",
   "icons": [
@@ -172,5 +172,6 @@
       "type": "image/png",
       "purpose": "any"
     }
-  ]
+  ],
+  "scope": "/"
 }
