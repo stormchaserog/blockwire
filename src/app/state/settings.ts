@@ -441,7 +441,10 @@ export const defaultSettings: Settings = {
   threadRootHeight: 220,
   vcmsgSidebarWidth: 399,
   widgetSidebarWidth: 420,
-  isShowingAllRoomsInHome: false,
+  // BlockWire: home is a single flat list of every conversation, so rooms
+  // that live inside a space must appear there too. Defaulting this off hid
+  // most of a user's chats behind the space navigator.
+  isShowingAllRoomsInHome: true,
   sendIndividualAttachmentAsCaption: true,
   // furry stuff
   renderAnimals: true,
