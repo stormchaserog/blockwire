@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { AsyncSearchHandler } from '$utils/AsyncSearch';
 import { fetch } from '$utils/fetch';
-import { useClientConfig } from '$hooks/useClientConfig';
+import { useMatrixClient } from '$hooks/useMatrixClient';
 import type { GifData } from './types';
 
 const SIZE_LIMIT = 3 * 1024 * 1024;
@@ -73,8 +73,7 @@ export function useGifSearch(
   const [searchResults, setSearchResults] = useState<GifData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const clientConfig = useClientConfig();
-  const klipyApiKey = clientConfig.gifs?.klipyApiKey ?? '';
+  const mx = useMatrixClient();
 
   /** One request shape for both endpoints — they differ only in path and query.
    *
@@ -85,26 +84,26 @@ export function useGifSearch(
     async (endpoint: 'search' | 'trending', query: string): Promise<GifData[] | null> => {
       if (!showGifPicker) return null;
 
-      if (!klipyApiKey) {
-        // No key configured, so the request would build a URL with an empty
-        // path segment and fail with a meaningless "HTTP 404". Say what is
-        // actually wrong instead of looking broken.
-        setSearchResults([]);
-        setLoading(false);
-        setError('GIF search is not set up on this server yet.');
-        return null;
-      }
-
       setLoading(true);
       setError(null);
 
       try {
-        const url = new URL('https://api.klipy.com');
-        url.pathname = `/api/v1/${klipyApiKey}/gifs/${endpoint}`;
+        // Through our own gateway rather than straight to Klipy: the API key
+        // lives server-side now, so it is never in a URL a browser requests
+        // and never in the client's public config.
+        const url = new URL(`${mx.baseUrl}/_blockwire/gifs/${endpoint}`);
         if (endpoint === 'search') url.searchParams.set('q', query);
         url.searchParams.set('per_page', '50'); // TODO: infinite scroll?
 
         const response = await fetch(url.toString());
+
+        if (response.status === 503) {
+          // The gateway is up but has no key — a deployment problem, not
+          // something the person searching can do anything about.
+          setSearchResults([]);
+          setError('GIF search is not set up on this server yet.');
+          return null;
+        }
 
         if (response.status === 200) {
           const data = (await response.json()) as KlipySearchResponse;
@@ -123,7 +122,7 @@ export function useGifSearch(
         setLoading(false);
       }
     },
-    [klipyApiKey, showGifPicker]
+    [mx, showGifPicker]
   );
 
   const searchGifs = useCallback(

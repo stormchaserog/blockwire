@@ -9,7 +9,13 @@ export type HashRouterConfig = {
 };
 
 export type GifsConfig = {
-  klipyApiKey?: string;
+  /** Media proxy server name for `mxc://<proxyUrl>/klipy_<id>`. NOT an API
+   *  proxy — the search key lives on the gateway (`KLIPY_API_KEY`), and this
+   *  is only about how a sent GIF is referenced. Leave it unset here:
+   *  federation is disabled, so the homeserver cannot fetch media from
+   *  another server name and setting it makes sent GIFs arrive broken. The
+   *  working path uploads the bytes to our own media repo instead — see
+   *  utils/klipyUpload.ts. */
   proxyUrl?: string;
 };
 
