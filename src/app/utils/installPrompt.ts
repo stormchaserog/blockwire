@@ -23,7 +23,7 @@
  *    gets no notifications at all.
  */
 
-export type InstallOffer = 'native' | 'ios-instructions' | null;
+export type InstallOffer = 'native' | 'ios-instructions' | 'open-in-safari' | null;
 
 export interface InstallContext {
   /** Already running as an installed app, so there is nothing to offer. */
@@ -31,6 +31,8 @@ export interface InstallContext {
   /** A captured `beforeinstallprompt`, meaning the browser will install it. */
   hasNativePrompt: boolean;
   isIos: boolean;
+  /** An in-app web view (a link opened inside Telegram, X, Instagram…). */
+  inAppBrowser: boolean;
   dismissed: boolean;
 }
 
@@ -45,11 +47,17 @@ export const getInstallOffer = ({
   standalone,
   hasNativePrompt,
   isIos,
+  inAppBrowser,
   dismissed,
 }: InstallContext): InstallOffer => {
   if (standalone) return null;
   if (dismissed) return null;
   if (hasNativePrompt) return 'native';
+  // An in-app web view has no Share > Add to Home Screen at all, so the normal
+  // instructions would send someone hunting for a button that does not exist.
+  // They have to get into Safari first, and nothing else can happen until
+  // they do.
+  if (isIos && inAppBrowser) return 'open-in-safari';
   if (isIos) return 'ios-instructions';
   return null;
 };
@@ -79,3 +87,18 @@ export interface NativeInstallPrompt {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
+
+/**
+ * True when this looks like an in-app web view rather than Safari proper.
+ *
+ * `navigator.standalone` is an old Apple-only property that is `false` in a
+ * real Safari tab, `true` in an installed app, and *undefined* inside the web
+ * view that apps like Telegram and X use for links. That absence is the most
+ * reliable signal available, because those web views otherwise identify
+ * themselves as Safari.
+ */
+export const isInAppBrowser = (): boolean => {
+  if (typeof navigator === 'undefined') return false;
+  const standalone = (navigator as Navigator & { standalone?: boolean }).standalone;
+  return isIosDevice() && typeof standalone === 'undefined';
+};

@@ -8,6 +8,7 @@ import { stopPropagation } from '$utils/keyboard';
 import { Button } from '$components/button';
 import {
   getInstallOffer,
+  isInAppBrowser,
   isIosDevice,
   isStandalone,
   type NativeInstallPrompt,
@@ -55,6 +56,7 @@ export function InstallPrompt() {
     standalone: installed,
     hasNativePrompt: nativePrompt !== null,
     isIos: isIosDevice(),
+    inAppBrowser: isInAppBrowser(),
     dismissed,
   });
 
@@ -81,15 +83,24 @@ export function InstallPrompt() {
 
     return {
       id: 'install-app',
-      priority: 150, // Below an update, above the rest.
+      // Above the update banner (200), because only ONE banner renders at a
+      // time and this one only appears when the app is NOT installed. A
+      // browser tab picks up new builds on its next load anyway, so telling
+      // someone to refresh matters far less than telling them the app can
+      // live on their home screen — and losing that message behind an update
+      // notice is exactly how two iPhone users missed it.
+      priority: 250,
       icon: ArrowUp,
       title: `Install ${SABLE_PRODUCT_NAME}`,
       description:
-        offer === 'ios-instructions'
-          ? 'Add it to your Home Screen for a full-screen app and notifications.'
-          : 'Add it to your home screen for a full-screen app that opens instantly.',
+        // eslint-disable-next-line no-nested-ternary
+        offer === 'open-in-safari'
+          ? 'Open this page in Safari to add it to your Home Screen.'
+          : offer === 'ios-instructions'
+            ? 'Add it to your Home Screen for a full-screen app and notifications.'
+            : 'Add it to your home screen for a full-screen app that opens instantly.',
       primaryAction: {
-        label: offer === 'ios-instructions' ? 'Show me how' : 'Install',
+        label: offer === 'native' ? 'Install' : 'Show me how',
         variant: 'Primary',
         onClick: () => {
           void handleInstall();
@@ -125,17 +136,39 @@ export function InstallPrompt() {
               style={{ padding: config.space.S500, maxWidth: '22rem' }}
             >
               <Text size="H4">Add to Home Screen</Text>
-              <Text size="T300" priority="300">
-                Safari can&apos;t install apps on its own, so this takes two taps:
-              </Text>
-              <Box direction="Column" gap="200">
-                <Text size="T300">
-                  1. Tap the <b>Share</b> button at the bottom of Safari.
-                </Text>
-                <Text size="T300">
-                  2. Choose <b>Add to Home Screen</b>.
-                </Text>
-              </Box>
+              {offer === 'open-in-safari' ? (
+                <>
+                  <Text size="T300" priority="300">
+                    You&apos;re viewing this inside another app, which can&apos;t add anything to
+                    your Home Screen. Get into Safari first:
+                  </Text>
+                  <Box direction="Column" gap="200">
+                    <Text size="T300">
+                      1. Tap the <b>•••</b> or <b>Share</b> button in this app.
+                    </Text>
+                    <Text size="T300">
+                      2. Choose <b>Open in Safari</b>.
+                    </Text>
+                    <Text size="T300">
+                      3. In Safari, tap <b>Share</b>, then <b>Add to Home Screen</b>.
+                    </Text>
+                  </Box>
+                </>
+              ) : (
+                <>
+                  <Text size="T300" priority="300">
+                    Safari can&apos;t install apps on its own, so this takes two taps:
+                  </Text>
+                  <Box direction="Column" gap="200">
+                    <Text size="T300">
+                      1. Tap the <b>Share</b> button at the bottom of Safari.
+                    </Text>
+                    <Text size="T300">
+                      2. Choose <b>Add to Home Screen</b>.
+                    </Text>
+                  </Box>
+                </>
+              )}
               <Text size="T200" priority="300">
                 Notifications on iPhone only work once {SABLE_PRODUCT_NAME} is on your Home Screen —
                 this is what turns them on.

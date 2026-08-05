@@ -5,6 +5,7 @@ const ctx = (over: Partial<Parameters<typeof getInstallOffer>[0]> = {}) => ({
   standalone: false,
   hasNativePrompt: false,
   isIos: false,
+  inAppBrowser: false,
   dismissed: false,
   ...over,
 });
@@ -34,6 +35,13 @@ describe('getInstallOffer', () => {
     // An iOS browser that somehow supports the API should use it rather than
     // telling someone to go hunting in the Share sheet.
     expect(getInstallOffer(ctx({ isIos: true, hasNativePrompt: true }))).toBe('native');
+  });
+
+  it('sends an in-app web view to Safari, where installing is even possible', () => {
+    // Opening a link inside Telegram or X gives a web view with no Share >
+    // Add to Home Screen at all. Telling someone to tap a button that is not
+    // there is worse than saying nothing.
+    expect(getInstallOffer(ctx({ isIos: true, inAppBrowser: true }))).toBe('open-in-safari');
   });
 
   it('offers nothing on a desktop browser that cannot install', () => {
