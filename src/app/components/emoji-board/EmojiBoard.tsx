@@ -582,14 +582,16 @@ export function EmojiBoard({
   );
 
   useEffect(() => {
-    if (!gifTab || initialGifSearch === undefined) return;
+    if (!gifTab) return;
     setShowFavoritesOnly(false);
     if (initialGifSearch) {
       searchGifs(initialGifSearch);
     } else {
-      // Opening the tab with nothing typed must show something. Previously
-      // this fell through to favourites-only, which is empty on a new
-      // account and rendered "No GIFs found!".
+      // Opening the tab with nothing typed must show something. This used to
+      // bail out entirely when `initialGifSearch` was undefined — which is
+      // every time the picker is opened from the toolbar, since only the
+      // /gif command ever sets it. So the panel fell through to
+      // favourites-only, empty on a new account, and said "No GIFs found!".
       resetGifSearch();
       loadTrending();
     }

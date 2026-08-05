@@ -6,6 +6,24 @@ import type { GifData } from './types';
 
 const SIZE_LIMIT = 3 * 1024 * 1024;
 
+/** What the picker browses before anyone types.
+ *
+ *  Global trending is whatever the wider internet is posting that day, which
+ *  on a crypto messenger is mostly noise. These are the terms the room is
+ *  actually reaching for. One is picked per open so the panel isn't the same
+ *  six GIFs forever; if a term comes back empty the code falls back to
+ *  trending rather than showing nothing. */
+const DEFAULT_GIF_SEARCHES = [
+  'crypto',
+  'bitcoin',
+  'to the moon',
+  'hodl',
+  'diamond hands',
+  'stonks',
+  'wen lambo',
+  'rug pull',
+];
+
 type KlipyFile = {
   url?: string;
   width?: number;
@@ -58,10 +76,14 @@ export function useGifSearch(
   const clientConfig = useClientConfig();
   const klipyApiKey = clientConfig.gifs?.klipyApiKey ?? '';
 
-  /** One request shape for both endpoints — they differ only in path and query. */
+  /** One request shape for both endpoints — they differ only in path and query.
+   *
+   *  Returns the parsed results so a caller can react to an empty set (the
+   *  crypto default falls back to trending), or null when the request never
+   *  ran or failed. */
   const load = useCallback(
-    async (endpoint: 'search' | 'trending', query: string) => {
-      if (!showGifPicker) return;
+    async (endpoint: 'search' | 'trending', query: string): Promise<GifData[] | null> => {
+      if (!showGifPicker) return null;
 
       if (!klipyApiKey) {
         // No key configured, so the request would build a URL with an empty
@@ -70,7 +92,7 @@ export function useGifSearch(
         setSearchResults([]);
         setLoading(false);
         setError('GIF search is not set up on this server yet.');
-        return;
+        return null;
       }
 
       setLoading(true);
@@ -87,14 +109,16 @@ export function useGifSearch(
         if (response.status === 200) {
           const data = (await response.json()) as KlipySearchResponse;
           const results = data.data?.data;
+          const parsed = results ? results.map(parseKlipyResult) : [];
 
-          setSearchResults(results ? results.map(parseKlipyResult) : []);
-        } else {
-          throw new Error(`HTTP ${response.status}`);
+          setSearchResults(parsed);
+          return parsed;
         }
+        throw new Error(`HTTP ${response.status}`);
       } catch {
         setError(endpoint === 'trending' ? 'Could not load GIFs' : 'Failed to search GIFs');
         setSearchResults([]);
+        return null;
       } finally {
         setLoading(false);
       }
@@ -118,10 +142,19 @@ export function useGifSearch(
    * at all — so opening the GIF tab said "No GIFs found!" and the feature
    * looked broken until you guessed that you had to search first. Every
    * messenger opens this panel with something to look at.
+   *
+   * Here that something is crypto-flavoured rather than global trending, on
+   * the grounds that this is a crypto messenger and what's trending on the
+   * open internet usually isn't what anyone is about to post. Trending is the
+   * safety net when a curated term returns nothing.
    */
   const loadTrending = useCallback(async () => {
     gifSearch('');
-    await load('trending', '');
+    const term = DEFAULT_GIF_SEARCHES[Math.floor(Math.random() * DEFAULT_GIF_SEARCHES.length)]!;
+    const results = await load('search', term);
+    if (results === null || results.length === 0) {
+      await load('trending', '');
+    }
   }, [gifSearch, load]);
 
   const gifs = useMemo(
