@@ -207,7 +207,8 @@ import {
   getGalleryItemContent,
 } from './msgContent';
 import { outgoingMessageTransforms } from './outgoingMessageTransforms';
-import { getSendableKlipyMxcUrl } from '$utils/klipy';
+import { GifSendError, resolveGifMxc } from '$utils/klipyUpload';
+import { showToast } from '$state/toast';
 import { CommandAutocomplete } from './CommandAutocomplete';
 import type {
   AudioMessageRecorderHandle,
@@ -1768,13 +1769,27 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
     };
 
     const handleGifSelect = async (gif: GifData, spoiler?: boolean) => {
-      const url = getSendableKlipyMxcUrl(gif.url, clientConfig.gifs?.proxyUrl);
-      if (!url) return;
+      if (!gif.url) return;
+      try {
+        // Uploads to our own media repo when no proxy is configured. This used
+        // to bail on a bare `return`, so picking a GIF silently did nothing.
+        const url = await resolveGifMxc(mx, gif.url, clientConfig.gifs?.proxyUrl);
 
-      const content = await getGifMsgContent(mx, gif, url, spoiler);
-      if (!content) return;
+        const content = await getGifMsgContent(mx, gif, url, spoiler);
+        if (!content) {
+          showToast('Could not prepare that GIF.');
+          return;
+        }
 
-      await handleSendContents([content]);
+        await handleSendContents([content]);
+      } catch (error) {
+        log.error('failed to send gif', { roomId }, error);
+        // Whatever went wrong, say so. A picker that swallows failures is
+        // indistinguishable from a broken one.
+        showToast(
+          error instanceof GifSendError ? error.message : 'Could not send that GIF.'
+        );
+      }
     };
 
     return (
