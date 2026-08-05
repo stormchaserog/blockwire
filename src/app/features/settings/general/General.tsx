@@ -1154,6 +1154,23 @@ type GeneralProps = {
   requestClose: () => void;
 };
 
+function Updates() {
+  const [autoUpdate, setAutoUpdate] = useSetting(settingsAtom, 'autoUpdate');
+
+  return (
+    <Box direction="Column" gap="100">
+      <Text size="L400">Updates</Text>
+      <SettingToggle
+        title="Update Automatically"
+        focusId="auto-update"
+        description="Install new versions as soon as they are available, without asking. Applies while the app is in the background so it never interrupts you."
+        value={autoUpdate}
+        onChange={setAutoUpdate}
+      />
+    </Box>
+  );
+}
+
 function Sync() {
   const sessions = useAtomValue(sessionsAtom);
   const activeSessionId = useAtomValue(activeSessionIdAtom);
@@ -1532,6 +1549,7 @@ export function General({ requestBack, requestClose }: Readonly<GeneralProps>) {
               <Messages />
               <Embeds />
               <Calls />
+              <Updates />
               <Sync />
               <DiagnosticsAndPrivacy />
             </Box>

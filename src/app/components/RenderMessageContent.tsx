@@ -50,6 +50,8 @@ import { PdfViewer } from './Pdf-viewer';
 import { TextViewer } from './text-viewer';
 import { ClientSideHoverFreeze } from './ClientSideHoverFreeze';
 import { CuteEventType, MCuteEvent } from './message/MCuteEvent';
+import { InlineKeyboard } from './message/InlineKeyboard';
+import { getReplyMarkup } from '../utils/blockwire/replyMarkup';
 import { PollEvent } from './message/PollEvent';
 import { M_POLL_START, M_TEXT } from 'matrix-js-sdk';
 import type { IImageInfo, IGalleryContent } from '$types/matrix/common';
@@ -549,4 +551,23 @@ function RenderMessageContentInternal({
   );
 }
 
-export const RenderMessageContent = memo(RenderMessageContentInternal);
+/** Wraps the renderer above rather than touching its many early returns, and
+ *  deliberately wraps only the exported component: gallery items recurse
+ *  through `RenderMessageContentInternal` directly, so a keyboard on a
+ *  gallery message renders once underneath it instead of once per tile. */
+function RenderMessageContentWithKeyboard(props: RenderMessageContentProps) {
+  const content = props.getContent() as Record<string, unknown> | undefined;
+  const keyboard = getReplyMarkup(content);
+  const body = <RenderMessageContentInternal {...props} />;
+
+  if (!keyboard || props.mEvent?.isRedacted()) return body;
+
+  return (
+    <Box direction="Column">
+      {body}
+      <InlineKeyboard roomId={props.mEvent?.getRoomId() ?? props.room?.roomId} keyboard={keyboard} />
+    </Box>
+  );
+}
+
+export const RenderMessageContent = memo(RenderMessageContentWithKeyboard);

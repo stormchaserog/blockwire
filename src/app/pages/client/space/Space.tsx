@@ -430,9 +430,23 @@ function SpaceTombstone({ roomId, replacementRoomId }: SpaceTombstoneProps) {
   );
   const replacementRoom = mx.getRoom(replacementRoomId);
 
+  // Reactive, unlike `mx.getRoom(...)` above: that is a plain read taken
+  // during render, so nothing re-renders this banner when the replacement
+  // shows up in the store or membership changes. Someone who had already
+  // joined the new space — on another device, or before this component ever
+  // mounted — was told to "Join New Space" forever, with the button doing
+  // nothing they could see. The joined-rooms atom updates on sync, so the
+  // banner now settles on the right state by itself.
+  const allJoinedRoomIds = useAtomValue(allRoomsAtom);
+  const alreadyJoined =
+    allJoinedRoomIds.includes(replacementRoomId) ||
+    replacementRoom?.getMyMembership() === KnownMembership.Join ||
+    joinState.status === AsyncStatus.Success;
+
   const handleOpen = () => {
     if (replacementRoom) navigateSpace(replacementRoom.roomId);
-    if (joinState.status === AsyncStatus.Success) navigateSpace(joinState.data.roomId);
+    else if (joinState.status === AsyncStatus.Success) navigateSpace(joinState.data.roomId);
+    else navigateSpace(replacementRoomId);
   };
 
   return (
@@ -452,8 +466,7 @@ function SpaceTombstone({ roomId, replacementRoomId }: SpaceTombstoneProps) {
         <AsyncError state={joinState} />
       </Box>
       <Box direction="Column" shrink="No">
-        {replacementRoom?.getMyMembership() === KnownMembership.Join ||
-        joinState.status === AsyncStatus.Success ? (
+        {alreadyJoined ? (
           <Button onClick={handleOpen} size="300" variant="Success" fill="Solid" radii="300">
             <Text size="B300">Open New Space</Text>
           </Button>

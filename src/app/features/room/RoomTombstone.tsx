@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 import { Box, Text } from 'folds';
+import { useAtomValue } from 'jotai';
+import { allRoomsAtom } from '$state/room-list/roomList';
 
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { AsyncStatus, useAsyncCallback } from '$hooks/useAsyncCallback';
@@ -28,9 +30,19 @@ export function RoomTombstone({ roomId, body, replacementRoomId }: RoomTombstone
   );
   const replacementRoom = mx.getRoom(replacementRoomId);
 
+  // See the matching comment in SpaceTombstone: `mx.getRoom()` is a plain
+  // render-time read, so this banner never updated once the replacement
+  // arrived and kept offering "Join New Room" to people already in it.
+  const allJoinedRoomIds = useAtomValue(allRoomsAtom);
+  const alreadyJoined =
+    allJoinedRoomIds.includes(replacementRoomId) ||
+    replacementRoom?.getMyMembership() === KnownMembership.Join ||
+    joinState.status === AsyncStatus.Success;
+
   const handleOpen = () => {
     if (replacementRoom) navigateRoom(replacementRoom.roomId);
-    if (joinState.status === AsyncStatus.Success) navigateRoom(joinState.data.roomId);
+    else if (joinState.status === AsyncStatus.Success) navigateRoom(joinState.data.roomId);
+    else navigateRoom(replacementRoomId);
   };
 
   return (
@@ -40,8 +52,7 @@ export function RoomTombstone({ roomId, body, replacementRoomId }: RoomTombstone
         <AsyncError state={joinState} />
       </Box>
       <Box shrink="No">
-        {replacementRoom?.getMyMembership() === KnownMembership.Join ||
-        joinState.status === AsyncStatus.Success ? (
+        {alreadyJoined ? (
           <Button onClick={handleOpen} size="300" variant="Success" fill="Solid" radii="300">
             <Text size="B300">Open New Room</Text>
           </Button>

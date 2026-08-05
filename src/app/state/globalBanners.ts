@@ -15,6 +15,10 @@ export type GlobalBanner = {
   description: ReactNode;
   primaryAction: GlobalBannerAction;
   secondaryAction?: GlobalBannerAction;
+  /** Optional third choice, rendered leftmost and least prominent — for a
+   *  "stop asking me and always do this" style option alongside the usual
+   *  do-it-now / not-now pair. */
+  tertiaryAction?: GlobalBannerAction;
   priority?: number; // Higher priority renders first
 };
 

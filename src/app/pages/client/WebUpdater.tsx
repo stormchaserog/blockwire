@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUp } from '$components/icons/phosphor';
 import { useRegisterGlobalBanner, type GlobalBanner } from '$state/globalBanners';
+import { useSetting } from '$state/hooks/settings';
+import { settingsAtom } from '$state/settings';
 import { createLogger } from '$utils/debug';
 import {
   applyPendingUpdate,
@@ -33,6 +35,7 @@ export function WebUpdater() {
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
   const [newBuildAvailable, setNewBuildAvailable] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [autoUpdate, setAutoUpdate] = useSetting(settingsAtom, 'autoUpdate');
   const runningBundle = useRef<string | undefined>(undefined);
 
   if (runningBundle.current === undefined) {
@@ -121,17 +124,43 @@ export function WebUpdater() {
     setDismissed(true);
   }, []);
 
+  const handleAlwaysUpdate = useCallback(() => {
+    setAutoUpdate(true);
+    handleRefresh();
+  }, [setAutoUpdate, handleRefresh]);
+
+  // Opted in: install it and reload rather than asking again. Deliberately
+  // not instant — a reload landing mid-sentence is its own kind of broken, so
+  // this waits for the app to be in the background. It applies on the next
+  // foreground check otherwise.
+  useEffect(() => {
+    if (!autoUpdate || !newBuildAvailable) return undefined;
+
+    const applyWhenAway = () => {
+      if (document.visibilityState === 'hidden') {
+        log.log('Auto-update: applying while backgrounded');
+        handleRefresh();
+      }
+    };
+
+    applyWhenAway();
+    document.addEventListener('visibilitychange', applyWhenAway);
+    return () => document.removeEventListener('visibilitychange', applyWhenAway);
+  }, [autoUpdate, newBuildAvailable, handleRefresh]);
+
   const bannerData = useMemo<GlobalBanner | null>(() => {
     if (!newBuildAvailable || dismissed) return null;
+    // Auto-update handles it silently; no banner to answer.
+    if (autoUpdate) return null;
 
     return {
       id: 'web-app-update',
       priority: 200, // Top priority for updates
       icon: ArrowUp,
       title: 'Update Available',
-      description: `A new version of ${SABLE_PRODUCT_NAME} is available. Refresh to apply updates.`,
+      description: `A new version of ${SABLE_PRODUCT_NAME} is ready. Update now, or later when it suits you.`,
       primaryAction: {
-        label: 'Refresh',
+        label: 'Update now',
         variant: 'Primary',
         onClick: handleRefresh,
       },
@@ -140,8 +169,20 @@ export function WebUpdater() {
         variant: 'Secondary',
         onClick: handleDismiss,
       },
+      tertiaryAction: {
+        label: 'Always update automatically',
+        variant: 'Secondary',
+        onClick: handleAlwaysUpdate,
+      },
     };
-  }, [newBuildAvailable, dismissed, handleRefresh, handleDismiss]);
+  }, [
+    newBuildAvailable,
+    dismissed,
+    autoUpdate,
+    handleRefresh,
+    handleDismiss,
+    handleAlwaysUpdate,
+  ]);
 
   useRegisterGlobalBanner(bannerData);
 

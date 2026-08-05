@@ -27,11 +27,13 @@ import {
   Lock,
   PaintBrush,
   Palette,
+  Robot,
   Smiley,
   Terminal,
   User,
 } from '$components/icons/phosphor';
 import { Permissions } from './permissions';
+import { Bots } from './bots';
 import { General } from './general';
 import { RoomAbbreviations } from './abbreviations/RoomAbbreviations';
 
@@ -68,6 +70,7 @@ type RoomSectionId =
   | 'abbreviations'
   | 'emojis-stickers'
   | 'developer-tools'
+  | 'bots'
   | 'appearance';
 
 const roomSectionIds: readonly RoomSectionId[] = [
@@ -77,6 +80,7 @@ const roomSectionIds: readonly RoomSectionId[] = [
   'cosmetics',
   'abbreviations',
   'emojis-stickers',
+  'bots',
   'developer-tools',
 ];
 
@@ -88,6 +92,7 @@ const pageToSectionId: Record<RoomSettingsPage, RoomSectionId> = {
   [RoomSettingsPage.AbbreviationsPage]: 'abbreviations',
   [RoomSettingsPage.EmojisStickersPage]: 'emojis-stickers',
   [RoomSettingsPage.DeveloperToolsPage]: 'developer-tools',
+  [RoomSettingsPage.BotsPage]: 'bots',
   [RoomSettingsPage.AppearancePage]: 'appearance',
 };
 
@@ -99,6 +104,7 @@ const sectionIdToPage: Record<RoomSectionId, RoomSettingsPage> = {
   abbreviations: RoomSettingsPage.AbbreviationsPage,
   'emojis-stickers': RoomSettingsPage.EmojisStickersPage,
   'developer-tools': RoomSettingsPage.DeveloperToolsPage,
+  bots: RoomSettingsPage.BotsPage,
   appearance: RoomSettingsPage.AppearancePage,
 };
 
@@ -169,6 +175,14 @@ export function RoomSettings({ initialPage, openedViaSwipe, requestClose }: Room
         label: 'Emojis & Stickers',
         icon: Smiley,
         Component: EmojisStickers,
+      },
+      bots: {
+        label: 'Bots',
+        icon: Robot,
+        Component: Bots,
+        // A bot joins a room, not a space — spaces hold rooms, so there is
+        // nothing here for them to talk in.
+        visible: !isSpace,
       },
       'developer-tools': {
         label: 'Developer Tools',

@@ -262,6 +262,10 @@ export interface Settings {
   isShowingAllRoomsInHome: boolean;
   sendIndividualAttachmentAsCaption: boolean;
 
+  /** Install new builds as soon as they are found, without asking. Opted into
+   *  from the update banner ("Always update automatically") or Settings. */
+  autoUpdate: boolean;
+
   // furry stuff
   renderAnimals: boolean;
   animalKind: string | undefined;
@@ -446,6 +450,9 @@ export const defaultSettings: Settings = {
   // most of a user's chats behind the space navigator.
   isShowingAllRoomsInHome: true,
   sendIndividualAttachmentAsCaption: true,
+  // Off by default: reloading without warning would interrupt whatever
+  // someone is in the middle of. It has to be chosen.
+  autoUpdate: false,
   // furry stuff
   renderAnimals: true,
   animalKind: undefined,

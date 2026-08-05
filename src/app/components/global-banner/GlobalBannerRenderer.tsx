@@ -41,6 +41,17 @@ export function GlobalBannerRenderer() {
             </div>
           </div>
           <Box className={css.Actions}>
+            {renderedBanner.tertiaryAction && (
+              <Button
+                variant={renderedBanner.tertiaryAction.variant ?? 'Secondary'}
+                fill="None"
+                size="300"
+                radii="300"
+                onClick={renderedBanner.tertiaryAction.onClick}
+              >
+                <Text size="B300">{renderedBanner.tertiaryAction.label}</Text>
+              </Button>
+            )}
             {renderedBanner.secondaryAction && (
               <Button
                 variant={renderedBanner.secondaryAction.variant ?? 'Secondary'}
