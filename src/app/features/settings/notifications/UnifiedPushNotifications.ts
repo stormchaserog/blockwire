@@ -142,7 +142,7 @@ export async function tryEnableUnifiedPush(
       kind: 'http',
       app_id: config.webPushAppID,
       pushkey: registration.p256dh,
-      app_display_name: 'Sable (UnifiedPush)',
+      app_display_name: `${SABLE_PRODUCT_NAME} (UnifiedPush)`,
       device_display_name: deviceDisplayName,
       lang: navigator.language || 'en',
       data: withPushPayloadFormat(
@@ -173,7 +173,7 @@ export async function tryEnableUnifiedPush(
     kind: 'http',
     app_id: resolvedConfig.appId,
     pushkey: endpoint,
-    app_display_name: 'Sable (UnifiedPush)',
+    app_display_name: `${SABLE_PRODUCT_NAME} (UnifiedPush)`,
     device_display_name: deviceDisplayName,
     lang: navigator.language || 'en',
     data: withPushPayloadFormat(

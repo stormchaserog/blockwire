@@ -32,7 +32,6 @@ import {
   Gif,
   Info,
   menuIcon,
-  Shield,
   Smiley,
   Sticker,
   X,
@@ -1221,7 +1220,7 @@ function Sync() {
         <SettingTile
           title="Sync settings across devices"
           focusId="sync-across-devices"
-          description="Store your settings in your Matrix account so they follow you to any Sable instance. Locally imported tweak CSS is uploaded as unencrypted account data readable by your homeserver. Notification and zoom preferences are kept per-device."
+          description="Store your settings in your account so they follow you to any device. Locally imported tweak CSS is uploaded as unencrypted account data readable by your homeserver. Notification and zoom preferences are kept per-device."
           after={<Switch variant="Primary" value={syncEnabled} onChange={setSyncEnabled} />}
         />
         {syncEnabled && (
@@ -1407,7 +1406,7 @@ function DiagnosticsAndPrivacy() {
           focusId="error-reporting"
           description={
             isSentryConfigured
-              ? 'Send anonymous crash reports to help improve Sable. No messages, room names, or personal data are included.'
+              ? `Send anonymous crash reports to help improve ${SABLE_PRODUCT_NAME}. No messages, room names, or personal data are included.`
               : 'Error reporting is not configured for this build.'
           }
           after={
@@ -1511,21 +1510,11 @@ function DiagnosticsAndPrivacy() {
           )}
         </SequenceCard>
       )}
-      <Box gap="200" wrap="Wrap" style={{ paddingTop: '4px' }}>
-        <Button
-          as="a"
-          href="https://github.com/SableClient/Sable/blob/dev/docs/PRIVACY.md"
-          rel="noreferrer noopener"
-          target="_blank"
-          variant="Secondary"
-          fill="Soft"
-          size="300"
-          radii="300"
-          before={menuIcon(Shield, { weight: 'fill' })}
-        >
-          <Text size="B300">Privacy Policy</Text>
-        </Button>
-      </Box>
+      {/* The "Privacy Policy" button linked to the upstream project's policy —
+          a document about a different product, presented to BlockWire users as
+          if it governed them. Removed rather than repointed: a privacy policy
+          is a promise, and it should go back only when there is a real one at
+          blockwire.chat to link to. */}
     </Box>
   );
 }

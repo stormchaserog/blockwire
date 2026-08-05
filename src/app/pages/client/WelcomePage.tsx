@@ -1,5 +1,5 @@
 import { Box, Button, Text, config, toRem } from 'folds';
-import { Code, Heart, menuIcon } from '$components/icons/phosphor';
+import { Code, menuIcon } from '$components/icons/phosphor';
 import { Page, PageHero, PageHeroSection } from '$components/page';
 import { versionLabel } from '$utils/platform';
 import LogoSVG from '$public/res/svg/logo.svg';
@@ -15,11 +15,11 @@ export function WelcomePage() {
       >
         <PageHeroSection>
           <PageHero
-            icon={<img width="70" height="70" src={LogoSVG} alt="Sable Logo" />}
-            title="Welcome to Sable"
+            icon={<img width="70" height="70" src={LogoSVG} alt={SABLE_PRODUCT_NAME} />}
+            title={`Welcome to ${SABLE_PRODUCT_NAME}`}
             subTitle={
               <span>
-                An almost stable Matrix client.{' '}
+                Private groups, public channels and direct messages.{' '}
                 <a
                   href="https://github.com/SableClient/Sable"
                   target="_blank"
@@ -43,32 +43,9 @@ export function WelcomePage() {
                     Source Code
                   </Text>
                 </Button>
-                <Button
-                  as="a"
-                  href="https://opencollective.com/sable"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  fill="Soft"
-                  before={menuIcon(Heart)}
-                >
-                  <Text as="span" size="B400" truncate>
-                    Support
-                  </Text>
-                </Button>
               </Box>
             </Box>
             <Box direction="Column" gap="200" alignItems="Center">
-              <Button
-                as="a"
-                href="https://github.com/SableClient/Sable/blob/dev/CHANGELOG.md"
-                target="_blank"
-                rel="noreferrer noopener"
-                before={menuIcon(Code)}
-              >
-                <Text as="span" size="B400" truncate>
-                  Features
-                </Text>
-              </Button>
             </Box>
           </PageHero>
         </PageHeroSection>

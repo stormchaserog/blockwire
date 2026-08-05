@@ -1291,7 +1291,7 @@ export function ThemeCatalogSettings({ mode, onBrowseOpenChange }: ThemeCatalogS
                     {localTweaksQuery.data.length === 0 ? (
                       <Text size="T300" priority="300">
                         {unresolvedLegacyTweakCount === tweakFavorites.length
-                          ? 'Some saved local tweaks are waiting to migrate. Open Sable on a device that still has them to finish syncing.'
+                          ? 'Some saved local tweaks are waiting to migrate. Open BlockWire on a device that still has them to finish syncing.'
                           : 'Could not load tweak CSS. Check the URL or your connection.'}
                       </Text>
                     ) : (
@@ -1755,7 +1755,7 @@ export function ThemeCatalogSettings({ mode, onBrowseOpenChange }: ThemeCatalogS
           <SettingToggle
             title="Theme & tweak cards"
             focusId="theme-chat-sable-widgets"
-            description="Show interactive Sable CSS cards instead of plain links."
+            description="Show interactive theme cards instead of plain links."
             value={sableChatWidgets}
             onChange={setSableChatWidgets}
           />

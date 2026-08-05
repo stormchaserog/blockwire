@@ -46,15 +46,15 @@ export function Desktop({ requestBack, requestClose }: DesktopProps) {
                 <SettingToggle
                   title="Use custom title bar"
                   focusId="use-custom-title-bar"
-                  description="Use Sable-drawn window controls and connection status instead of the native window chrome."
+                  description="Use BlockWire-drawn window controls and connection status instead of the native window chrome."
                   value={useCustomTitleBar}
                   onChange={setUseCustomTitleBar}
                   ariaLabel="use-custom-title-bar"
                 />
                 <SettingToggle
-                  title="Close button keeps Sable running"
+                  title="Close button keeps BlockWire running"
                   focusId="close-to-background-on-close"
-                  description="When enabled, closing the window keeps Sable running instead of exiting. If the tray icon is enabled and available, Sable stays in the system tray. Otherwise it continues running in the background."
+                  description="When enabled, closing the window keeps BlockWire running instead of exiting. If the tray icon is enabled and available, BlockWire stays in the system tray. Otherwise it continues running in the background."
                   value={closeToBackgroundOnClose}
                   onChange={setCloseToBackgroundOnClose}
                   ariaLabel="close-to-background-on-close"
@@ -66,11 +66,11 @@ export function Desktop({ requestBack, requestClose }: DesktopProps) {
                     description={
                       trayFallback ? (
                         <Text as="span" style={{ color: color.Warning.Main }} size="T200">
-                          System tray is unavailable on this system. Sable can still keep running in
+                          System tray is unavailable on this system. BlockWire can still keep running in
                           the background without it.
                         </Text>
                       ) : (
-                        'Show a system tray icon while Sable is running. Disable this if you want Sable to stay available without a tray icon.'
+                        'Show a system tray icon while BlockWire is running. Disable this if you want BlockWire to stay available without a tray icon.'
                       )
                     }
                     value={!trayFallback ? showSystemTrayIcon : false}

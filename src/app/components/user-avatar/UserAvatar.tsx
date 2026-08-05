@@ -2,7 +2,7 @@ import { AvatarFallback, AvatarImage, color } from 'folds';
 import type { ReactEventHandler, ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import classNames from 'classnames';
-import colorMXID from '$utils/colorMXID';
+import { roomGradientCss } from '$utils/roomGradient';
 import { useRenderableMediaUrl } from '$hooks/useRenderableMediaUrl';
 import * as css from './UserAvatar.css';
 
@@ -37,10 +37,14 @@ export function UserAvatar({
   if (!src || error) {
     return (
       <AvatarFallback
-        style={{
-          backgroundColor: fallbackColor ?? colorMXID(userId),
-          color: color.Surface.Container,
-        }}
+        style={
+          // fallbackColor is an explicit per-message override and still wins;
+          // otherwise a person gets the same deterministic gradient a room
+          // does, so a chat list looks like one designed set rather than two.
+          fallbackColor
+            ? { backgroundColor: fallbackColor, color: color.Surface.Container }
+            : { background: roomGradientCss(userId), color: '#FFFFFF' }
+        }
         className={classNames(css.UserAvatar, className)}
       >
         {renderFallback()}

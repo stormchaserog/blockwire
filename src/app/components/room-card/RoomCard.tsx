@@ -23,7 +23,7 @@ import { formatCompactNumber } from '$utils/formatCompactNumber';
 import * as css from './style.css';
 import type { RoomBannerContent } from '$types/matrix-sdk-events';
 import { CustomStateEvent } from '$types/matrix/room';
-import colorMXID from '$utils/colorMXID';
+import { roomGradientCss } from '$utils/roomGradient';
 import { reportMediaLoadFailure } from '$utils/mediaLoadDiagnostics';
 import { ModalOverlay } from '$components/modal-overlay/ModalOverlay';
 import { Image as MediaImage } from '$components/media';
@@ -206,7 +206,7 @@ export const RoomCard = as<'div', RoomCardProps>(
             <span
               className={css.RoomCardBanner({ trueBanner: false })}
               style={{
-                backgroundColor: colorMXID(roomIdOrAlias),
+                background: roomGradientCss(roomIdOrAlias),
               }}
             />
           ) : (

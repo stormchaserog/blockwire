@@ -27,18 +27,15 @@ export function TelemetryConsentBanner() {
       id: 'telemetry-consent',
       priority: 100, // Higher priority than device verification
       icon: Shield,
-      title: 'Help improve Sable',
+      title: `Help improve ${SABLE_PRODUCT_NAME}`,
       description: (
         <Text size="T300" priority="300">
+          {/* No "Learn more" link: it pointed at the upstream project's privacy
+              policy, which describes a different product and is not a document
+              BlockWire can stand behind. Say plainly what is sent instead of
+              linking somewhere that sounds official and isn't. */}
           Optionally send anonymous crash reports to help us fix bugs faster. No messages, room
-          names, or personal data are included.{' '}
-          <a
-            href="https://github.com/SableClient/Sable/blob/dev/docs/PRIVACY.md"
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            Learn more
-          </a>
+          names, or personal data are included.
         </Text>
       ),
       primaryAction: {

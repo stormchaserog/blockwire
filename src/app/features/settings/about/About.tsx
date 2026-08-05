@@ -8,8 +8,6 @@ import LogoSVG from '$public/res/svg/logo.svg';
 import { clearCacheAndReload } from '$client/initMatrix';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { Method } from '$types/matrix-sdk';
-import { useOpenShallowRoute } from '$pages/client/useShallowRoute';
-import { getBugReportPath } from '$pages/pathUtils';
 import { isDesktopTauri } from '$utils/platform';
 import {
   updatePhaseAtom,
@@ -187,8 +185,6 @@ export function About({ requestBack, requestClose }: Readonly<AboutProps>) {
   const mx = useMatrixClient();
   const devLabel = IS_RELEASE_TAG ? '' : '-dev';
   const buildLabel = BUILD_HASH ? ` (${BUILD_HASH})` : '';
-  const openShallowRoute = useOpenShallowRoute();
-  const openBugReport = () => openShallowRoute(getBugReportPath());
   const updatePhase = useAtomValue(updatePhaseAtom);
   const setBannerVisible = useSetAtom(updateBannerVisibleAtom);
   const triggerCheck = useSetAtom(triggerUpdateCheckAtom);
@@ -255,7 +251,7 @@ export function About({ requestBack, requestClose }: Readonly<AboutProps>) {
                   <img
                     style={{ width: toRem(60), height: toRem(60) }}
                     src={LogoSVG}
-                    alt="Sable logo"
+                    alt={`${SABLE_PRODUCT_NAME} logo`}
                   />
                 </Box>
                 <Box direction="Column" gap="300">
@@ -264,7 +260,14 @@ export function About({ requestBack, requestClose }: Readonly<AboutProps>) {
                       <Text size="H3">{SABLE_PRODUCT_NAME}</Text>
                       <Text size="T200">{`v${APP_VERSION}${devLabel}${buildLabel}`}</Text>
                     </Box>
-                    <Text>An almost stable Matrix client.</Text>
+                    <Text>Private groups, public channels and direct messages for crypto communities.</Text>
+                    {/* BlockWire is built on Sable, which is AGPL-3.0. Section 13
+                        requires offering the source to anyone using the app over a
+                        network, so this attribution and the link below stay — the
+                        obligation is not something branding gets to remove. */}
+                    <Text size="T200" priority="300">
+                      Built on Sable, licensed under AGPL-3.0.
+                    </Text>
                   </Box>
 
                   <Box gap="200" wrap="Wrap">
@@ -351,30 +354,14 @@ export function About({ requestBack, requestClose }: Readonly<AboutProps>) {
                     }
                   />
                 </SequenceCard>
-                <SequenceCard
-                  className={SequenceCardStyle}
-                  variant="SurfaceVariant"
-                  direction="Column"
-                  gap="400"
-                >
-                  <SettingTile
-                    title="Report an Issue"
-                    focusId="report-an-issue"
-                    description="Report a bug or request a feature on GitHub."
-                    after={
-                      <Button
-                        onClick={openBugReport}
-                        variant="Secondary"
-                        fill="Soft"
-                        size="300"
-                        radii="300"
-                        outlined
-                      >
-                        <Text size="B300">Report</Text>
-                      </Button>
-                    }
-                  />
-                </SequenceCard>
+                {/* "Report an Issue" is deliberately not offered yet. The form
+                    files against the upstream project's public GitHub and
+                    attaches the reporter's user agent and app state — so a
+                    BlockWire user reporting a BlockWire bug would be posting
+                    it, and whatever context it carries, to someone else's
+                    issue tracker. The route and the form are still here; point
+                    GITHUB_REPO in BugReportForm.tsx at a BlockWire repository
+                    and put this tile back. */}
               </Box>
               <HomeserverInfo />
               <Box direction="Column" gap="100">

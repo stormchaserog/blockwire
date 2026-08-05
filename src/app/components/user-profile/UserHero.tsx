@@ -13,7 +13,7 @@ import {
   config,
 } from 'folds';
 import classNames from 'classnames';
-import colorMXID from '$utils/colorMXID';
+import { roomGradientCss } from '$utils/roomGradient';
 import { getMxIdLocalPart } from '$utils/matrix';
 import { BreakWord, LineClamp3 } from '$styles/Text.css';
 import type { UserPresence } from '$hooks/useUserPresence';
@@ -116,7 +116,7 @@ export function UserHero({
       <div
         className={css.UserHeroCoverContainer}
         style={{
-          backgroundColor: colorMXID(userId),
+          background: roomGradientCss(userId),
         }}
       >
         {coverUrl && (

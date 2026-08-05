@@ -53,7 +53,7 @@ export const buildTauriSsoRedirectUrl = (server?: string): string => {
   return redirectUrl.toString();
 };
 
-export const TAURI_OIDC_CLIENT_URI = 'https://app.sable.moe';
+export const TAURI_OIDC_CLIENT_URI = 'https://blockwire.chat';
 
 const TAURI_OIDC_PROTOCOL = 'moe.sable.app:';
 const TAURI_OIDC_PATH = '/login';

@@ -32,7 +32,7 @@ const firstMatchingTemplate = (
 const ROOM_CALL_RULES: CopyRule[] = [
   {
     when: (ctx) => !ctx.showPreviewDetails,
-    template: { title: 'Room call started', body: 'Open Sable to join.' },
+    template: { title: 'Room call started', body: `Open ${SABLE_PRODUCT_NAME} to join.` },
   },
   {
     when: (ctx) => Boolean(ctx.senderDisplayName && ctx.roomName),
@@ -63,7 +63,7 @@ const RING_CALL_RULES: CopyRule[] = [
     when: (ctx) => !ctx.showPreviewDetails,
     template: {
       title: (ctx) => (ctx.intentKind === 'video' ? 'Incoming video call' : 'Incoming voice call'),
-      body: 'Open Sable to answer.',
+      body: `Open ${SABLE_PRODUCT_NAME} to answer.`,
     },
   },
   {
