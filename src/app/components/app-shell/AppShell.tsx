@@ -12,6 +12,7 @@ import { DesktopTitleBar } from '$components/tauri/DesktopTitleBar';
 import { MacTitleBar } from '$components/tauri/MacTitleBar';
 import { DesktopUpdater } from '$pages/client/DesktopUpdater';
 import { WebUpdater } from '$pages/client/WebUpdater';
+import { InstallPrompt } from '$pages/client/InstallPrompt';
 import { GlobalBannerRenderer } from '$components/global-banner/GlobalBannerRenderer';
 import { Toast } from '$components/toast/Toast';
 import { ConfirmHost } from '$components/confirm/ConfirmHost';
@@ -96,6 +97,7 @@ function AppShellFrame({ children, portalContainer, onPortalContainerChange }: A
         {titlebarKind === 'mac' && <MacTitleBar />}
         <DesktopUpdater />
         <WebUpdater />
+        <InstallPrompt />
         <GlobalBannerRenderer />
         <div
           style={{
