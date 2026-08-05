@@ -20,7 +20,20 @@ vercel deploy --prod --yes
 vercel alias set <deployment-url> blockwire.chat     # REQUIRED, see below
 ```
 
-## Three traps, each of which cost a broken deploy
+## Four traps, each of which cost a broken deploy
+
+**Never redirect `/index.html` to `/`.** This one froze the shipped app for
+days. The service worker precaches `index.html`; precaching stores responses
+with `Cache.put()`, and `Cache.put()` REJECTS any response that was redirected.
+So a 307 there made every new build's worker fail to install and be discarded
+— leaving installed apps pinned to whichever build predated the redirect, with
+no update banner, no effect from force-quitting, and `registration.update()`
+cheerfully reporting nothing to do because the replacement worker died before
+it could reach `waiting`. Symptom to recognise: a worker that goes
+`installing -> redundant`. `/index.html` is already handled by the inline boot
+guard in `index.html`, which rewrites it before the router runs; the edge
+redirect was belt-and-braces on top of a fix that already worked.
+
 
 **Rebuilding wipes `dist/.vercel`.** Deploying without relinking creates a
 *brand new Vercel project named after the directory* — one deploy silently went

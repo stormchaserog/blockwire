@@ -13,6 +13,24 @@
                     "value": "*"
                 }
             ]
+        },
+        {
+            "source": "/sw.js",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "no-cache, no-store, must-revalidate"
+                }
+            ]
+        },
+        {
+            "source": "/index.html",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "no-cache, no-store, must-revalidate"
+                }
+            ]
         }
     ],
     "rewrites": [
@@ -29,12 +47,5 @@
             "destination": "/index.html"
         }
     ],
-    "outputDirectory": ".",
-    "redirects": [
-        {
-            "source": "/index.html",
-            "destination": "/",
-            "permanent": false
-        }
-    ]
+    "outputDirectory": "."
 }

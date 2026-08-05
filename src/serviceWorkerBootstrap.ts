@@ -6,6 +6,7 @@ import { getLocalStorageItem } from './app/state/utils/atomWithLocalStorage';
 import { hasServiceWorker } from './app/utils/platform';
 import { pushSessionToSW } from './sw-session';
 import { waitForSessionTokenRefresh } from './client/oidcTokenRefresher';
+import { startUpdateChecks } from './app/utils/swUpdate';
 
 const log = createLogger('service-worker-bootstrap');
 const REFRESH_WAIT_TIMEOUT_MS = 2500;
@@ -75,6 +76,23 @@ export function registerAppServiceWorker() {
             }
           });
         }
+      });
+
+      // A standalone PWA has no reload button and iOS resumes it from the app
+      // switcher without re-running page load, so registration time would
+      // otherwise be the only moment this app ever notices a new build —
+      // which is how someone gets stranded on a days-old version with no way
+      // forward. Check again whenever it returns to the foreground.
+      startUpdateChecks(registration, {
+        addVisibilityListener: (listener) => {
+          document.addEventListener('visibilitychange', listener);
+          window.addEventListener('focus', listener);
+          return () => {
+            document.removeEventListener('visibilitychange', listener);
+            window.removeEventListener('focus', listener);
+          };
+        },
+        isVisible: () => document.visibilityState === 'visible',
       });
 
       sendSessionToSW();

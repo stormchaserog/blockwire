@@ -546,8 +546,13 @@ async function handleMinimalPushPayload(
   }
 }
 
-self.addEventListener('install', (event: ExtendableEvent) => {
-  event.waitUntil(self.skipWaiting());
+// Deliberately NOT skipWaiting() here. Taking over immediately swaps the
+// asset map underneath a page that is still running the previous build, so
+// any chunk it lazy-loads afterwards is gone from the precache. The new
+// worker waits until the person taps Refresh, which is the one moment we
+// know a reload is coming.
+self.addEventListener('install', () => {
+  // Nothing to do: precacheAndRoute() below owns installation.
 });
 
 self.addEventListener('activate', (event: ExtendableEvent) => {
@@ -579,6 +584,16 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
   if (!data || typeof data !== 'object') return;
   const { type, accessToken, baseUrl, userId } = data as Record<string, unknown>;
 
+  if (type === 'SKIP_WAITING_AND_CLAIM') {
+    // The page has asked to switch to this build now. Activate and take over
+    // the open clients; the page reloads once it sees controllerchange.
+    event.waitUntil(
+      (async () => {
+        await self.skipWaiting();
+        await self.clients.claim();
+      })()
+    );
+  }
   if (type === 'setSession') {
     setSession(client.id, accessToken, baseUrl, userId);
     event.waitUntil(cleanupDeadClients());
