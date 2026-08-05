@@ -13,6 +13,8 @@ import {
 import type { CallEmbed } from '$plugins/call';
 import { useClientWidgetApiEvent, ElementWidgetActions } from '$plugins/call';
 import { callChatAtom, callEmbedAtom, callEmbedStartErrorAtom } from '$state/callEmbed';
+import { useCallWakeLock, useCallMediaSession } from '$hooks/useCallKeepAlive';
+import { useRoomName } from '$hooks/useRoomMeta';
 import { useSelectedRoom } from '$hooks/router/useSelectedRoom';
 import { ScreenSize, useScreenSizeContext } from '$hooks/useScreenSize';
 import { IncomingCallModal } from '$features/call/IncomingCallModal';
@@ -21,6 +23,8 @@ import { toCallEmbedStartError } from '$plugins/call/callEmbedError';
 function CallUtils({ embed }: { embed: CallEmbed }) {
   const setCallEmbed = useSetAtom(callEmbedAtom);
   const setCallEmbedStartError = useSetAtom(callEmbedStartErrorAtom);
+  const joined = useCallJoined(embed);
+  const roomName = useRoomName(embed.room);
 
   useCallMemberSoundSync(embed);
   useCallThemeSync(embed);
@@ -28,6 +32,17 @@ function CallUtils({ embed }: { embed: CallEmbed }) {
   const handleCallEnd = useCallback(() => {
     setCallEmbed(undefined);
   }, [setCallEmbed]);
+
+  // Keep the screen from sleeping mid-call, and let the OS label what is
+  // going on. Scoped to actually being in the call rather than merely having
+  // an embed — nobody wants their screen pinned awake by a call they are
+  // still deciding whether to answer.
+  const handleStop = useCallback(() => {
+    void embed.hangup().catch(() => undefined);
+  }, [embed]);
+
+  useCallWakeLock(joined);
+  useCallMediaSession(joined, roomName, handleStop);
 
   useCallHangupEvent(embed, handleCallEnd);
   useClientWidgetApiEvent(embed.call, ElementWidgetActions.Close, handleCallEnd);
