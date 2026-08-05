@@ -10,11 +10,40 @@
       // without ever hitting the network — so normalise the path in the
       // document itself, before the router reads it.
       (function () {
-        var p = window.location.pathname;
-        if (/\/index\.html$/.test(p)) {
-          var rest = window.location.search + window.location.hash;
-          window.history.replaceState(null, '', p.replace(/index\.html$/, '') + rest);
+        var loc = window.location;
+
+        // 1. Stale launch URL. This app routes any unknown top-level path as a
+        //    room to join ("/:spaceIdOrAlias"), so /index.html made it try to
+        //    join a room named "index.html". Home Screen icons from the
+        //    previous client launch exactly that URL. An edge redirect cannot
+        //    help — the service worker answers from cache without touching the
+        //    network — so normalise here, before the router reads the path.
+        var path = loc.pathname;
+        if (/\/index\.html$/.test(path)) {
+          path = path.replace(/index\.html$/, '');
+          window.history.replaceState(null, '', path + loc.search + loc.hash);
         }
+
+        // 2. Shared permalinks. Copy-link and share build "<origin>/#/<target>"
+        //    (the Matrix permalink shape, so other clients still understand
+        //    them), but this app is path-routed and would otherwise ignore the
+        //    fragment and dump the visitor on the home screen. Translate the
+        //    fragment into a real route.
+        var m = /^#\/([^?]+)(\?.*)?$/.exec(loc.hash || '');
+        if (!m) return;
+        var target = decodeURIComponent(m[1]);
+        var query = m[2] || '';
+        var dest = null;
+
+        if (target.charAt(0) === '@') {
+          // A person: open (or start) the direct chat with them.
+          dest = '/direct/create?userId=' + encodeURIComponent(target);
+        } else if (target.charAt(0) === '#' || target.charAt(0) === '!') {
+          // A room, channel or group, by alias or id.
+          dest = '/home/' + encodeURIComponent(target) + '/' + query;
+        }
+
+        if (dest) window.history.replaceState(null, '', dest);
       })();
     </script>
 

@@ -26,5 +26,6 @@
   "hashRouter": {
     "enabled": false,
     "basename": "/"
-  }
+  },
+  "matrixToBaseUrl": "https://blockwire.chat/"
 }
