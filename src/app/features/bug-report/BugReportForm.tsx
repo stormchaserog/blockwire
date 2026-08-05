@@ -13,7 +13,10 @@ type SimilarIssue = {
   html_url: string;
 };
 
-const GITHUB_REPO = 'SableClient/Sable';
+// Ours, not upstream's. Bug reports from BlockWire users were being filed
+// against the project we forked from, where nobody who can act on them is
+// looking.
+const GITHUB_REPO = 'stormchaserog/blockwire';
 
 async function searchSimilarIssues(query: string, signal: AbortSignal): Promise<SimilarIssue[]> {
   // Split into individual words, drop very short ones, and join with OR so that

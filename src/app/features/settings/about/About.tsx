@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Box, Text, Scroll, Button, config, toRem, Spinner } from 'folds';
-import { Code, Heart, menuIcon } from '$components/icons/phosphor';
+import { Code, menuIcon } from '$components/icons/phosphor';
+import { BLOCKWIRE_SOURCE_URL } from '$utils/blockwire/source';
 import { PageContent, SettingsSectionPage } from '$components/page';
 import { SequenceCard, SequenceCardStyle } from '$components/sequence-card';
 import { SettingTile } from '$components/setting-tile';
@@ -261,12 +262,13 @@ export function About({ requestBack, requestClose }: Readonly<AboutProps>) {
                       <Text size="T200">{`v${APP_VERSION}${devLabel}${buildLabel}`}</Text>
                     </Box>
                     <Text>Private groups, public channels and direct messages for crypto communities.</Text>
-                    {/* BlockWire is built on Sable, which is AGPL-3.0. Section 13
-                        requires offering the source to anyone using the app over a
-                        network, so this attribution and the link below stay — the
-                        obligation is not something branding gets to remove. */}
+                    {/* AGPL-3.0 §13 requires offering the source to anyone using
+                        the app over a network, and the attribution to the project
+                        this is derived from stays with it. Branding does not get
+                        to remove either — only to point them at OUR fork, which is
+                        the source a user of THIS app is actually entitled to. */}
                     <Text size="T200" priority="300">
-                      Built on Sable, licensed under AGPL-3.0.{' '}
+                      Licensed under AGPL-3.0, based on Sable.{' '}
                       <a href="/source">Source code and your rights</a>
                     </Text>
                   </Box>
@@ -274,7 +276,7 @@ export function About({ requestBack, requestClose }: Readonly<AboutProps>) {
                   <Box gap="200" wrap="Wrap">
                     <Button
                       as="a"
-                      href="https://github.com/SableClient/Sable"
+                      href={BLOCKWIRE_SOURCE_URL}
                       rel="noreferrer noopener"
                       target="_blank"
                       variant="Secondary"
@@ -284,19 +286,6 @@ export function About({ requestBack, requestClose }: Readonly<AboutProps>) {
                       before={menuIcon(Code, { weight: 'fill' })}
                     >
                       <Text size="B300">Source Code</Text>
-                    </Button>
-                    <Button
-                      as="a"
-                      href="https://opencollective.com/sable"
-                      rel="noreferrer noopener"
-                      target="_blank"
-                      variant="Critical"
-                      fill="Soft"
-                      size="300"
-                      radii="300"
-                      before={menuIcon(Heart, { weight: 'fill' })}
-                    >
-                      <Text size="B300">Support</Text>
                     </Button>
                   </Box>
                 </Box>

@@ -1,6 +1,7 @@
 import { Box, Text, config } from 'folds';
 import { Link } from 'react-router-dom';
 import { ROOT_PATH } from '$pages/paths';
+import { BLOCKWIRE_SOURCE_URL } from '$utils/blockwire/source';
 
 /** The source offer required by AGPL-3.0 §13.
  *
@@ -33,11 +34,11 @@ export function SourceCode() {
         <Box direction="Column" gap="200">
           <Text size="H5">The client</Text>
           <Text size="T300" priority="300">
-            The app you are using is built on{' '}
-            <a href="https://github.com/SableClient/Sable" target="_blank" rel="noreferrer noopener">
-              Sable
+            The source for the version you are running is at{' '}
+            <a href={BLOCKWIRE_SOURCE_URL} target="_blank" rel="noreferrer noopener">
+              {BLOCKWIRE_SOURCE_URL.replace('https://', '')}
             </a>
-            , licensed under the{' '}
+            . It is licensed under the{' '}
             <a
               href="https://www.gnu.org/licenses/agpl-3.0.html"
               target="_blank"
@@ -45,7 +46,11 @@ export function SourceCode() {
             >
               GNU Affero General Public License v3.0
             </a>
-            . Our modifications carry the same licence.
+            , as a modified version of{' '}
+            <a href="https://github.com/SableClient/Sable" target="_blank" rel="noreferrer noopener">
+              Sable
+            </a>
+            , whose licence our modifications inherit.
           </Text>
         </Box>
 
