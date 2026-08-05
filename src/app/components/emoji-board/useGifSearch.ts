@@ -58,13 +58,10 @@ export function useGifSearch(
   const clientConfig = useClientConfig();
   const klipyApiKey = clientConfig.gifs?.klipyApiKey ?? '';
 
-  const searchGifs = useCallback(
-    async (query: string) => {
-      if (!showGifPicker) {
-        return;
-      }
-
-      const trimmedQuery = query.trim();
+  /** One request shape for both endpoints — they differ only in path and query. */
+  const load = useCallback(
+    async (endpoint: 'search' | 'trending', query: string) => {
+      if (!showGifPicker) return;
 
       if (!klipyApiKey) {
         // No key configured, so the request would build a URL with an empty
@@ -79,12 +76,10 @@ export function useGifSearch(
       setLoading(true);
       setError(null);
 
-      gifSearch(trimmedQuery);
-
       try {
         const url = new URL('https://api.klipy.com');
-        url.pathname = `/api/v1/${klipyApiKey}/gifs/search`;
-        url.searchParams.set('q', trimmedQuery);
+        url.pathname = `/api/v1/${klipyApiKey}/gifs/${endpoint}`;
+        if (endpoint === 'search') url.searchParams.set('q', query);
         url.searchParams.set('per_page', '50'); // TODO: infinite scroll?
 
         const response = await fetch(url.toString());
@@ -98,19 +93,41 @@ export function useGifSearch(
           throw new Error(`HTTP ${response.status}`);
         }
       } catch {
-        setError('Failed to search GIFs');
+        setError(endpoint === 'trending' ? 'Could not load GIFs' : 'Failed to search GIFs');
         setSearchResults([]);
       } finally {
         setLoading(false);
       }
     },
-    [klipyApiKey, showGifPicker, gifSearch]
+    [klipyApiKey, showGifPicker]
   );
+
+  const searchGifs = useCallback(
+    async (query: string) => {
+      const trimmedQuery = query.trim();
+      gifSearch(trimmedQuery);
+      await load('search', trimmedQuery);
+    },
+    [gifSearch, load]
+  );
+
+  /**
+   * What the picker shows before anyone types.
+   *
+   * It used to show only your favourites, which on a new account is nothing
+   * at all — so opening the GIF tab said "No GIFs found!" and the feature
+   * looked broken until you guessed that you had to search first. Every
+   * messenger opens this panel with something to look at.
+   */
+  const loadTrending = useCallback(async () => {
+    gifSearch('');
+    await load('trending', '');
+  }, [gifSearch, load]);
 
   const gifs = useMemo(
     () => ({ gifs: searchResults, favorites: favoriteGifs }),
     [searchResults, favoriteGifs]
   );
 
-  return { gifs, loading, error, searchGifs };
+  return { gifs, loading, error, searchGifs, loadTrending };
 }

@@ -167,13 +167,19 @@ export const EmojiGroupContent = style([
 export const GifGroupContent = style([
   DefaultReset,
   {
-    columnCount: 2,
+    // Three columns, including on phones. This dropped to a SINGLE column
+    // under 480px, which meant one enormous GIF per row and a picker you had
+    // to scroll for a minute to see six of anything. Browsing GIFs is a
+    // scanning task — you recognise the one you want from a thumbnail — so
+    // more and smaller beats fewer and bigger.
+    columnCount: 3,
     columnGap: config.space.S100,
     padding: `0 ${config.space.S200}`,
 
     '@media': {
-      'screen and (max-width: 480px)': {
-        columnCount: 1,
+      // Only on genuinely tiny screens does a third column stop being legible.
+      'screen and (max-width: 340px)': {
+        columnCount: 2,
       },
     },
   },
@@ -231,7 +237,7 @@ export const GifItem = style([
   FocusOutline,
   {
     width: '100%',
-    marginBottom: toRem(8),
+    marginBottom: toRem(4),
     breakInside: 'avoid',
     borderRadius: config.radii.R400,
     cursor: 'pointer',

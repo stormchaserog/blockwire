@@ -527,6 +527,7 @@ export function EmojiBoard({
     loading: gifsLoading,
     error: gifsError,
     searchGifs,
+    loadTrending,
   } = useGifSearch(favoriteGifs, showGifPicker, gifSearch);
   const [emojiGroupItems, stickerGroupItems, gifGroupItems] = useGroups(tab, imagePacks, gifs);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(true);
@@ -560,12 +561,14 @@ export function EmojiBoard({
       (evt) => {
         const term = evt.target.value;
         if (tab === EmojiBoardTab.Gif) {
+          setShowFavoritesOnly(false);
           if (term) {
-            setShowFavoritesOnly(false);
             searchGifs(term);
           } else {
-            setShowFavoritesOnly(true);
+            // Clearing the box goes back to trending, not to an empty
+            // favourites list — favourites still appear above the results.
             resetGifSearch();
+            loadTrending();
           }
         } else if (term) {
           emojiSearch(term);
@@ -573,17 +576,24 @@ export function EmojiBoard({
           resetEmojiSearch();
         }
       },
-      [emojiSearch, resetEmojiSearch, searchGifs, resetGifSearch, tab]
+      [emojiSearch, resetEmojiSearch, searchGifs, resetGifSearch, loadTrending, tab]
     ),
     { wait: 200 }
   );
 
   useEffect(() => {
     if (!gifTab || initialGifSearch === undefined) return;
-    setShowFavoritesOnly(initialGifSearch.length === 0);
-    if (initialGifSearch) searchGifs(initialGifSearch);
-    else resetGifSearch();
-  }, [gifTab, initialGifSearch, searchGifs, resetGifSearch]);
+    setShowFavoritesOnly(false);
+    if (initialGifSearch) {
+      searchGifs(initialGifSearch);
+    } else {
+      // Opening the tab with nothing typed must show something. Previously
+      // this fell through to favourites-only, which is empty on a new
+      // account and rendered "No GIFs found!".
+      resetGifSearch();
+      loadTrending();
+    }
+  }, [gifTab, initialGifSearch, searchGifs, resetGifSearch, loadTrending]);
 
   const contentScrollRef = useRef<HTMLDivElement>(null);
   const virtualBaseRef = useRef<HTMLDivElement>(null);
