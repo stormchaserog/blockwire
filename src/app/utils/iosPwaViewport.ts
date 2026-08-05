@@ -59,17 +59,26 @@ export function installIosPwaViewportHeight(): void {
   let frame = 0;
   let settleTimer = 0;
 
+  let applied = -1;
+
   const updateHeight = () => {
     frame = 0;
     const viewport = window.visualViewport;
-    const height = computeViewportHeight({
-      layoutHeight: window.innerHeight,
-      visualHeight: viewport?.height ?? window.innerHeight,
-      visualOffsetTop: viewport?.offsetTop ?? 0,
-      editableFocused: isEditableFocused(),
-    });
+    const height = Math.round(
+      computeViewportHeight({
+        layoutHeight: window.innerHeight,
+        visualHeight: viewport?.height ?? window.innerHeight,
+        visualOffsetTop: viewport?.offsetTop ?? 0,
+        editableFocused: isEditableFocused(),
+      })
+    );
 
-    document.documentElement.style.setProperty(IOS_PWA_VIEWPORT_HEIGHT, `${Math.round(height)}px`);
+    // Writing this property relayouts the entire app, so only write it when
+    // the answer actually changed. Without this, every settle timer and every
+    // stray resize repaints the whole tree for nothing.
+    if (height === applied) return;
+    applied = height;
+    document.documentElement.style.setProperty(IOS_PWA_VIEWPORT_HEIGHT, `${height}px`);
   };
 
   const scheduleUpdate = () => {
@@ -84,7 +93,12 @@ export function installIosPwaViewportHeight(): void {
   window.addEventListener('resize', scheduleUpdate);
   window.addEventListener('orientationchange', scheduleUpdate);
   window.visualViewport?.addEventListener('resize', scheduleUpdate);
-  window.visualViewport?.addEventListener('scroll', scheduleUpdate);
   document.addEventListener('focusin', scheduleUpdate);
   document.addEventListener('focusout', scheduleUpdate);
+
+  // Deliberately NOT listening to visualViewport 'scroll'. iOS fires it on
+  // every frame of a scroll while the keyboard is up, and each one resized the
+  // whole app — which is what made typing feel like the view was bouncing up
+  // and down under your thumb. How tall the app is has nothing to do with how
+  // far it has been scrolled; only 'resize' can change the answer.
 }

@@ -27,5 +27,9 @@
     "enabled": false,
     "basename": "/"
   },
-  "matrixToBaseUrl": "https://blockwire.chat/"
+  "matrixToBaseUrl": "https://blockwire.chat/",
+  "gifs": {
+    "klipyApiKey": "",
+    "proxyUrl": null
+  }
 }

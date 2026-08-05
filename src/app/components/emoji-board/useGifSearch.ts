@@ -66,6 +66,16 @@ export function useGifSearch(
 
       const trimmedQuery = query.trim();
 
+      if (!klipyApiKey) {
+        // No key configured, so the request would build a URL with an empty
+        // path segment and fail with a meaningless "HTTP 404". Say what is
+        // actually wrong instead of looking broken.
+        setSearchResults([]);
+        setLoading(false);
+        setError('GIF search is not set up on this server yet.');
+        return;
+      }
+
       setLoading(true);
       setError(null);
 
