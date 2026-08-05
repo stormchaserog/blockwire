@@ -54,6 +54,9 @@ const cases = [
   ['https://blockwire.chat/login/', '/login/'],
   ['https://blockwire.chat/register/', '/register/'],
   ['https://blockwire.chat/navigate', '/navigate'],
+  // The AGPL source offer must stay reachable — a room named "source" cannot
+  // be allowed to shadow the page that discharges a licence obligation.
+  ['https://blockwire.chat/source', '/source'],
   ['https://blockwire.chat/profile/', '/profile/'],
   ['https://blockwire.chat/create-room', '/create-room'],
   // reloading while inside a space must stay inside that space

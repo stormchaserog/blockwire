@@ -266,7 +266,8 @@ export function About({ requestBack, requestClose }: Readonly<AboutProps>) {
                         network, so this attribution and the link below stay — the
                         obligation is not something branding gets to remove. */}
                     <Text size="T200" priority="300">
-                      Built on Sable, licensed under AGPL-3.0.
+                      Built on Sable, licensed under AGPL-3.0.{' '}
+                      <a href="/source">Source code and your rights</a>
                     </Text>
                   </Box>
 

@@ -82,6 +82,10 @@ export const CREATE_PATH = '/create';
 export const CREATE_ROOM_PATH = '/create-room';
 export const BUG_REPORT_PATH = '/bug-report';
 export const NAVIGATE_PATH = '/navigate';
+/** AGPL-3.0 §13 requires offering source to anyone using the software over a
+ *  network. A stable, guessable URL reachable without an account is what makes
+ *  that offer real rather than asserted. */
+export const SOURCE_PATH = '/source';
 /** BlockWire invite links. The URL people share is the short `/+<hash>`; the
  *  boot guard in index.html rewrites it here so React Router never has to
  *  parse a `+` sigil. */

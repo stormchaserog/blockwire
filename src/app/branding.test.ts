@@ -39,6 +39,9 @@ const INTERNAL = [
  */
 const ATTRIBUTION_ALLOWED = [
   'pages/auth/AuthFooter.tsx',
+  // The source-offer page. Naming Sable here is the point — it is how the
+  // AGPL §13 obligation is discharged, not a branding slip.
+  'pages/SourceCode.tsx',
   'features/settings/about/About.tsx',
   'pages/client/WelcomePage.tsx',
   'utils/consolePasteScamWarning.ts',
@@ -83,6 +86,15 @@ describe('BlockWire branding', () => {
     }
 
     expect(offenders, `Upstream branding is visible here:\n${offenders.join('\n')}`).toEqual([]);
+  });
+
+  it('keeps the source page reachable, because the licence requires it', () => {
+    // AGPL-3.0 §13: anyone using this over a network must be offered the
+    // source. Deleting this page would be a licence violation, so the test
+    // asserts its existence rather than trusting nobody removes it.
+    const page = readFileSync(path.join(SRC, 'app/pages/SourceCode.tsx'), 'utf8');
+    expect(page).toContain('github.com/SableClient/Sable');
+    expect(page).toContain('agpl-3.0');
   });
 
   it('keeps the source-code offer that the licence requires', () => {
