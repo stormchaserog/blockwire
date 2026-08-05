@@ -32,8 +32,12 @@ export function NavigateTab({ isBottom, isMobile }: { isBottom?: boolean; isMobi
               />
             </SidebarAvatar>
             {isMobile && (
+              // "Search" — matching the tooltip above, which upstream already
+              // called Search while labelling the tab "Navigate". This is the
+              // only way to search rooms on a phone, so it keeps its slot in
+              // the bottom bar; it just says what it does now.
               <Text size="B300" priority="300">
-                Navigate
+                Search
               </Text>
             )}
           </Box>

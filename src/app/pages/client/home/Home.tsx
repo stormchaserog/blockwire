@@ -2,12 +2,10 @@ import { forwardRef, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, Box, Button, MenuItem, Text, toRem } from 'folds';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useAtom, useAtomValue } from 'jotai';
-import { factoryRoomIdByActivity, factoryRoomIdByAtoZ } from '$utils/sort';
+import { factoryRoomIdByActivity } from '$utils/sort';
 import {
   NavButton,
   NavCategory,
-  NavCategoryHeader,
   NavEmptyCenter,
   NavEmptyLayout,
   NavItem,
@@ -30,14 +28,10 @@ import { useSelectedOrLastRoom } from '$hooks/router/useSelectedRoom';
 import { useHomeCreateSelected, useHomeSearchSelected } from '$hooks/router/useRouteSelected';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { VirtualTile } from '$components/virtualizer';
-import { RoomNavCategoryButton, RoomNavItem } from '$features/room-nav';
-import { makeNavCategoryId } from '$state/closedNavCategories';
-import { roomToUnreadAtom } from '$state/room/roomToUnread';
-import { useCategoryHandler } from '$hooks/useCategoryHandler';
+import { RoomNavItem } from '$features/room-nav';
 import { useNavToActivePathMapper } from '$hooks/useNavToActivePathMapper';
 import { PageNavHeaderWithMenu, PageNavContent } from '$components/page';
 import { PageNavShell } from '$components/page/PageNavShell';
-import { useClosedNavCategoriesAtom } from '$state/hooks/closedNavCategories';
 import { useSetting } from '$state/hooks/settings';
 import { settingsAtom, ShowRoomIcon } from '$state/settings';
 import {
@@ -153,7 +147,6 @@ function HomeEmpty() {
   );
 }
 
-const DEFAULT_CATEGORY_ID = makeNavCategoryId('home', 'room');
 export function Home() {
   const mx = useMatrixClient();
   useNavToActivePathMapper('home');
@@ -162,7 +155,6 @@ export function Home() {
   const [isShowingAllRoomsInHome] = useSetting(settingsAtom, 'isShowingAllRoomsInHome');
   const rooms = useHomeRooms(isShowingAllRoomsInHome);
   const notificationPreferences = useRoomsNotificationPreferencesContext();
-  const roomToUnread = useAtomValue(roomToUnreadAtom);
   const navigate = useNavigate();
 
   const {
@@ -193,27 +185,15 @@ export function Home() {
   const openShallowRoute = useOpenShallowRoute();
   const searchSelected = useHomeSearchSelected();
   const noRoomToDisplay = rooms.length === 0;
-  const [closedCategories, setClosedCategories] = useAtom(useClosedNavCategoriesAtom());
 
-  const defaultCategoryClosed = closedCategories.has(DEFAULT_CATEGORY_ID);
-  const sortRoomsByActivity = defaultCategoryClosed || isShowingAllRoomsInHome;
-  const orderedRooms = useMemo(
-    () =>
-      Array.from(rooms).toSorted(
-        sortRoomsByActivity ? factoryRoomIdByActivity(mx) : factoryRoomIdByAtoZ(mx)
-      ),
-    [mx, rooms, sortRoomsByActivity]
+  // One flat, always-visible list sorted by recent activity — the messenger
+  // convention. Upstream grouped these under a collapsible "Rooms" category
+  // that also doubled as an unread filter; both are gone, so every
+  // conversation is always present and the newest is always on top.
+  const sortedRooms = useMemo(
+    () => Array.from(rooms).toSorted(factoryRoomIdByActivity(mx)),
+    [mx, rooms]
   );
-
-  const sortedRooms = useMemo(() => {
-    if (!defaultCategoryClosed) return orderedRooms;
-
-    const hasUnread = (roomId: string) => {
-      const unread = roomToUnread.get(roomId);
-      return !!unread && (unread.total > 0 || unread.highlight > 0);
-    };
-    return orderedRooms.filter((rId) => hasUnread(rId) || rId === selectedRoomId);
-  }, [orderedRooms, defaultCategoryClosed, roomToUnread, selectedRoomId]);
 
   const getItemKey = useCallback((index: number) => sortedRooms[index] ?? index, [sortedRooms]);
 
@@ -224,10 +204,6 @@ export function Home() {
     overscan: 10,
     getItemKey,
   });
-
-  const handleCategoryClick = useCategoryHandler(setClosedCategories, (categoryId) =>
-    closedCategories.has(categoryId)
-  );
 
   const handleExploreClick = () => {
     if (isMobile) {
@@ -387,15 +363,6 @@ export function Home() {
               </NavItem>
             </NavCategory>
             <NavCategory>
-              <NavCategoryHeader>
-                <RoomNavCategoryButton
-                  closed={closedCategories.has(DEFAULT_CATEGORY_ID)}
-                  data-category-id={DEFAULT_CATEGORY_ID}
-                  onClick={handleCategoryClick}
-                >
-                  {!hideText && 'Rooms'}
-                </RoomNavCategoryButton>
-              </NavCategoryHeader>
               <div
                 style={{
                   position: 'relative',
