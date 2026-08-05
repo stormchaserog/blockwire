@@ -46,7 +46,7 @@ import { useMediaAuthentication } from '$hooks/useMediaAuthentication';
 import { useAllJoinedRoomsSet, useGetRoom } from '$hooks/useGetRoom';
 import { getDirectRoomAvatarUrl, getRoomAvatarUrl } from '$utils/room/display';
 import { nameInitials } from '$utils/common';
-import { getMatrixToUser } from '$plugins/matrix-to';
+import { getUserLink } from '$plugins/blockwire-link';
 import { useTimeoutToggle } from '$hooks/useTimeoutToggle';
 import { useIgnoredUsers } from '$hooks/useIgnoredUsers';
 import { useNickname, useSetNickname } from '$hooks/useNickname';
@@ -274,7 +274,7 @@ export function ShareChip({
                   chipHoverBrightness
                 )}
                 onClick={() => {
-                  copyToClipboard(getMatrixToUser(userId));
+                  copyToClipboard(getUserLink(userId));
                   setCopied();
                   shareMenu.close();
                 }}
@@ -294,7 +294,7 @@ export function ShareChip({
                   chipHoverBrightness
                 )}
                 onClick={async () => {
-                  const shared = await shareText(getMatrixToUser(userId));
+                  const shared = await shareText(getUserLink(userId));
                   if (shared) setCopied();
                   shareMenu.close();
                 }}

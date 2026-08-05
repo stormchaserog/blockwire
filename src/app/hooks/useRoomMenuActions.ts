@@ -6,17 +6,15 @@ import { useMatrixClient } from '$hooks/useMatrixClient';
 import { useSetting } from '$state/hooks/settings';
 import { settingsAtom } from '$state/settings';
 import { useSpaceOptionally } from '$hooks/useSpace';
-import { getCanonicalAliasOrRoomId, isRoomAlias, removeRoomIdFromMDirect } from '$utils/matrix';
+import { removeRoomIdFromMDirect } from '$utils/matrix';
 import { useRoomUnread } from '$state/hooks/unread';
 import { roomToUnreadAtom } from '$state/room/roomToUnread';
 import { usePowerLevels } from '$hooks/usePowerLevels';
 import { markAsRead } from '$utils/notifications';
-import { copyToClipboard } from '$utils/dom';
 import { confirm } from '$components/confirm/confirm';
 import { showToast } from '$state/toast';
 import { useOpenRoomSettings } from '$state/hooks/roomSettings';
-import { getMatrixToRoom } from '$plugins/matrix-to';
-import { getViaServers } from '$plugins/via-servers';
+import { useShareRoomLink } from '$hooks/useShareRoomLink';
 import { useRoomCreators } from '$hooks/useRoomCreators';
 import { useRoomPermissions } from '$hooks/useRoomPermissions';
 import { AsyncStatus, useAsyncCallback } from '$hooks/useAsyncCallback';
@@ -38,6 +36,7 @@ export function useRoomMenuActions(room: Room) {
   const openSettingsFn = useOpenRoomSettings();
   const space = useSpaceOptionally();
   const { navigateRoom } = useRoomNavigate();
+  const { copyLink: copyRoomLink } = useShareRoomLink(room);
 
   const [invitePrompt, setInvitePrompt] = useState(false);
   const [directInvitePrompt, setDirectInvitePrompt] = useState(false);
@@ -78,10 +77,8 @@ export function useRoomMenuActions(room: Room) {
   }, [convertState.status]);
 
   const handleCopyLink = useCallback(() => {
-    const roomIdOrAlias = getCanonicalAliasOrRoomId(mx, room.roomId);
-    const viaServers = isRoomAlias(roomIdOrAlias) ? undefined : getViaServers(room);
-    copyToClipboard(getMatrixToRoom(roomIdOrAlias, viaServers));
-  }, [mx, room]);
+    copyRoomLink().catch(() => {});
+  }, [copyRoomLink]);
 
   const handleOpenSettings = useCallback(() => {
     openSettingsFn(room.roomId, space?.roomId);

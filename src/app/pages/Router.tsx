@@ -46,6 +46,7 @@ import {
   SERVER_PATH_SEGMENT,
   CREATE_PATH,
   TO_ROOM_EVENT_PATH,
+  INVITE_PATH,
   SETTINGS_PATH,
   NAVIGATE_PATH,
   PROFILE_PATH,
@@ -114,6 +115,7 @@ import { ToRoomEvent } from './client/ToRoomEvent';
 import { CallStatusRenderer } from './CallStatusRenderer';
 import { UserQuickToolsProvider } from '$components/UserQuickToolsProvider';
 import { Navigate } from './client/navigate';
+import { InviteLanding } from './client/invite';
 import { ProfileMobile } from './client/profile';
 
 // Lazy-loaded: mobile full-screen pages for flows that are modals on desktop.
@@ -425,6 +427,7 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
           }
         />
         <Route path={NAVIGATE_PATH} element={<Navigate />} />
+        <Route path={INVITE_PATH} element={<InviteLanding />} />
         <Route path={PROFILE_PATH} element={<ProfileMobile />} />
         <Route
           path={SETTINGS_PATH}

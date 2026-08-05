@@ -22,7 +22,7 @@ import { useMatrixClient } from '$hooks/useMatrixClient';
 import { mDirectAtom } from '$state/mDirectList';
 import { NavCategory, NavCategoryHeader, NavItem, NavItemContent, NavLink } from '$components/nav';
 import { getSpaceLobbyPath, getSpaceRoomPath, getSpaceSearchPath } from '$pages/pathUtils';
-import { getCanonicalAliasOrRoomId, isRoomAlias, mxcUrlToHttp } from '$utils/matrix';
+import { getCanonicalAliasOrRoomId, mxcUrlToHttp } from '$utils/matrix';
 import { useSelectedOrLastRoom } from '$hooks/router/useSelectedRoom';
 import { useSpaceLobbySelected, useSpaceSearchSelected } from '$hooks/router/useSelectedSpace';
 import { useSpace } from '$hooks/useSpace';
@@ -64,12 +64,10 @@ import { markAsRead } from '$utils/notifications';
 import { useRoomsUnread } from '$state/hooks/unread';
 import { UseStateProvider } from '$components/UseStateProvider';
 import { LeaveSpacePrompt } from '$components/leave-space-prompt';
-import { copyToClipboard } from '$utils/dom';
-import { shareText } from '$utils/share';
 import { useClosedNavCategoriesAtom } from '$state/hooks/closedNavCategories';
 import { useStateEvent } from '$hooks/useStateEvent';
 
-import { getMatrixToRoom } from '$plugins/matrix-to';
+import { useShareRoomLink } from '$hooks/useShareRoomLink';
 import { getViaServers } from '$plugins/via-servers';
 import { useSetting } from '$state/hooks/settings';
 import { settingsAtom, ShowRoomIcon } from '$state/settings';
@@ -125,6 +123,7 @@ const SpaceMenu = forwardRef<HTMLDivElement, SpaceMenuProps>(({ room, requestClo
   const canInvite = permissions.action('invite', mx.getSafeUserId());
   const openRoomSettings = useOpenRoomSettings();
   const { navigateRoom } = useRoomNavigate();
+  const { copyLink, shareLink } = useShareRoomLink(room);
 
   const [invitePrompt, setInvitePrompt] = useState(false);
 
@@ -141,16 +140,12 @@ const SpaceMenu = forwardRef<HTMLDivElement, SpaceMenuProps>(({ room, requestClo
   };
 
   const handleCopyLink = () => {
-    const roomIdOrAlias = getCanonicalAliasOrRoomId(mx, room.roomId);
-    const viaServers = isRoomAlias(roomIdOrAlias) ? undefined : getViaServers(room);
-    copyToClipboard(getMatrixToRoom(roomIdOrAlias, viaServers));
+    copyLink().catch(() => {});
     requestClose();
   };
 
   const handleShareLink = () => {
-    const roomIdOrAlias = getCanonicalAliasOrRoomId(mx, room.roomId);
-    const viaServers = isRoomAlias(roomIdOrAlias) ? undefined : getViaServers(room);
-    shareText(getMatrixToRoom(roomIdOrAlias, viaServers)).catch(() => {});
+    shareLink().catch(() => {});
     requestClose();
   };
 

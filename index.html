@@ -30,20 +30,108 @@
         //    fragment and dump the visitor on the home screen. Translate the
         //    fragment into a real route.
         var m = /^#\/([^?]+)(\?.*)?$/.exec(loc.hash || '');
-        if (!m) return;
-        var target = decodeURIComponent(m[1]);
-        var query = m[2] || '';
-        var dest = null;
+        if (m) {
+          var target = decodeURIComponent(m[1]);
+          var query = m[2] || '';
+          var dest = null;
 
-        if (target.charAt(0) === '@') {
-          // A person: open (or start) the direct chat with them.
-          dest = '/direct/create?userId=' + encodeURIComponent(target);
-        } else if (target.charAt(0) === '#' || target.charAt(0) === '!') {
-          // A room, channel or group, by alias or id.
-          dest = '/home/' + encodeURIComponent(target) + '/' + query;
+          if (target.charAt(0) === '@') {
+            // A person: open (or start) the direct chat with them.
+            dest = '/direct/create?userId=' + encodeURIComponent(target);
+          } else if (target.charAt(0) === '#' || target.charAt(0) === '!') {
+            // A room, channel or group, by alias or id.
+            dest = '/home/' + encodeURIComponent(target) + '/' + query;
+          }
+
+          if (dest) {
+            window.history.replaceState(null, '', dest);
+            return;
+          }
         }
 
-        if (dest) window.history.replaceState(null, '', dest);
+        // 3. BlockWire short links — what copy/share produce today:
+        //
+        //      /degens          a room, group or channel by name
+        //      /degens/$abc     one message inside it
+        //      /@stephen        a person
+        //      /+7Fk2xQwe       an invite link (handled by a route, not here)
+        //      /room/!id%3A…    a room with no name, the long-form fallback
+        //
+        //    SERVER is hardcoded because this script runs before config.json
+        //    is fetched, and a share link that resolves late is a share link
+        //    that dumps the visitor on the home screen. It matches the
+        //    homeserver in config.json.
+        var SERVER = 'blockwire.chat';
+
+        // Paths the app itself owns. A room may legitimately be called
+        // "settings"; it still cannot have /settings. Keep in sync with the
+        // same list in src/app/plugins/blockwire-link.ts.
+        var RESERVED = {
+          login: 1, register: 1, 'reset-password': 1, home: 1, direct: 1,
+          explore: 1, create: 1, 'create-room': 1, 'bug-report': 1,
+          navigate: 1, profile: 1, inbox: 1, settings: 1, lp: 1, invite: 1,
+          'index.html': 1, 'config.json': 1, 'sw.js': 1, assets: 1,
+          public: 1, 'manifest.webmanifest': 1, '.well-known': 1,
+        };
+
+        var parts = path.replace(/^\/+|\/+$/g, '').split('/');
+        var head = parts[0] ? decodeURIComponent(parts[0]) : '';
+        if (!head) return;
+
+        // Long form: /room/<full id or alias>[/<event>]
+        if (head === 'room' && parts[1]) {
+          var full = decodeURIComponent(parts[1]);
+          var tail = parts[2] ? '/' + parts[2] : '';
+          window.history.replaceState(
+            null,
+            '',
+            '/home/' + encodeURIComponent(full) + tail + '/' + loc.search
+          );
+          return;
+        }
+
+        if (RESERVED[head.toLowerCase()] === 1) return;
+
+        // A person: /@stephen, or /@bob:elsewhere for a foreign account.
+        if (head.charAt(0) === '@') {
+          var userId = head.indexOf(':') === -1 ? head + ':' + SERVER : head;
+          window.history.replaceState(
+            null,
+            '',
+            '/direct/create?userId=' + encodeURIComponent(userId)
+          );
+          return;
+        }
+
+        // An invite link. The route does the work — it takes a request to
+        // the gateway to learn where the link even leads — but the `+` is
+        // rewritten away here so the router never has to parse a sigil.
+        if (head.charAt(0) === '+') {
+          window.history.replaceState(
+            null,
+            '',
+            '/invite/' + encodeURIComponent(head.slice(1)) + loc.search
+          );
+          return;
+        }
+
+        // Anything else that still carries a sigil is an internal identifier
+        // and not ours to rewrite: /!space:server is how this app addresses a
+        // space, and reloading while inside one must keep working.
+        if (/^[!#$]/.test(head)) return;
+
+        // A bare name: /degens -> the room #degens:blockwire.chat.
+        if (!/^[a-z0-9._=-]+$/i.test(head)) return;
+        var eventTail = parts[1] && parts[1].charAt(0) === '$' ? '/' + parts[1] : '';
+        window.history.replaceState(
+          null,
+          '',
+          '/home/' +
+            encodeURIComponent('#' + head + ':' + SERVER) +
+            eventTail +
+            '/' +
+            loc.search
+        );
       })();
     </script>
 
@@ -55,10 +143,10 @@
     />
     <title>BlockWire</title>
     <meta name="name" content="BlockWire" />
-    <meta name="author" content="7w1" />
+    <meta name="author" content="BlockWire" />
     <meta
       name="description"
-      content="A Matrix client where you can enjoy the conversation using (not) simple, elegant and secure interface protected by e2ee with the power of open source. And colorful cosmetics. Because yes."
+      content="Private groups, public channels and direct messages for crypto communities. Encrypted, self-owned, no phone number required."
     />
     <meta
       name="keywords"
@@ -70,7 +158,7 @@
     <meta property="og:image" content="./public/favicon.png" />
     <meta
       property="og:description"
-      content="A Matrix client where you can enjoy the conversation using (not) simple, elegant and secure interface protected by e2ee with the power of open source. And colorful cosmetics. Because yes."
+      content="Private groups, public channels and direct messages for crypto communities. Encrypted, self-owned, no phone number required."
     />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0A0A0A" />

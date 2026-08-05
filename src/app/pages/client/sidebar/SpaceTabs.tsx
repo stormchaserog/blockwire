@@ -63,7 +63,7 @@ import {
 } from '$components/sidebar';
 import { RoomUnreadProvider, RoomsUnreadProvider } from '$components/RoomUnreadProvider';
 import { useSelectedSpace } from '$hooks/router/useSelectedSpace';
-import { getCanonicalAliasOrRoomId, isRoomAlias, mxcUrlToHttp } from '$utils/matrix';
+import { getCanonicalAliasOrRoomId, mxcUrlToHttp } from '$utils/matrix';
 import { RoomAvatar } from '$components/room-avatar';
 import { nameInitials, randomStr } from '$utils/common';
 import type { ISidebarFolder, SidebarItems, TSidebarItem } from '$hooks/useSidebarItems';
@@ -82,10 +82,7 @@ import { usePowerLevels } from '$hooks/usePowerLevels';
 import { useRoomsUnread } from '$state/hooks/unread';
 import { roomToUnreadAtom } from '$state/room/roomToUnread';
 import { markAsRead } from '$utils/notifications';
-import { copyToClipboard } from '$utils/dom';
-import { shareText } from '$utils/share';
-import { getMatrixToRoom } from '$plugins/matrix-to';
-import { getViaServers } from '$plugins/via-servers';
+import { useShareRoomLink } from '$hooks/useShareRoomLink';
 import { useMediaAuthentication } from '$hooks/useMediaAuthentication';
 import { useRoomAvatar } from '$hooks/useRoomMeta';
 import { useSetting } from '$state/hooks/settings';
@@ -117,6 +114,7 @@ const SpaceMenu = forwardRef<HTMLDivElement, SpaceMenuProps>(
     const permissions = useRoomPermissions(creators, powerLevels);
     const canInvite = permissions.action('invite', mx.getSafeUserId());
     const openRoomSettings = useOpenRoomSettings();
+    const { copyLink, shareLink } = useShareRoomLink(room);
 
     const [invitePrompt, setInvitePrompt] = useState(false);
 
@@ -138,16 +136,12 @@ const SpaceMenu = forwardRef<HTMLDivElement, SpaceMenuProps>(
     };
 
     const handleCopyLink = () => {
-      const roomIdOrAlias = getCanonicalAliasOrRoomId(mx, room.roomId);
-      const viaServers = isRoomAlias(roomIdOrAlias) ? undefined : getViaServers(room);
-      copyToClipboard(getMatrixToRoom(roomIdOrAlias, viaServers));
+      copyLink().catch(() => {});
       requestClose();
     };
 
     const handleShareLink = () => {
-      const roomIdOrAlias = getCanonicalAliasOrRoomId(mx, room.roomId);
-      const viaServers = isRoomAlias(roomIdOrAlias) ? undefined : getViaServers(room);
-      shareText(getMatrixToRoom(roomIdOrAlias, viaServers)).catch(() => {});
+      shareLink().catch(() => {});
       requestClose();
     };
 

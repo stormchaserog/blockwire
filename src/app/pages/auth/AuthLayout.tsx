@@ -236,17 +236,26 @@ export function AuthLayout() {
             )}
           </Header>
           <Box className={css.AuthCardContent} direction="Column">
-            <Box direction="Column" gap="100">
-              <Text as="label" size="L400" priority="300">
-                Homeserver
-              </Text>
-              <ServerPicker
-                server={server}
-                serverList={clientConfig.homeserverList ?? []}
-                allowCustomServer={clientConfig.allowCustomHomeservers}
-                onServerChange={selectServer}
-              />
-            </Box>
+            {/* The server picker only earns its space when there is a choice
+                to make. BlockWire is one server, so showing a "Homeserver"
+                field labelled blockwire.chat above a form on blockwire.chat
+                asks people to think about infrastructure before they can log
+                in. It comes back automatically if custom servers are ever
+                allowed or a second one is listed. */}
+            {(clientConfig.allowCustomHomeservers ||
+              (clientConfig.homeserverList ?? []).length > 1) && (
+              <Box direction="Column" gap="100">
+                <Text as="label" size="L400" priority="300">
+                  Homeserver
+                </Text>
+                <ServerPicker
+                  server={server}
+                  serverList={clientConfig.homeserverList ?? []}
+                  allowCustomServer={clientConfig.allowCustomHomeservers}
+                  onServerChange={selectServer}
+                />
+              </Box>
+            )}
             {discoveryState.status === AsyncStatus.Loading && (
               <AuthLayoutLoading message="Looking for homeserver..." />
             )}

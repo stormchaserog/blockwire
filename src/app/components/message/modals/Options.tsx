@@ -47,7 +47,8 @@ import FocusTrap from 'focus-trap-react';
 import { stopPropagation } from '$utils/keyboard';
 import { modalAtom, ModalType } from '$state/modal';
 import { copyToClipboard } from '$utils/dom';
-import { getMatrixToRoomEvent } from '$plugins/matrix-to';
+import { getEventLink } from '$plugins/blockwire-link';
+import { getCanonicalAliasOrRoomId } from '$utils/matrix';
 import { getViaServers } from '$plugins/via-servers';
 import { useRoomPinnedEvents } from '$hooks/useRoomPinnedEvents';
 import { EmojiBoard } from '$components/emoji-board';
@@ -142,10 +143,16 @@ const MessageCopyLinkItem = as<
     onClose: () => void;
   }
 >(({ room, mEvent, onClose, ...props }, ref) => {
+  const mx = useMatrixClient();
   const handleCopy = () => {
     const eventId = mEvent.getId();
     if (!eventId) return;
-    copyToClipboard(getMatrixToRoomEvent(room.roomId, eventId, getViaServers(room)));
+    // Prefer the room's published address so the link reads
+    // blockwire.chat/degens/$abc. A room with no address falls back to its
+    // internal id — a message link is only useful to members anyway, and
+    // minting an invite link here would spend one of its uses.
+    const roomIdOrAlias = getCanonicalAliasOrRoomId(mx, room.roomId);
+    copyToClipboard(getEventLink(roomIdOrAlias, eventId, getViaServers(room)));
     onClose();
   };
 

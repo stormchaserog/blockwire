@@ -82,6 +82,10 @@ export const CREATE_PATH = '/create';
 export const CREATE_ROOM_PATH = '/create-room';
 export const BUG_REPORT_PATH = '/bug-report';
 export const NAVIGATE_PATH = '/navigate';
+/** BlockWire invite links. The URL people share is the short `/+<hash>`; the
+ *  boot guard in index.html rewrites it here so React Router never has to
+ *  parse a `+` sigil. */
+export const INVITE_PATH = '/invite/:hash';
 export const PROFILE_PATH = '/profile/';
 
 export const NOTIFICATIONS_PATH_SEGMENT = 'notifications/';
