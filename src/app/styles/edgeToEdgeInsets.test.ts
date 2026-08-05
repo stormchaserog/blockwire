@@ -82,10 +82,15 @@ describe('android edge-to-edge inset contract', () => {
     expect(iosPwaViewport).toContain("window.matchMedia('(display-mode: standalone)').matches");
     expect(iosPwaViewport).toContain('const MIN_KEYBOARD_HEIGHT = 100');
     expect(iosPwaViewport).toContain('isEditableFocused()');
-    expect(iosPwaViewport).toContain('screenHeight - visibleHeight > MIN_KEYBOARD_HEIGHT');
+    expect(iosPwaViewport).toContain('layoutHeight - visualHeight > MIN_KEYBOARD_HEIGHT');
     expect(iosPwaViewport).toContain('window.setTimeout(updateHeight, 350)');
     expect(iosPwaViewport).not.toContain('fullHeight');
     expect(iosPwaViewport).not.toContain('viewportWidth');
+    // The height must come from the web view's own viewport. Measuring
+    // window.screen made the layout a status bar too tall on iOS and pushed
+    // the composer off the bottom of the screen — see iosPwaViewport.test.ts.
+    expect(iosPwaViewport).toContain('window.innerHeight');
+    expect(iosPwaViewport).not.toContain('window.screen');
   });
 
   it('removes the scattered safe-area css consumers', () => {
