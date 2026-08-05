@@ -1,5 +1,5 @@
 import type { JoinRule } from '$types/matrix-sdk';
-import { AvatarFallback, color } from 'folds';
+import { AvatarFallback } from 'folds';
 import type { ReactNode } from 'react';
 import { forwardRef, useEffect, useState } from 'react';
 import type { IconProps } from '@phosphor-icons/react';
@@ -11,7 +11,7 @@ import {
   getRoomIconOverlayComponent,
   getRoomStandaloneIconComponent,
 } from '$components/icons/roomIcons';
-import colorMXID from '$utils/colorMXID';
+import { roomGradientCss } from '$utils/roomGradient';
 import * as css from './RoomAvatar.css';
 import { AvatarImage } from './AvatarImage';
 
@@ -31,9 +31,12 @@ export function RoomAvatar({ roomId, src, alt, renderFallback, uniformIcons }: R
   }, [src]);
 
   if (!src || error) {
+    // No photo set — which is most rooms, most of the time — so this is what
+    // people actually look at. A deterministic gradient from the room id, in
+    // the brand's family, rather than a flat pastel that reads as a gap.
     return (
       <AvatarFallback
-        style={{ backgroundColor: colorMXID(roomId ?? ''), color: color.Surface.Container }}
+        style={{ background: roomGradientCss(roomId ?? ''), color: '#FFFFFF' }}
         className={css.RoomAvatar}
       >
         {renderFallback()}

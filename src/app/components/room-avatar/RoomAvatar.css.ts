@@ -2,9 +2,12 @@ import { style, styleVariants } from '@vanilla-extract/css';
 import { color, config } from 'folds';
 
 export const RoomAvatar = style({
+  // The gradient and its text colour are set inline per room, derived from the
+  // room id — see utils/roomGradient.ts. These stay as the pre-paint fallback.
   backgroundColor: color.Secondary.Container,
   color: color.Secondary.OnContainer,
   textTransform: 'capitalize',
+  fontWeight: 600,
 
   selectors: {
     '&[data-image-loaded="true"]': {

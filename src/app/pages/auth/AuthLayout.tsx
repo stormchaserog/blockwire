@@ -11,12 +11,11 @@ import {
   useParams,
   useSearchParams,
 } from 'react-router-dom';
-import classNames from 'classnames';
 
-import * as PatternsCss from '$styles/Patterns.css';
 import { clientAllowedServer, clientDefaultServer, useClientConfig } from '$hooks/useClientConfig';
 import { AsyncStatus, useAsyncCallback } from '$hooks/useAsyncCallback';
 import LogoSVG from '$public/res/svg/logo.svg';
+import AuthBackdrop from '$public/res/bg/auth-space.jpg';
 import { SpecVersionsLoader } from '$components/SpecVersionsLoader';
 import { SpecVersionsProvider } from '$hooks/useSpecVersions';
 import { AutoDiscoveryInfoProvider } from '$hooks/useAutoDiscoveryInfo';
@@ -212,7 +211,8 @@ export function AuthLayout() {
   return (
     <Scroll variant="Background" visibility="Hover" size="300" hideTrack>
       <Box
-        className={classNames(css.AuthLayout, PatternsCss.BackgroundDotPattern)}
+        className={css.AuthLayout}
+        style={{ ['--auth-backdrop' as string]: `url(${AuthBackdrop})` }}
         direction="Column"
         alignItems="Center"
         justifyContent="SpaceBetween"
@@ -221,7 +221,7 @@ export function AuthLayout() {
         <Box direction="Column" className={css.AuthCard}>
           <Header className={css.AuthHeader} size="600" variant="Surface">
             <Box grow="Yes" direction="Row" gap="300" alignItems="Center">
-              <img className={css.AuthLogo} src={LogoSVG} alt="Sable Logo" />
+              <img className={css.AuthLogo} src={LogoSVG} alt="BlockWire" />
               <Text size="H3">{SABLE_PRODUCT_NAME}</Text>
             </Box>
             {isAddingAccount && (
