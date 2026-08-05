@@ -22,9 +22,9 @@ import { isKeyHotkey } from 'is-hotkey';
 import FocusTrap from 'focus-trap-react';
 import { stopPropagation } from '$utils/keyboard';
 import { useDirectUsers } from '$hooks/useDirectUsers';
-import { getMxIdLocalPart, isUserId } from '$utils/matrix';
-import type { UseAsyncSearchOptions } from '$hooks/useAsyncSearch';
-import { useAsyncSearch } from '$hooks/useAsyncSearch';
+import { getMxIdLocalPart } from '$utils/matrix';
+import { useUserDirectorySearch } from '$hooks/useUserDirectorySearch';
+import { completeUserId } from '$utils/userSearch';
 import { highlightText, makeHighlightRegex } from '$plugins/react-custom-html-parser';
 import { AsyncStatus, useAsyncCallback } from '$hooks/useAsyncCallback';
 import { AsyncError } from '$components/AsyncError';
@@ -35,13 +35,6 @@ import { getMxIdServer } from '$utils/mxIdHelper';
 import { KnownMembership } from '$types/matrix-sdk';
 import { Button } from '$components/button';
 
-const SEARCH_OPTIONS: UseAsyncSearchOptions = {
-  limit: 1000,
-  matchOptions: {
-    contain: true,
-  },
-};
-const getUserIdString = (userId: string) => getMxIdLocalPart(userId) ?? userId;
 
 type InviteUserProps = {
   room: Room;
@@ -55,21 +48,33 @@ export function InviteUserPrompt({ room, requestClose }: InviteUserProps) {
   const directUsers = useDirectUsers();
   const [validUserId, setValidUserId] = useState<string>();
 
-  const filteredUsers = useMemo(
+  // People already in the room are not candidates to invite.
+  const knownUsers = useMemo(
     () =>
-      directUsers.filter((userId) => {
-        const membership = room.getMember(userId)?.membership;
-        return membership !== KnownMembership.Join;
-      }),
+      directUsers
+        .filter((userId) => room.getMember(userId)?.membership !== KnownMembership.Join)
+        .map((userId) => ({ userId })),
     [directUsers, room]
   );
-  const [result, search, resetSearch] = useAsyncSearch(
-    filteredUsers,
-    getUserIdString,
-    SEARCH_OPTIONS
+
+  const {
+    term,
+    search,
+    reset: resetSearch,
+    results,
+    homeServer,
+  } = useUserDirectorySearch(knownUsers);
+
+  // Someone already in the room can still surface from the directory; drop
+  // them rather than offering an invite that would fail.
+  const suggestions = useMemo(
+    () =>
+      results.filter((user) => room.getMember(user.userId)?.membership !== KnownMembership.Join),
+    [results, room]
   );
-  const queryHighlighRegex = result?.query
-    ? makeHighlightRegex(result.query.split(' '))
+
+  const queryHighlighRegex = term.trim()
+    ? makeHighlightRegex(term.trim().replace(/^@/, '').split(' '))
     : undefined;
 
   const [inviteState, invite] = useAsyncCallback<void, Error, [string, string | undefined]>(
@@ -108,17 +113,11 @@ export function InviteUserPrompt({ room, requestClose }: InviteUserProps) {
 
   const handleSearchChange: ChangeEventHandler<HTMLInputElement> = (evt) => {
     const value = evt.currentTarget.value.trim();
-    if (isUserId(value)) {
-      setValidUserId(value);
-    } else {
-      setValidUserId(undefined);
-      const term = getMxIdLocalPart(value) ?? (value.startsWith('@') ? value.slice(1) : value);
-      if (term) {
-        search(term);
-      } else {
-        resetSearch();
-      }
-    }
+    // A bare handle is a valid thing to submit — it just needs our server
+    // filling in — so the Invite button unlocks as soon as what was typed
+    // could name somebody, while the directory keeps suggesting below.
+    setValidUserId(completeUserId(value, homeServer));
+    search(value);
   };
 
   const handleUserId = (userId: string) => {
@@ -135,11 +134,11 @@ export function InviteUserPrompt({ room, requestClose }: InviteUserProps) {
       resetSearch();
       return;
     }
-    if (isKeyHotkey('tab', evt) && result && result.items.length > 0) {
+    if (isKeyHotkey('tab', evt) && suggestions.length > 0) {
       evt.preventDefault();
-      const userId = result.items[0];
-      if (!userId) return;
-      handleUserId(userId);
+      const first = suggestions[0];
+      if (!first) return;
+      handleUserId(first.userId);
     }
   };
 
@@ -194,7 +193,7 @@ export function InviteUserPrompt({ room, requestClose }: InviteUserProps) {
                       autoComplete="off"
                       required
                     />
-                    {result && result.items.length > 0 && (
+                    {suggestions.length > 0 && (
                       <FocusTrap
                         focusTrapOptions={{
                           initialFocus: false,
@@ -222,18 +221,19 @@ export function InviteUserPrompt({ room, requestClose }: InviteUserProps) {
                                   padding: config.space.S100,
                                 }}
                               >
-                                {result.items.map((userId) => {
-                                  const username = `${getMxIdLocalPart(userId)}`;
-                                  const userServer = getMxIdServer(userId);
+                                {suggestions.map((user) => {
+                                  const username = getMxIdLocalPart(user.userId) ?? user.userId;
+                                  const label = user.displayName || username;
+                                  const userServer = getMxIdServer(user.userId);
 
                                   return (
                                     <MenuItem
-                                      key={userId}
+                                      key={user.userId}
                                       type="button"
                                       size="300"
                                       variant="Surface"
                                       radii="300"
-                                      onClick={() => handleUserId(userId)}
+                                      onClick={() => handleUserId(user.userId)}
                                       after={
                                         <Text size="T200" truncate>
                                           {userServer}
@@ -245,10 +245,8 @@ export function InviteUserPrompt({ room, requestClose }: InviteUserProps) {
                                         <Text size="T300" truncate>
                                           <b>
                                             {queryHighlighRegex
-                                              ? highlightText(queryHighlighRegex, [
-                                                  username ?? userId,
-                                                ])
-                                              : username}
+                                              ? highlightText(queryHighlighRegex, [label])
+                                              : label}
                                           </b>
                                         </Text>
                                       </Box>
