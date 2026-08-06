@@ -52,7 +52,14 @@ android {
             }
         }
         getByName("release") {
-            signingConfig = signingConfigs.getByName("release")
+            // No keystore.properties (CI without ANDROID_KEY_BASE64, local dev)
+            // falls back to debug signing so the build still packages; a real
+            // release keystore takes over as soon as the secret exists.
+            signingConfig = if (rootProject.file("keystore.properties").exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
             isMinifyEnabled = true
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }
