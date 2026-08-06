@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Box, Text, Switch, Button } from 'folds';
+import { Box, Text, Switch, Button, color, config } from 'folds';
 import { SequenceCard, SequenceCardStyle } from '$components/sequence-card';
+import { ContainerColor } from '$styles/ContainerColor.css';
 import { SettingTile } from '$components/setting-tile';
 import { toSettingsFocusIdPart } from '$features/settings/settingsLink';
 import type { LogCategory } from '$utils/debugLogger';
@@ -60,13 +61,13 @@ export function SentrySettings() {
       </Text>
       {!isSentryConfigured && (
         <Box
+          className={ContainerColor({ variant: 'Warning' })}
           style={{
-            padding: '12px',
-            backgroundColor: 'rgba(255, 193, 7, 0.1)',
-            borderRadius: '8px',
+            padding: config.space.S300,
+            borderRadius: config.radii.R400,
           }}
         >
-          <Text size="T300" style={{ color: 'orange' }}>
+          <Text size="T300" style={{ color: color.Warning.OnContainer }}>
             Sentry is not configured. Set VITE_SENTRY_DSN to enable error tracking.
           </Text>
         </Box>

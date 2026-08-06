@@ -15,7 +15,15 @@ import type { INotification, INotificationsResponse, Room } from '$types/matrix-
 import { EventType, JoinRule, MatrixEvent, Method } from '$types/matrix-sdk';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useAtomValue } from 'jotai';
-import { Page, PageContent, PageContentCenter, PageHeader } from '$components/page';
+import {
+  Page,
+  PageContent,
+  PageContentCenter,
+  PageHeader,
+  PageHero,
+  PageHeroEmpty,
+  PageHeroSection,
+} from '$components/page';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import type { InboxNotificationsPathSearchParams } from '$pages/paths';
 import { AsyncStatus, useAsyncCallback } from '$hooks/useAsyncCallback';
@@ -441,22 +449,15 @@ export function Notifications() {
 
                 {timelineState.status === AsyncStatus.Success &&
                   notificationTimeline.groups.length === 0 && (
-                    <Box
-                      className={ContainerColor({
-                        variant: 'SurfaceVariant',
-                      })}
-                      style={{
-                        padding: config.space.S300,
-                        borderRadius: config.radii.R400,
-                      }}
-                      direction="Column"
-                      gap="200"
-                    >
-                      <Text>No Notifications</Text>
-                      <Text size="T200">
-                        You don&apos;t have any new notifications to display yet.
-                      </Text>
-                    </Box>
+                    <PageHeroEmpty>
+                      <PageHeroSection>
+                        <PageHero
+                          icon={sizedIcon(ChatCircle, '600')}
+                          title="No Notifications"
+                          subTitle="You don't have any new notifications to display yet."
+                        />
+                      </PageHeroSection>
+                    </PageHeroEmpty>
                   )}
 
                 {timelineState.status === AsyncStatus.Loading && (

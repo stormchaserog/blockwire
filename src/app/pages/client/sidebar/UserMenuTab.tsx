@@ -119,7 +119,7 @@ function AccountRow({
               <UnreadBadge highlight={unread.highlight > 0} count={unread.total} />
             </UnreadBadgeCenter>
           )}
-          {isActive && chipIcon(Check, { style: { color: 'var(--mx-c-success)' } })}
+          {isActive && chipIcon(Check, { style: { color: color.Success.Main } })}
           {isBusy ? (
             <Spinner size="200" variant="Secondary" />
           ) : (
