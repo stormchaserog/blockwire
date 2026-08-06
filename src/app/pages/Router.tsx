@@ -48,6 +48,8 @@ import {
   TO_ROOM_EVENT_PATH,
   INVITE_PATH,
   SOURCE_PATH,
+  PRIVACY_PATH,
+  TERMS_PATH,
   SETTINGS_PATH,
   NAVIGATE_PATH,
   PROFILE_PATH,
@@ -118,6 +120,7 @@ import { UserQuickToolsProvider } from '$components/UserQuickToolsProvider';
 import { Navigate } from './client/navigate';
 import { InviteLanding } from './client/invite';
 import { SourceCode } from './SourceCode';
+import { PrivacyPolicy, TermsOfService } from './PolicyPage';
 import { ProfileMobile } from './client/profile';
 
 // Lazy-loaded: mobile full-screen pages for flows that are modals on desktop.
@@ -201,6 +204,8 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
         }
       >
         <Route path={SOURCE_PATH} element={<SourceCode />} />
+        <Route path={PRIVACY_PATH} element={<PrivacyPolicy />} />
+        <Route path={TERMS_PATH} element={<TermsOfService />} />
         <Route path={LOGIN_PATH} element={<Login />} />
         <Route path={REGISTER_PATH} element={<Register />} />
         <Route path={RESET_PASSWORD_PATH} element={<ResetPassword />} />

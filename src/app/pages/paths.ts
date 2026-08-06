@@ -86,6 +86,11 @@ export const NAVIGATE_PATH = '/navigate';
  *  network. A stable, guessable URL reachable without an account is what makes
  *  that offer real rather than asserted. */
 export const SOURCE_PATH = '/source';
+/** Store-required legal pages: both app stores demand a public privacy-policy
+ *  URL, and Apple's UGC rules want published terms with a moderation contact.
+ *  Stable and account-free, like /source. */
+export const PRIVACY_PATH = '/privacy';
+export const TERMS_PATH = '/terms';
 /** BlockWire invite links. The URL people share is the short `/+<hash>`; the
  *  boot guard in index.html rewrites it here so React Router never has to
  *  parse a `+` sigil. */
