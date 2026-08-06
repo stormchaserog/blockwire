@@ -4,7 +4,7 @@ This is the working plan for BlockWire. It lives in the repo so every machine
 — the MacBook, the Mac mini, and any cloud session — reads the same copy.
 Update it here; pull it everywhere (`git fetch origin dev && git pull`).
 
-_Last updated: 2026-08-06._
+_Last updated: 2026-08-06, after PRs #7 and #8 merged._
 
 ## What BlockWire is
 
@@ -47,19 +47,18 @@ Every feature ships store-compliant by default.
 
 **Done and merged:**
 
+
 - PR #5 — native builds repaired (Android package rename, Linux CEF
   packaging, iOS token fallbacks) and pre-existing CI failures fixed.
 - PR #6 — release machinery is ours: knope targets this repo, the desktop
   updater endpoint points at our releases, Android/updater build without
   fork secrets, `docs/UPSTREAM.md` written (G2 ~done, G4 done).
 
-**Open pull requests:**
-
-- **PR #7** — in-app account deletion (Apple 5.1.1(v) / Play requirement),
+- PR #7 — in-app account deletion (Apple 5.1.1(v) / Play requirement),
   public `/privacy` and `/terms` pages, product-only welcome screen, and CI
-  auto-deploy of blockwire.chat on every dev merge. Waiting on CI;
-  merging it turns on the auto-deploy (needs the `VERCEL_TOKEN` secret).
-- **PR #8** — the quality sprint: fourteen verified fixes from an
+  auto-deploy of blockwire.chat on every dev merge. The deploy only fires
+  once the `VERCEL_TOKEN` secret exists.
+- PR #8 — the quality sprint: fourteen verified fixes from an
   adversarially-checked bug hunt. Faster GIF sending (smaller webp
   encoding, no redundant third transfer, instant feedback), the
   "space upgraded" dead-banner fix, timeline scroll-jump and
@@ -67,6 +66,15 @@ Every feature ships store-compliant by default.
   tap, picker buttons that actually toggle closed, mic-button double-fire
   fix, home list re-sorting live, member-churn debounce, lighter composer
   keystrokes, and theme-token cleanups.
+
+**In flight:**
+
+- First auto-deploy of blockwire.chat: the workflow is live and verified,
+  but the deploy job skips until the `VERCEL_TOKEN` secret is added — the
+  top item of the checklist below.
+- Desktop-build proof on dev (Android + iOS + Linux CEF all green): waiting
+  on GitHub Actions to recover push-event processing after the 2026-08-06
+  outage; the next processed push to dev triggers it.
 
 **Blocked on a human with devices (Phase 2 — the current gate):**
 
