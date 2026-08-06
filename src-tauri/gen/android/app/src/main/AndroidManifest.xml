@@ -46,7 +46,7 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
             android:launchMode="singleTask"
             android:label="@string/main_activity_title"
-            android:name="moe.sable.client.MainActivity"
+            android:name="chat.blockwire.client.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -121,7 +121,7 @@
         </activity>
 
         <service
-            android:name="moe.sable.client.CallForegroundService"
+            android:name="chat.blockwire.client.CallForegroundService"
             android:exported="false"
             android:foregroundServiceType="microphone|mediaPlayback" />
 

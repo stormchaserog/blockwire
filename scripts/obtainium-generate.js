@@ -16,14 +16,14 @@ if (!version) {
   process.exit(1);
 }
 
-const GITHUB_REPO = 'SableClient/Sable';
-const APK_NAME = `Sable-${version}-android-universal.apk`;
+const GITHUB_REPO = process.env.GITHUB_REPOSITORY || 'stormchaserog/blockwire';
+const APK_NAME = `BlockWire-${version}-android-universal.apk`;
 const APK_URL = `https://github.com/${GITHUB_REPO}/releases/download/${tag}/${APK_NAME}`;
 const isNightly = tag === 'nightly';
 
 // Obtainium fills in every other setting from its own defaults on import.
 const additionalSettings = {
-  about: 'An almost stable Matrix client',
+  about: 'Messaging for crypto communities',
   // The nightly tag name never changes, so the version has to come from the date instead.
   ...(isNightly && {
     includePrereleases: true,
@@ -36,10 +36,10 @@ const additionalSettings = {
 const config = {
   apps: [
     {
-      id: 'moe.sable.client',
+      id: 'chat.blockwire.client',
       url: `https://github.com/${GITHUB_REPO}`,
-      author: 'SableClient',
-      name: 'Sable',
+      author: 'stormchaserog',
+      name: 'BlockWire',
       installedVersion: null,
       latestVersion: version,
       apkUrls: JSON.stringify([[APK_NAME, APK_URL]]),
