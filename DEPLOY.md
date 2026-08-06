@@ -34,9 +34,8 @@ it could reach `waiting`. Symptom to recognise: a worker that goes
 guard in `index.html`, which rewrites it before the router runs; the edge
 redirect was belt-and-braces on top of a fix that already worked.
 
-
 **Rebuilding wipes `dist/.vercel`.** Deploying without relinking creates a
-*brand new Vercel project named after the directory* — one deploy silently went
+_brand new Vercel project named after the directory_ — one deploy silently went
 to a project called `dist` while blockwire.chat kept serving the old build.
 Always `vercel link --project blockwire` after a build.
 
@@ -47,7 +46,7 @@ error anywhere.
 
 **The build emits `dist/public/`, which hijacks the output directory.** Vercel's
 project setting is "`public` if it exists, or `.`", so it served `dist/public/`
-— which has no `index.html` — and *every route on the site 404'd*, including
+— which has no `index.html` — and _every route on the site 404'd_, including
 the Matrix delegation files. `vercel.json` pins `"outputDirectory": "."` to
 stop this. Do not remove it.
 

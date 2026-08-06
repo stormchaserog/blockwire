@@ -299,20 +299,20 @@ Beyond automatic error capture, BlockWire has hand-crafted monitoring at key
 lifecycle points. See [SENTRY_PRIVACY.md](./SENTRY_PRIVACY.md) for the full
 metrics reference. Key areas:
 
-| Area                   | What's tracked                                                                                                                     |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**               | Login failures (by `errcode`), forced server logouts                                                                               |
-| **Sync**               | Transport type, degraded states, cycle stats, initial sync latency, time-to-ready, total rooms loaded, active subscriptions        |
-| **Cryptography**       | Decryption failures (by failure reason), key backup errors, store wipes, E2E verification outcomes, bulk decryption latency        |
-| **Messaging**          | Send latency, send errors, local-echo `NOT_SENT` events                                                                            |
-| **Timeline**           | Opens, virtual window size, jump-load latency, re-initialisations, `limited` sync resets, scroll offset at load, pagination errors |
-| **Pagination**         | Pagination latency (`blockwire.pagination.latency_ms`) and errors per direction                                                        |
-| **Sliding sync**       | Room subscription latency (`blockwire.sync.room_sub_latency_ms`), events per subscription batch (`blockwire.sync.room_sub_event_count`)    |
-| **Scroll / UX**        | `atBottom` transitions with rapid-flip anomaly detection, scroll-to-bottom trigger warnings when user is scrolled up               |
-| **Calls**              | `blockwire.call.start.attempt/error`, `blockwire.call.answered`, `blockwire.call.declined`, active/ended/timeout counters                      |
-| **Message actions**    | `blockwire.message.delete.*`, `blockwire.message.forward.*`, `blockwire.message.report.*`, `blockwire.message.reaction.toggle`                     |
-| **Media**              | Upload latency, upload size, cache stats                                                                                           |
-| **Background clients** | Per-account notification client count, startup failures                                                                            |
+| Area                   | What's tracked                                                                                                                          |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**               | Login failures (by `errcode`), forced server logouts                                                                                    |
+| **Sync**               | Transport type, degraded states, cycle stats, initial sync latency, time-to-ready, total rooms loaded, active subscriptions             |
+| **Cryptography**       | Decryption failures (by failure reason), key backup errors, store wipes, E2E verification outcomes, bulk decryption latency             |
+| **Messaging**          | Send latency, send errors, local-echo `NOT_SENT` events                                                                                 |
+| **Timeline**           | Opens, virtual window size, jump-load latency, re-initialisations, `limited` sync resets, scroll offset at load, pagination errors      |
+| **Pagination**         | Pagination latency (`blockwire.pagination.latency_ms`) and errors per direction                                                         |
+| **Sliding sync**       | Room subscription latency (`blockwire.sync.room_sub_latency_ms`), events per subscription batch (`blockwire.sync.room_sub_event_count`) |
+| **Scroll / UX**        | `atBottom` transitions with rapid-flip anomaly detection, scroll-to-bottom trigger warnings when user is scrolled up                    |
+| **Calls**              | `blockwire.call.start.attempt/error`, `blockwire.call.answered`, `blockwire.call.declined`, active/ended/timeout counters               |
+| **Message actions**    | `blockwire.message.delete.*`, `blockwire.message.forward.*`, `blockwire.message.report.*`, `blockwire.message.reaction.toggle`          |
+| **Media**              | Upload latency, upload size, cache stats                                                                                                |
+| **Background clients** | Per-account notification client count, startup failures                                                                                 |
 
 Fatal errors that are caught by `useAsyncCallback` state (and therefore never
 reach React's ErrorBoundary) are explicitly forwarded with `captureException`:

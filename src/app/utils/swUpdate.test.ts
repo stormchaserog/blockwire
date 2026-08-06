@@ -17,7 +17,7 @@ describe('applyPendingUpdate', () => {
     // hand-over message, which reloads under the OLD worker and serves the
     // same build back — so Refresh looks like it does nothing.
     const { worker, messages } = makeWorker();
-    const reload = vi.fn();
+    const reload = vi.fn<() => void>();
     let fire: (() => void) | undefined;
 
     applyPendingUpdate({
@@ -43,7 +43,7 @@ describe('applyPendingUpdate', () => {
   it('reloads anyway if the hand-over never completes', () => {
     // A button that never reloads is worse than one that reloads early.
     const { worker } = makeWorker();
-    const reload = vi.fn();
+    const reload = vi.fn<() => void>();
     let timeoutFn: (() => void) | undefined;
     let delay: number | undefined;
 
@@ -67,7 +67,7 @@ describe('applyPendingUpdate', () => {
 
   it('reloads only once when both paths fire', () => {
     const { worker } = makeWorker();
-    const reload = vi.fn();
+    const reload = vi.fn<() => void>();
     let fire: (() => void) | undefined;
     let timeoutFn: (() => void) | undefined;
 
@@ -91,8 +91,8 @@ describe('applyPendingUpdate', () => {
   });
 
   it('just reloads when the new worker already has control', () => {
-    const reload = vi.fn();
-    const onControllerChange = vi.fn(() => () => {});
+    const reload = vi.fn<() => void>();
+    const onControllerChange = vi.fn<() => () => void>(() => () => {});
 
     applyPendingUpdate({ pendingWorker: null, onControllerChange, reload });
 
@@ -102,7 +102,7 @@ describe('applyPendingUpdate', () => {
 
   it('stops listening once it has reloaded', () => {
     const { worker } = makeWorker();
-    const unsubscribe = vi.fn();
+    const unsubscribe = vi.fn<() => void>();
 
     let fire: (() => void) | undefined;
     applyPendingUpdate({
@@ -126,7 +126,7 @@ describe('startUpdateChecks', () => {
     // The whole point: a standalone PWA has no reload button, and iOS resumes
     // it without re-running page load. Without this, the only update check
     // ever performed is the one at first launch.
-    const update = vi.fn(() => Promise.resolve());
+    const update = vi.fn<() => Promise<void>>(() => Promise.resolve());
     let visibilityListener: (() => void) | undefined;
     let visible = false;
 
@@ -149,7 +149,7 @@ describe('startUpdateChecks', () => {
   });
 
   it('does not check while the app is in the background', () => {
-    const update = vi.fn(() => Promise.resolve());
+    const update = vi.fn<() => Promise<void>>(() => Promise.resolve());
     let visibilityListener: (() => void) | undefined;
 
     startUpdateChecks(
@@ -170,7 +170,7 @@ describe('startUpdateChecks', () => {
   });
 
   it('also polls, for an app left open for days', () => {
-    const update = vi.fn(() => Promise.resolve());
+    const update = vi.fn<() => Promise<void>>(() => Promise.resolve());
     let intervalFn: (() => void) | undefined;
     let ms: number | undefined;
 
@@ -194,7 +194,7 @@ describe('startUpdateChecks', () => {
   });
 
   it('survives a failing check rather than throwing at the caller', async () => {
-    const update = vi.fn(() => Promise.reject(new Error('offline')));
+    const update = vi.fn<() => Promise<void>>(() => Promise.reject(new Error('offline')));
     let visibilityListener: (() => void) | undefined;
 
     startUpdateChecks(
@@ -215,8 +215,8 @@ describe('startUpdateChecks', () => {
   });
 
   it('cleans up both the listener and the timer', () => {
-    const unsubscribe = vi.fn();
-    const clearIntervalFn = vi.fn();
+    const unsubscribe = vi.fn<() => void>();
+    const clearIntervalFn = vi.fn<() => void>();
 
     const stop = startUpdateChecks(
       { update: () => Promise.resolve() },

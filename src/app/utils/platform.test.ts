@@ -19,19 +19,19 @@ describe('getAppOrigin', () => {
     vi.unstubAllGlobals();
   });
 
-  it('returns https://app.sable.moe when running inside Tauri', () => {
+  it('returns https://blockwire.chat when running inside Tauri', () => {
     vi.mocked(isTauri).mockReturnValue(true);
-    expect(getAppOrigin()).toBe('https://app.sable.moe');
+    expect(getAppOrigin()).toBe('https://blockwire.chat');
   });
 
-  it('returns https://app.sable.moe when hostname is tauri.localhost', () => {
+  it('returns https://blockwire.chat when hostname is tauri.localhost', () => {
     vi.stubGlobal('location', {
       origin: 'http://tauri.localhost',
       hostname: 'tauri.localhost',
       protocol: 'http:',
       host: 'tauri.localhost',
     });
-    expect(getAppOrigin()).toBe('https://app.sable.moe');
+    expect(getAppOrigin()).toBe('https://blockwire.chat');
   });
 
   it('returns window.location.origin in normal web environment', () => {

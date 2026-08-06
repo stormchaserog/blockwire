@@ -66,8 +66,8 @@ export function Desktop({ requestBack, requestClose }: DesktopProps) {
                     description={
                       trayFallback ? (
                         <Text as="span" style={{ color: color.Warning.Main }} size="T200">
-                          System tray is unavailable on this system. BlockWire can still keep running in
-                          the background without it.
+                          System tray is unavailable on this system. BlockWire can still keep
+                          running in the background without it.
                         </Text>
                       ) : (
                         'Show a system tray icon while BlockWire is running. Disable this if you want BlockWire to stay available without a tray icon.'

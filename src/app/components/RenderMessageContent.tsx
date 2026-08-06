@@ -565,7 +565,10 @@ function RenderMessageContentWithKeyboard(props: RenderMessageContentProps) {
   return (
     <Box direction="Column">
       {body}
-      <InlineKeyboard roomId={props.mEvent?.getRoomId() ?? props.room?.roomId} keyboard={keyboard} />
+      <InlineKeyboard
+        roomId={props.mEvent?.getRoomId() ?? props.room?.roomId}
+        keyboard={keyboard}
+      />
     </Box>
   );
 }

@@ -38,10 +38,7 @@ const parseError = async (res: Response, fallback: string): Promise<string> => {
  * Requires permission to invite in that room — the gateway checks, because a
  * link hands out exactly that capability.
  */
-export const createInviteLinkUrl = async (
-  mx: MatrixClient,
-  roomId: string
-): Promise<string> => {
+export const createInviteLinkUrl = async (mx: MatrixClient, roomId: string): Promise<string> => {
   const res = await fetch(`${mx.baseUrl}/_blockwire/links`, {
     method: 'POST',
     headers: {
@@ -63,10 +60,7 @@ export const createInviteLinkUrl = async (
  * landing page can name the room before anyone commits to joining.
  * Deliberately unauthenticated on the server side.
  */
-export const resolveInviteLink = async (
-  baseUrl: string,
-  hash: string
-): Promise<ResolvedInvite> => {
+export const resolveInviteLink = async (baseUrl: string, hash: string): Promise<ResolvedInvite> => {
   const res = await fetch(`${baseUrl}/_blockwire/links/${encodeURIComponent(hash)}`);
   if (!res.ok) {
     throw new Error(await parseError(res, 'This invite link is not valid.'));
@@ -78,10 +72,7 @@ export const resolveInviteLink = async (
  * Spend the link. Only call this once the person has said yes — a use is
  * consumed on success and capped links are a finite resource.
  */
-export const redeemInviteLink = async (
-  mx: MatrixClient,
-  hash: string
-): Promise<ResolvedInvite> => {
+export const redeemInviteLink = async (mx: MatrixClient, hash: string): Promise<ResolvedInvite> => {
   const res = await fetch(`${mx.baseUrl}/_blockwire/links/${encodeURIComponent(hash)}/redeem`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${mx.getAccessToken() ?? ''}` },

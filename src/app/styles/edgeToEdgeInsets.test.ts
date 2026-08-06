@@ -20,7 +20,7 @@ describe('android edge-to-edge inset contract', () => {
 
   it('keeps MainActivity out of the inset injection path', () => {
     const mainActivity = readWorkspaceFile(
-      'src-tauri/gen/android/app/src/main/java/moe/sable/client/MainActivity.kt'
+      'src-tauri/gen/android/app/src/main/java/chat/blockwire/client/MainActivity.kt'
     );
 
     expect(mainActivity).toContain('enableEdgeToEdge()');

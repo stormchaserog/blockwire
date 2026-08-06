@@ -35,7 +35,6 @@ import { getMxIdServer } from '$utils/mxIdHelper';
 import { KnownMembership } from '$types/matrix-sdk';
 import { Button } from '$components/button';
 
-
 type InviteUserProps = {
   room: Room;
   requestClose: () => void;

@@ -175,14 +175,7 @@ export function WebUpdater() {
         onClick: handleAlwaysUpdate,
       },
     };
-  }, [
-    newBuildAvailable,
-    dismissed,
-    autoUpdate,
-    handleRefresh,
-    handleDismiss,
-    handleAlwaysUpdate,
-  ]);
+  }, [newBuildAvailable, dismissed, autoUpdate, handleRefresh, handleDismiss, handleAlwaysUpdate]);
 
   useRegisterGlobalBanner(bannerData);
 

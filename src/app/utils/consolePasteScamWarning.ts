@@ -31,7 +31,7 @@ export function installConsolePasteScamWarning(): void {
       } else {
         window.setTimeout(() => {
           console.warn(
-            '%cIf you know what you\'re doing, our source is at https://github.com/stormchaserog/blockwire',
+            "%cIf you know what you're doing, our source is at https://github.com/stormchaserog/blockwire",
             CONTRIBUTE_STYLE
           );
         }, betweenPairsMs);

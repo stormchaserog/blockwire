@@ -1,9 +1,7 @@
 {
   "productName": "BlockWire",
   "defaultHomeserver": 0,
-  "homeserverList": [
-    "blockwire.chat"
-  ],
+  "homeserverList": ["blockwire.chat"],
   "allowCustomHomeservers": false,
   "elementCallUrl": null,
   "disableAccountSwitcher": false,
@@ -19,9 +17,7 @@
     "openAsDefault": false,
     "spaces": [],
     "rooms": [],
-    "servers": [
-      "blockwire.chat"
-    ]
+    "servers": ["blockwire.chat"]
   },
   "hashRouter": {
     "enabled": false,

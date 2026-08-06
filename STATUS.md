@@ -41,7 +41,7 @@ automatically, with a matching toggle in Settings.
 **Two CORS bugs found and fixed.** Nothing under `/_blockwire/*` had ever sent
 CORS headers, so browsers silently discarded those responses. This had been
 quietly breaking invite links and the bot directory. Worse, it meant push
-notifications could *never* be enabled — the very first call in that flow was
+notifications could _never_ be enabled — the very first call in that flow was
 being dropped. That's a strong candidate for why push never worked.
 
 ---
@@ -61,12 +61,12 @@ bot soft-deletes so the audit trail survives.
 
 ## Repos
 
-| Repo | Visibility | What |
-|---|---|---|
-| `blockwire` | public | The client. Public because AGPL-3.0 requires it. |
-| `blockwire-botgw` | private | Bot API gateway. |
-| `blockwire-push` | private | Web push gateway. |
-| `blockwire-infra` | private | Deploy config. See `OPS.md` there. |
+| Repo              | Visibility | What                                             |
+| ----------------- | ---------- | ------------------------------------------------ |
+| `blockwire`       | public     | The client. Public because AGPL-3.0 requires it. |
+| `blockwire-botgw` | private    | Bot API gateway.                                 |
+| `blockwire-push`  | private    | Web push gateway.                                |
+| `blockwire-infra` | private    | Deploy config. See `OPS.md` there.               |
 
 ---
 
@@ -86,7 +86,7 @@ bot soft-deletes so the audit trail survives.
 
 - Rate limits now persist across restarts (they live in Postgres). You can't
   reset your quota by bouncing the service — intended, but new.
-- The client's `gifs.proxyUrl` setting must stay unset. It's a *media* proxy that
+- The client's `gifs.proxyUrl` setting must stay unset. It's a _media_ proxy that
   needs federation, and federation is off — setting it breaks sending GIFs.
 - Version string in the client footer is baked at build time. Build after
   committing or it reports the previous commit.
