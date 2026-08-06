@@ -1,4 +1,4 @@
-<!-- Please read https://github.com/SableClient/Sable/blob/dev/CONTRIBUTING.md before submitting your pull request -->
+<!-- Please read https://github.com/stormchaserog/blockwire/blob/dev/CONTRIBUTING.md before submitting your pull request -->
 
 ### Description
 

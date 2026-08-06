@@ -1,20 +1,20 @@
 {
-  "name": "Sable (nightly)",
-  "identifier": "moe.sable.client.source.nightly",
-  "subtitle": "Sable for iOS (nightly)",
-  "description": "Sable iOS nightly builds for AltStore and SideStore, rebuilt on every push to dev.",
-  "iconURL": "https://raw.githubusercontent.com/SableClient/Sable/dev/src-tauri/icons/icon.png",
-  "website": "https://github.com/SableClient/Sable",
+  "name": "BlockWire (nightly)",
+  "identifier": "chat.blockwire.client.source.nightly",
+  "subtitle": "BlockWire for iOS (nightly)",
+  "description": "BlockWire iOS nightly builds for AltStore and SideStore, rebuilt on every push to dev.",
+  "iconURL": "https://raw.githubusercontent.com/stormchaserog/blockwire/dev/src-tauri/icons/icon.png",
+  "website": "https://github.com/stormchaserog/blockwire",
   "tintColor": "#5CA399",
-  "featuredApps": ["moe.sable.client"],
+  "featuredApps": ["chat.blockwire.client"],
   "apps": [
     {
-      "name": "Sable",
-      "bundleIdentifier": "moe.sable.client",
+      "name": "BlockWire",
+      "bundleIdentifier": "chat.blockwire.client",
       "developerName": "SableClient",
-      "subtitle": "Sable iOS (nightly)",
-      "localizedDescription": "Sable for iOS. Nightly builds from dev; unsigned, resigned at install by AltStore/SideStore.",
-      "iconURL": "https://raw.githubusercontent.com/SableClient/Sable/dev/src-tauri/icons/icon.png",
+      "subtitle": "BlockWire iOS (nightly)",
+      "localizedDescription": "BlockWire for iOS. Nightly builds from dev; unsigned, resigned at install by AltStore/SideStore.",
+      "iconURL": "https://raw.githubusercontent.com/stormchaserog/blockwire/dev/src-tauri/icons/icon.png",
       "tintColor": "#5CA399",
       "category": "social",
       "screenshots": [],
@@ -24,15 +24,15 @@
           "buildVersion": "1.20.1785859899",
           "date": "2026-08-04T16:25:37Z",
           "size": 18915781,
-          "downloadURL": "https://github.com/SableClient/Sable/releases/download/nightly/Sable-1.20.1-nightly.260804161139-ios-arm64.ipa",
-          "localizedDescription": "Sable 1.20.1-nightly.260804161139"
+          "downloadURL": "https://github.com/stormchaserog/blockwire/releases/download/nightly/BlockWire-1.20.1-nightly.260804161139-ios-arm64.ipa",
+          "localizedDescription": "BlockWire 1.20.1-nightly.260804161139"
         }
       ],
       "appPermissions": {
         "entitlements": ["aps-environment"],
         "privacy": {
-          "NSCameraUsageDescription": "Sable needs camera access for video calls.",
-          "NSMicrophoneUsageDescription": "Sable needs microphone access for voice and video calls."
+          "NSCameraUsageDescription": "BlockWire needs camera access for video calls.",
+          "NSMicrophoneUsageDescription": "BlockWire needs microphone access for voice and video calls."
         }
       }
     }

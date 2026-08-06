@@ -1,20 +1,20 @@
 {
-  "name": "Sable",
-  "identifier": "moe.sable.client.source",
-  "subtitle": "Sable for iOS",
-  "description": "Sable iOS nightly builds for AltStore and SideStore.",
-  "iconURL": "https://raw.githubusercontent.com/SableClient/Sable/dev/src-tauri/icons/icon.png",
-  "website": "https://github.com/SableClient/Sable",
+  "name": "BlockWire",
+  "identifier": "chat.blockwire.client.source",
+  "subtitle": "BlockWire for iOS",
+  "description": "BlockWire iOS nightly builds for AltStore and SideStore.",
+  "iconURL": "https://raw.githubusercontent.com/stormchaserog/blockwire/dev/src-tauri/icons/icon.png",
+  "website": "https://github.com/stormchaserog/blockwire",
   "tintColor": "#5CA399",
-  "featuredApps": ["moe.sable.client"],
+  "featuredApps": ["chat.blockwire.client"],
   "apps": [
     {
-      "name": "Sable",
-      "bundleIdentifier": "moe.sable.client",
+      "name": "BlockWire",
+      "bundleIdentifier": "chat.blockwire.client",
       "developerName": "SableClient",
-      "subtitle": "Sable iOS",
-      "localizedDescription": "Sable for iOS. Unsigned builds, resigned at install by AltStore/SideStore.",
-      "iconURL": "https://raw.githubusercontent.com/SableClient/Sable/dev/src-tauri/icons/icon.png",
+      "subtitle": "BlockWire iOS",
+      "localizedDescription": "BlockWire for iOS. Unsigned builds, resigned at install by AltStore/SideStore.",
+      "iconURL": "https://raw.githubusercontent.com/stormchaserog/blockwire/dev/src-tauri/icons/icon.png",
       "tintColor": "#5CA399",
       "category": "social",
       "screenshots": [],
@@ -22,8 +22,8 @@
       "appPermissions": {
         "entitlements": ["aps-environment"],
         "privacy": {
-          "NSCameraUsageDescription": "Sable needs camera access for video calls.",
-          "NSMicrophoneUsageDescription": "Sable needs microphone access for voice and video calls."
+          "NSCameraUsageDescription": "BlockWire needs camera access for video calls.",
+          "NSMicrophoneUsageDescription": "BlockWire needs microphone access for voice and video calls."
         }
       }
     }

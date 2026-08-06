@@ -40,14 +40,14 @@ base64 -w0 AuthKey_<KeyID>.p8 > apple-api-key-base64.txt
 
 ```bash
 # TAURI_SIGNING_PRIVATE_KEY_PASSWORD — a chosen password (may be empty)
-pnpm tauri signer generate -w ~/.tauri/sable.key
+pnpm tauri signer generate -w ~/.tauri/blockwire.key
 ```
 
-This writes `~/.tauri/sable.key` (private) and `~/.tauri/sable.key.pub` (public).
+This writes `~/.tauri/blockwire.key` (private) and `~/.tauri/blockwire.key.pub` (public).
 
-- `TAURI_SIGNING_PRIVATE_KEY` — contents of `~/.tauri/sable.key`
+- `TAURI_SIGNING_PRIVATE_KEY` — contents of `~/.tauri/blockwire.key`
 - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` — the chosen password
-- Put the contents of `~/.tauri/sable.key.pub` in `plugins.updater.pubkey` in `tauri.conf.json`
+- Put the contents of `~/.tauri/blockwire.key.pub` in `plugins.updater.pubkey` in `tauri.conf.json`
 
 Never share the private key. Losing it prevents publishing updates to installed apps.
 

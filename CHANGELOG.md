@@ -1,4 +1,11 @@
-# Sable Client Changelog
+# Changelog
+
+BlockWire is a modified version of [Sable](https://github.com/SableClient/Sable).
+Entries below this note are inherited from upstream and describe the client
+BlockWire was built on; they are kept because they document how this code got
+here. BlockWire's own changes start from the fork point.
+
+---
 
 ## 1.20.0 (2026-07-17)
 

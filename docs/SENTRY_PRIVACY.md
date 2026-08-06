@@ -14,7 +14,7 @@ in to by users** at any time via Settings → General → Diagnostics & Privacy.
 ### First-Login Consent Notice
 
 When Sentry is configured, the app shows a dismissible notice the first time a
-user loads Sable. The notice explains that crash reporting is available and
+user loads BlockWire. The notice explains that crash reporting is available and
 provides a one-click opt-in before any data is sent.
 
 | Action                           | Effect                                                                                                                      |
@@ -130,7 +130,7 @@ or numeric measurements.
 
 | Metric                    | Type  | Attributes | What it tracks                       |
 | ------------------------- | ----- | ---------- | ------------------------------------ |
-| `sable.auth.login_failed` | count | `errcode`  | Login attempt failures by error code |
+| `blockwire.auth.login_failed` | count | `errcode`  | Login attempt failures by error code |
 
 **Code:** `src/app/pages/auth/login/loginUtil.ts`
 
@@ -138,12 +138,12 @@ or numeric measurements.
 
 | Metric                              | Type         | Attributes                          | What it tracks                                   |
 | ----------------------------------- | ------------ | ----------------------------------- | ------------------------------------------------ |
-| `sable.decryption.failure`          | count        | `reason`                            | Unable-to-decrypt events by failure reason       |
-| `sable.decryption.event_ms`         | distribution | —                                   | Per-event decryption latency                     |
-| `sable.decryption.bulk_latency_ms`  | distribution | `event_count`                       | Bulk re-decryption time on room open             |
-| `sable.crypto.key_backup_failures`  | count        | `errcode`                           | Key backup errors by code                        |
-| `sable.crypto.store_wipe`           | count        | —                                   | Crypto store mismatch wipe-and-retry occurrences |
-| `sable.crypto.verification_outcome` | count        | `outcome` (`completed`/`cancelled`) | E2E device verification outcomes                 |
+| `blockwire.decryption.failure`          | count        | `reason`                            | Unable-to-decrypt events by failure reason       |
+| `blockwire.decryption.event_ms`         | distribution | —                                   | Per-event decryption latency                     |
+| `blockwire.decryption.bulk_latency_ms`  | distribution | `event_count`                       | Bulk re-decryption time on room open             |
+| `blockwire.crypto.key_backup_failures`  | count        | `errcode`                           | Key backup errors by code                        |
+| `blockwire.crypto.store_wipe`           | count        | —                                   | Crypto store mismatch wipe-and-retry occurrences |
+| `blockwire.crypto.verification_outcome` | count        | `outcome` (`completed`/`cancelled`) | E2E device verification outcomes                 |
 
 **Code:** `src/app/features/room/message/EncryptedContent.tsx`,
 `src/app/utils/room.ts`, `src/app/hooks/useKeyBackup.ts`,
@@ -153,9 +153,9 @@ or numeric measurements.
 
 | Metric                          | Type         | Attributes  | What it tracks                      |
 | ------------------------------- | ------------ | ----------- | ----------------------------------- |
-| `sable.message.send_latency_ms` | distribution | `encrypted` | Message send round-trip time        |
-| `sable.message.send_error`      | count        | —           | Send errors from message composer   |
-| `sable.message.send_failed`     | count        | —           | Local-echo `NOT_SENT` status events |
+| `blockwire.message.send_latency_ms` | distribution | `encrypted` | Message send round-trip time        |
+| `blockwire.message.send_error`      | count        | —           | Send errors from message composer   |
+| `blockwire.message.send_failed`     | count        | —           | Local-echo `NOT_SENT` status events |
 
 **Code:** `src/app/features/room/RoomInput.tsx`,
 `src/app/features/room/RoomTimeline.tsx`
@@ -164,11 +164,11 @@ or numeric measurements.
 
 | Metric                         | Type         | Attributes  | What it tracks                   |
 | ------------------------------ | ------------ | ----------- | -------------------------------- |
-| `sable.timeline.open`          | count        | `mode`      | Timeline render initiations      |
-| `sable.timeline.render_window` | distribution | `mode`      | Initial virtual window size      |
-| `sable.timeline.jump_load_ms`  | distribution | —           | Event-jump timeline load latency |
-| `sable.timeline.reinit`        | count        | —           | Full timeline re-initialisations |
-| `sable.pagination.error`       | count        | `direction` | Pagination errors by direction   |
+| `blockwire.timeline.open`          | count        | `mode`      | Timeline render initiations      |
+| `blockwire.timeline.render_window` | distribution | `mode`      | Initial virtual window size      |
+| `blockwire.timeline.jump_load_ms`  | distribution | —           | Event-jump timeline load latency |
+| `blockwire.timeline.reinit`        | count        | —           | Full timeline re-initialisations |
+| `blockwire.pagination.error`       | count        | `direction` | Pagination errors by direction   |
 
 **Code:** `src/app/features/room/RoomTimeline.tsx`
 
@@ -176,17 +176,17 @@ or numeric measurements.
 
 | Metric                            | Type         | Attributes                   | What it tracks                         |
 | --------------------------------- | ------------ | ---------------------------- | -------------------------------------- |
-| `sable.sync.transport`            | count        | `type` (`sliding`/`classic`) | Sync transport type used               |
-| `sable.sync.cycle`                | count        | (various)                    | Completed sliding sync cycles          |
-| `sable.sync.error`                | count        | `errcode`                    | Sliding sync errors                    |
-| `sable.sync.initial_ms`           | distribution | —                            | Initial sync completion time           |
-| `sable.sync.processing_ms`        | distribution | —                            | Per-cycle sync processing time         |
-| `sable.sync.lists_loaded_ms`      | distribution | —                            | Time for room lists to fully load      |
-| `sable.sync.total_rooms`          | gauge        | `sync_type`                  | Total rooms known at list load         |
-| `sable.sync.active_subscriptions` | gauge        | —                            | Active room subscription count         |
-| `sable.sync.client_ready_ms`      | distribution | `type`                       | Time from init to client ready         |
-| `sable.sync.time_to_ready_ms`     | distribution | —                            | Wall-clock time to first sync ready    |
-| `sable.sync.degraded`             | count        | `state`                      | Sync reconnect/error state transitions |
+| `blockwire.sync.transport`            | count        | `type` (`sliding`/`classic`) | Sync transport type used               |
+| `blockwire.sync.cycle`                | count        | (various)                    | Completed sliding sync cycles          |
+| `blockwire.sync.error`                | count        | `errcode`                    | Sliding sync errors                    |
+| `blockwire.sync.initial_ms`           | distribution | —                            | Initial sync completion time           |
+| `blockwire.sync.processing_ms`        | distribution | —                            | Per-cycle sync processing time         |
+| `blockwire.sync.lists_loaded_ms`      | distribution | —                            | Time for room lists to fully load      |
+| `blockwire.sync.total_rooms`          | gauge        | `sync_type`                  | Total rooms known at list load         |
+| `blockwire.sync.active_subscriptions` | gauge        | —                            | Active room subscription count         |
+| `blockwire.sync.client_ready_ms`      | distribution | `type`                       | Time from init to client ready         |
+| `blockwire.sync.time_to_ready_ms`     | distribution | —                            | Wall-clock time to first sync ready    |
+| `blockwire.sync.degraded`             | count        | `state`                      | Sync reconnect/error state transitions |
 
 **Code:** `src/client/initMatrix.ts`, `src/client/slidingSync.ts`,
 `src/app/pages/client/ClientRoot.tsx`, `src/app/pages/client/SyncStatus.tsx`
@@ -195,11 +195,11 @@ or numeric measurements.
 
 | Metric                          | Type         | Attributes | What it tracks               |
 | ------------------------------- | ------------ | ---------- | ---------------------------- |
-| `sable.media.upload_latency_ms` | distribution | `mimetype` | Media upload round-trip time |
-| `sable.media.upload_bytes`      | distribution | `mimetype` | Upload size distribution     |
-| `sable.media.upload_error`      | count        | `reason`   | Upload failures by reason    |
-| `sable.media.blob_cache_size`   | gauge        | —          | Blob URL cache entry count   |
-| `sable.media.inflight_requests` | gauge        | —          | Concurrent media requests    |
+| `blockwire.media.upload_latency_ms` | distribution | `mimetype` | Media upload round-trip time |
+| `blockwire.media.upload_bytes`      | distribution | `mimetype` | Upload size distribution     |
+| `blockwire.media.upload_error`      | count        | `reason`   | Upload failures by reason    |
+| `blockwire.media.blob_cache_size`   | gauge        | —          | Blob URL cache entry count   |
+| `blockwire.media.inflight_requests` | gauge        | —          | Concurrent media requests    |
 
 **Code:** `src/app/utils/matrix.ts`, `src/app/pages/client/ClientNonUIFeatures.tsx`
 
@@ -207,9 +207,9 @@ or numeric measurements.
 
 | Metric                          | Type  | Attributes | What it tracks                         |
 | ------------------------------- | ----- | ---------- | -------------------------------------- |
-| `sable.background.client_count` | gauge | —          | Active background notification clients |
-| `sable.errors`                  | count | `category` | Error-level debug log entries          |
-| `sable.warnings`                | count | `category` | Warning-level debug log entries        |
+| `blockwire.background.client_count` | gauge | —          | Active background notification clients |
+| `blockwire.errors`                  | count | `category` | Error-level debug log entries          |
+| `blockwire.warnings`                | count | `category` | Warning-level debug log entries        |
 
 **Code:** `src/app/pages/client/BackgroundNotifications.tsx`,
 `src/app/utils/debugLogger.ts`

@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Sable",
+  "productName": "BlockWire",
   "version": "1.20.0",
-  "identifier": "moe.sable.client",
+  "identifier": "chat.blockwire.client",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:8080",

@@ -29,7 +29,7 @@ const { isNightly } = resolveReleaseMeta({
   gitSha: process.env.GIT_SHA,
 });
 
-const dir = mkdtempSync(join(tmpdir(), 'sable-sigs-'));
+const dir = mkdtempSync(join(tmpdir(), 'blockwire-sigs-'));
 execSync(`gh release download "${TAG}" --repo "${REPO}" --pattern '*.sig' --dir "${dir}"`, {
   stdio: 'inherit',
 });
@@ -63,7 +63,7 @@ if (Object.keys(platforms).length === 0) {
   process.exit(0);
 }
 
-let notes = `Sable ${version}`;
+let notes = `BlockWire ${version}`;
 if (!isNightly) {
   try {
     notes =

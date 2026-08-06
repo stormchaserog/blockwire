@@ -210,7 +210,7 @@ jobs:
                   *.dmg) suffix='.dmg' ;;
                   *) continue ;;
                 esac
-                target="$(dirname "$path")/Sable-${VERSION}-${ASSET_PLATFORM}${suffix}"
+                target="$(dirname "$path")/BlockWire-${VERSION}-${ASSET_PLATFORM}${suffix}"
                 [ "$path" = "$target" ] || mv "$path" "$target"
               done
 
@@ -232,7 +232,7 @@ jobs:
           BUNDLE_PATH: ${{ matrix.bundle_path }}
         run: |
           test -d "$BUNDLE_PATH" || { echo "Bundle directory not found: $BUNDLE_PATH" >&2; exit 1; }
-          find "$BUNDLE_PATH" -type f -name 'Sable-*' -print0 \
+          find "$BUNDLE_PATH" -type f -name 'BlockWire-*' -print0 \
             | while IFS= read -r -d '' path; do
                 echo "Uploading $path"
                 gh release upload "$TAG" "$path" --clobber
@@ -262,7 +262,7 @@ jobs:
         if: ${{ matrix.cef && env.TAURI_SIGNING_PRIVATE_KEY != '' }}
         shell: bash
         run: |
-          for f in src-tauri/target/release/bundle/appimage/Sable-*-linux-x86_64.AppImage; do
+          for f in src-tauri/target/release/bundle/appimage/BlockWire-*-linux-x86_64.AppImage; do
             [ -e "$f" ] || continue
             pnpm tauri signer sign "$f"
           done
@@ -286,10 +286,10 @@ jobs:
         run: |
           BUNDLE="$BUNDLE_PATH"
           test -d "$BUNDLE" || { echo "Bundle directory not found: $BUNDLE" >&2; exit 1; }
-          for f in "$BUNDLE"/deb/Sable-*-linux-x86_64.deb \
-                   "$BUNDLE"/rpm/Sable-*-linux-x86_64.rpm \
-                   "$BUNDLE"/appimage/Sable-*-linux-x86_64.AppImage \
-                   "$BUNDLE"/appimage/Sable-*-linux-x86_64.AppImage.sig; do
+          for f in "$BUNDLE"/deb/BlockWire-*-linux-x86_64.deb \
+                   "$BUNDLE"/rpm/BlockWire-*-linux-x86_64.rpm \
+                   "$BUNDLE"/appimage/BlockWire-*-linux-x86_64.AppImage \
+                   "$BUNDLE"/appimage/BlockWire-*-linux-x86_64.AppImage.sig; do
             [ -e "$f" ] || continue
             echo "Uploading $f"
             gh release upload "$TAG" "$f" --clobber
@@ -385,8 +385,8 @@ jobs:
           AAB=$(find "$OUT/bundle/universalRelease" -name '*.aab' -type f | head -1)
           [ -n "$APK" ] || { echo 'APK not found' >&2; exit 1; }
           [ -n "$AAB" ] || { echo 'AAB not found' >&2; exit 1; }
-          mv "$APK" "$OUT/apk/universal/release/Sable-${VERSION}-android-universal.apk"
-          mv "$AAB" "$OUT/bundle/universalRelease/Sable-${VERSION}-android-universal.aab"
+          mv "$APK" "$OUT/apk/universal/release/BlockWire-${VERSION}-android-universal.apk"
+          mv "$AAB" "$OUT/bundle/universalRelease/BlockWire-${VERSION}-android-universal.aab"
 
       - name: Attest Android bundles
         uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
@@ -511,7 +511,7 @@ jobs:
           pnpm tauri ios build --no-sign --ci
           IPA=$(find src-tauri/gen/apple/build -name '*.ipa' -type f | head -1)
           [ -n "$IPA" ] || { echo "IPA not found"; ls -R src-tauri/gen/apple/build 2>/dev/null || true; exit 1; }
-          NORMALIZED_IPA="$(dirname "$IPA")/Sable-${VERSION}-ios-arm64.ipa"
+          NORMALIZED_IPA="$(dirname "$IPA")/BlockWire-${VERSION}-ios-arm64.ipa"
           [ "$IPA" = "$NORMALIZED_IPA" ] || mv "$IPA" "$NORMALIZED_IPA"
           IPA="$NORMALIZED_IPA"
           unzip -p "$IPA" 'Payload/*.app/Info.plist' >Info.plist
@@ -592,7 +592,7 @@ jobs:
             git worktree remove --force "$WT" 2>/dev/null || true
             git worktree add --detach "$WT" origin/dev
             node .github/scripts/update-altstore-source.mjs \
-              "$WT/$SOURCE_FILE" "${ALTSTORE_VERSION:-$VERSION}" "${ALTSTORE_VERSION_BUILD:-$VERSION}" "${STEPS_IPA_OUTPUTS_SIZE}" "$DOWNLOAD_URL" "$DATE" "Sable $VERSION"
+              "$WT/$SOURCE_FILE" "${ALTSTORE_VERSION:-$VERSION}" "${ALTSTORE_VERSION_BUILD:-$VERSION}" "${STEPS_IPA_OUTPUTS_SIZE}" "$DOWNLOAD_URL" "$DATE" "BlockWire $VERSION"
             pnpm oxfmt "$WT/$SOURCE_FILE"
             git -C "$WT" add "$SOURCE_FILE"
             if git -C "$WT" diff --cached --quiet; then

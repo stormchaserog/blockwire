@@ -1,4 +1,4 @@
-# Contributing to Sable
+# Contributing to BlockWire
 
 First off, thanks for taking the time to contribute! ❤️
 
@@ -7,14 +7,14 @@ All types of contributions are encouraged and valued. Please make sure to read t
 > And if you like the project, but just don't have time to contribute, that's fine. There are other easy ways to support the project and show your appreciation, which we would also be very happy about:
 >
 > - Star the project
-> - [Donate](https://opencollective.com/sable)! ❤️
+> - [Donate](https://opencollective.com/blockwire)! ❤️
 > - Talk about it!
 > - Refer this project in your project's readme
 > - Mention the project at local meetups and tell your friends/colleagues
 
 ## Bug reports
 
-Bug reports and feature suggestions must use descriptive and concise titles and be submitted to [GitHub Issues](https://github.com/SableClient/Sable/issues). Please use the search function to make sure that you are not submitting duplicates, and that a similar report or request has not already been resolved or rejected.
+Bug reports and feature suggestions must use descriptive and concise titles and be submitted to [GitHub Issues](https://github.com/stormchaserog/blockwire/issues). Please use the search function to make sure that you are not submitting duplicates, and that a similar report or request has not already been resolved or rejected.
 
 ## Pull requests
 
@@ -125,7 +125,7 @@ You can also validate the local Knope config with:
 
 - `pnpm run knope -- --validate`
 
-**For any query or design discussion, join our [Matrix room](https://matrix.to/#/#sable:sable.moe).**
+**For any query or design discussion, join our [Matrix room](https://matrix.to/#/#blockwire:blockwire.chat).**
 
 ## Helpful links
 

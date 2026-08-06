@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://nfpm.goreleaser.com/schema.json
 
-name: sable
+name: blockwire
 arch: amd64
 platform: linux
 version: ${PKG_VERSION}
@@ -8,12 +8,12 @@ release: ${PKG_RELEASE}
 version_schema: semver
 section: net
 maintainer: SableClient
-description: Sable, a Matrix client
-homepage: https://sable.moe
+description: BlockWire, a Matrix client
+homepage: https://blockwire.chat
 
 contents:
-  - src: ${PKGROOT}/opt/sable/
-    dst: /opt/sable
+  - src: ${PKGROOT}/opt/blockwire/
+    dst: /opt/blockwire
     type: tree
     expand: true
   - src: ${PKGROOT}/usr/

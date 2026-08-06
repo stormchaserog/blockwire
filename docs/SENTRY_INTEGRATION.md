@@ -1,11 +1,11 @@
-# Sentry Integration for Sable
+# Sentry Integration for BlockWire
 
-This document describes the Sentry error tracking and monitoring integration added to Sable.
+This document describes the Sentry error tracking and monitoring integration added to BlockWire.
 For a detailed breakdown of what data is collected and how it is protected, see [SENTRY_PRIVACY.md](./SENTRY_PRIVACY.md).
 
 ## Overview
 
-Sentry is integrated with Sable to provide:
+Sentry is integrated with BlockWire to provide:
 
 - **Error tracking**: Automatic capture and reporting of errors and exceptions
 - **Performance monitoring**: Track application performance and identify bottlenecks
@@ -166,7 +166,7 @@ SENTRY_PROJECT=your-project-slug
 
 ### Self-Hosting with Docker
 
-Sable is compiled at build time, so `VITE_*` variables must be passed as Docker
+BlockWire is compiled at build time, so `VITE_*` variables must be passed as Docker
 **build arguments** — they cannot be injected at container runtime via a plain
 `docker run -e` flag. The easiest way for self-hosters to supply them is with
 a `.env` file and `docker-compose`.
@@ -189,7 +189,7 @@ stage so Vite can embed them in the bundle:
 
 ```yaml
 services:
-  sable:
+  blockwire:
     build:
       context: .
       args:
@@ -226,7 +226,7 @@ If you use plain `docker build`, pass build args directly:
 docker build \
   --build-arg VITE_SENTRY_DSN="https://your-key@oXXXXX.ingest.sentry.io/XXXXXXX" \
   --build-arg VITE_SENTRY_ENVIRONMENT="production" \
-  -t sable .
+  -t blockwire .
 ```
 
 > **Security note:** DSN values embedded in the JavaScript bundle are visible
@@ -295,7 +295,7 @@ Or use the UI in Settings → General → Diagnostics & Privacy.
 
 ## Custom Instrumentation
 
-Beyond automatic error capture, Sable has hand-crafted monitoring at key
+Beyond automatic error capture, BlockWire has hand-crafted monitoring at key
 lifecycle points. See [SENTRY_PRIVACY.md](./SENTRY_PRIVACY.md) for the full
 metrics reference. Key areas:
 
@@ -306,11 +306,11 @@ metrics reference. Key areas:
 | **Cryptography**       | Decryption failures (by failure reason), key backup errors, store wipes, E2E verification outcomes, bulk decryption latency        |
 | **Messaging**          | Send latency, send errors, local-echo `NOT_SENT` events                                                                            |
 | **Timeline**           | Opens, virtual window size, jump-load latency, re-initialisations, `limited` sync resets, scroll offset at load, pagination errors |
-| **Pagination**         | Pagination latency (`sable.pagination.latency_ms`) and errors per direction                                                        |
-| **Sliding sync**       | Room subscription latency (`sable.sync.room_sub_latency_ms`), events per subscription batch (`sable.sync.room_sub_event_count`)    |
+| **Pagination**         | Pagination latency (`blockwire.pagination.latency_ms`) and errors per direction                                                        |
+| **Sliding sync**       | Room subscription latency (`blockwire.sync.room_sub_latency_ms`), events per subscription batch (`blockwire.sync.room_sub_event_count`)    |
 | **Scroll / UX**        | `atBottom` transitions with rapid-flip anomaly detection, scroll-to-bottom trigger warnings when user is scrolled up               |
-| **Calls**              | `sable.call.start.attempt/error`, `sable.call.answered`, `sable.call.declined`, active/ended/timeout counters                      |
-| **Message actions**    | `sable.message.delete.*`, `sable.message.forward.*`, `sable.message.report.*`, `sable.message.reaction.toggle`                     |
+| **Calls**              | `blockwire.call.start.attempt/error`, `blockwire.call.answered`, `blockwire.call.declined`, active/ended/timeout counters                      |
+| **Message actions**    | `blockwire.message.delete.*`, `blockwire.message.forward.*`, `blockwire.message.report.*`, `blockwire.message.reaction.toggle`                     |
 | **Media**              | Upload latency, upload size, cache stats                                                                                           |
 | **Background clients** | Per-account notification client count, startup failures                                                                            |
 
