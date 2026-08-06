@@ -396,6 +396,13 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
     const audioRecorderRef = useRef<AudioMessageRecorderHandle>(null);
     const micHoldStartRef = useRef(0);
     const micHoldReleaseRef = useRef<(() => void) | null>(null);
+    // The hold-to-record pointer gesture already decides stop-vs-discard on
+    // release; the browser then synthesises a click on the same button, whose
+    // stop branch would override a discard. The gesture stamps this so the
+    // immediately-following click is swallowed. A timestamp rather than a
+    // flag: pointercancel produces no click, and a stale flag would swallow
+    // the next genuine one. Keyboard/AT activations are unaffected.
+    const micGestureClickGuardRef = useRef(0);
     const HOLD_THRESHOLD_MS = 400;
 
     useEffect(
@@ -2400,6 +2407,10 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
                 style={{ backgroundColor: 'transparent' }}
                 aria-pressed={!hasContent && editorMicButton ? showAudioRecorder : undefined}
                 onClick={() => {
+                  if (Date.now() - micGestureClickGuardRef.current < 500) {
+                    micGestureClickGuardRef.current = 0;
+                    return;
+                  }
                   if (showAudioRecorder) {
                     audioRecorderRef.current?.stop();
                     return;
@@ -2438,6 +2449,7 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
 
                   function discardRecording() {
                     releaseListeners();
+                    micGestureClickGuardRef.current = Date.now();
                     setTimeout(() => {
                       audioRecorderRef.current?.cancel();
                     }, 50);
@@ -2446,6 +2458,7 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
                     const held = Date.now() - micHoldStartRef.current;
                     if (held >= HOLD_THRESHOLD_MS) {
                       releaseListeners();
+                      micGestureClickGuardRef.current = Date.now();
                       setTimeout(() => {
                         audioRecorderRef.current?.stop();
                       }, 50);
