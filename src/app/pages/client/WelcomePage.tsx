@@ -45,8 +45,7 @@ export function WelcomePage() {
                 </Button>
               </Box>
             </Box>
-            <Box direction="Column" gap="200" alignItems="Center">
-            </Box>
+            <Box direction="Column" gap="200" alignItems="Center"></Box>
           </PageHero>
         </PageHeroSection>
       </Box>

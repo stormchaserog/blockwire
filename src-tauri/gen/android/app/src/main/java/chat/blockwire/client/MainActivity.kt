@@ -1,4 +1,4 @@
-package moe.sable.client
+package chat.blockwire.client
 
 import android.Manifest
 import android.content.Intent

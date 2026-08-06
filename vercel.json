@@ -1,51 +1,51 @@
 {
-    "$schema": "https://openapi.vercel.sh/vercel.json",
-    "headers": [
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "headers": [
+    {
+      "source": "/.well-known/matrix/(.*)",
+      "headers": [
         {
-            "source": "/.well-known/matrix/(.*)",
-            "headers": [
-                {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                },
-                {
-                    "key": "Access-Control-Allow-Origin",
-                    "value": "*"
-                }
-            ]
+          "key": "Content-Type",
+          "value": "application/json"
         },
         {
-            "source": "/sw.js",
-            "headers": [
-                {
-                    "key": "Cache-Control",
-                    "value": "no-cache, no-store, must-revalidate"
-                }
-            ]
-        },
-        {
-            "source": "/index.html",
-            "headers": [
-                {
-                    "key": "Cache-Control",
-                    "value": "no-cache, no-store, must-revalidate"
-                }
-            ]
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
         }
-    ],
-    "rewrites": [
+      ]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
         {
-            "source": "/.well-known/matrix/server",
-            "destination": "/.well-known/matrix/server.json"
-        },
-        {
-            "source": "/.well-known/matrix/client",
-            "destination": "/.well-known/matrix/client.json"
-        },
-        {
-            "source": "/(.*)",
-            "destination": "/index.html"
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
         }
-    ],
-    "outputDirectory": "."
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/.well-known/matrix/server",
+      "destination": "/.well-known/matrix/server.json"
+    },
+    {
+      "source": "/.well-known/matrix/client",
+      "destination": "/.well-known/matrix/client.json"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "outputDirectory": "."
 }

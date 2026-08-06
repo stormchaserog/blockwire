@@ -67,12 +67,29 @@
         // "settings"; it still cannot have /settings. Keep in sync with the
         // same list in src/app/plugins/blockwire-link.ts.
         var RESERVED = {
-          login: 1, register: 1, 'reset-password': 1, home: 1, direct: 1,
-          explore: 1, create: 1, 'create-room': 1, 'bug-report': 1,
-          navigate: 1, profile: 1, inbox: 1, settings: 1, lp: 1, invite: 1,
+          login: 1,
+          register: 1,
+          'reset-password': 1,
+          home: 1,
+          direct: 1,
+          explore: 1,
+          create: 1,
+          'create-room': 1,
+          'bug-report': 1,
+          navigate: 1,
+          profile: 1,
+          inbox: 1,
+          settings: 1,
+          lp: 1,
+          invite: 1,
           source: 1,
-          'index.html': 1, 'config.json': 1, 'sw.js': 1, assets: 1,
-          public: 1, 'manifest.webmanifest': 1, '.well-known': 1,
+          'index.html': 1,
+          'config.json': 1,
+          'sw.js': 1,
+          assets: 1,
+          public: 1,
+          'manifest.webmanifest': 1,
+          '.well-known': 1,
         };
 
         var parts = path.replace(/^\/+|\/+$/g, '').split('/');
@@ -127,11 +144,7 @@
         window.history.replaceState(
           null,
           '',
-          '/home/' +
-            encodeURIComponent('#' + head + ':' + SERVER) +
-            eventTail +
-            '/' +
-            loc.search
+          '/home/' + encodeURIComponent('#' + head + ':' + SERVER) + eventTail + '/' + loc.search
         );
       })();
     </script>

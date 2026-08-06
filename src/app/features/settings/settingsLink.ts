@@ -17,6 +17,7 @@ const settingsSectionLabel = Object.fromEntries(
 
 export const settingsLinkFocusIdsBySection: Record<SettingsSectionId, readonly string[]> = {
   general: [
+    'auto-update',
     'show-interactive-map',
     'show-interactive-map-enc',
     'client-side-embeds',

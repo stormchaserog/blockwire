@@ -65,10 +65,10 @@ describe('TelemetryConsentBanner', () => {
     expect(screen.queryByRole('button', { name: /dismiss/i })).not.toBeInTheDocument();
   });
 
-  it('includes a link to the privacy policy', () => {
+  it('does not link to the upstream privacy policy', () => {
     vi.stubEnv('VITE_SENTRY_DSN', TEST_DSN);
     renderTestBanner();
-    expect(screen.getByRole('link', { name: /learn more/i })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /learn more/i })).not.toBeInTheDocument();
   });
 
   // ── "Enable" action ───────────────────────────────────────────────────────

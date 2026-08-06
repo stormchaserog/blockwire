@@ -17,8 +17,7 @@
 const BUNDLE_PATTERN = /assets\/index-[A-Za-z0-9_-]+\.js/;
 
 /** Which bundle a served document points at, if we can tell. */
-export const parseBundleUrl = (html: string): string | undefined =>
-  BUNDLE_PATTERN.exec(html)?.[0];
+export const parseBundleUrl = (html: string): string | undefined => BUNDLE_PATTERN.exec(html)?.[0];
 
 /** Which bundle this page is running. */
 export const readRunningBundle = (doc: Pick<Document, 'querySelectorAll'>): string | undefined => {

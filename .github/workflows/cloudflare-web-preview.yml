@@ -29,8 +29,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # The secrets context is not allowed in a job-level `if`, so a preflight job
+  # exposes the check as an output the deploy job can gate on.
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      has_token: ${{ steps.check.outputs.has_token }}
+    steps:
+      - name: Check for Cloudflare token
+        id: check
+        env:
+          CF_TOKEN: ${{ secrets.TF_CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -n "$CF_TOKEN" ]; then
+            echo "has_token=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_token=false" >> "$GITHUB_OUTPUT"
+            echo "TF_CLOUDFLARE_API_TOKEN is not set; skipping the preview deploy."
+          fi
+
   deploy:
-    if: (github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != 'release') || github.event_name == 'push'
+    needs: preflight
+    # Skipped entirely when the Cloudflare token is absent; previews resume as
+    # soon as the TF_CLOUDFLARE_API_TOKEN / TF_VAR_ACCOUNT_ID secrets are set.
+    if: ${{ needs.preflight.outputs.has_token == 'true' && ((github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != 'release') || github.event_name == 'push') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

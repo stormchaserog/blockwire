@@ -1,5 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Blob as NodeBlob } from 'node:buffer';
 import { clearMediaCache, getFromMediaCache, putInMediaCache } from './mediaCache';
+
+// jsdom's Blob lacks .stream(), which undici's Response requires; use Node's.
+vi.stubGlobal('Blob', NodeBlob);
 
 class FakeCache {
   private store = new Map<string, Response>();

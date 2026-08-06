@@ -47,7 +47,11 @@ export function SourceCode() {
               GNU Affero General Public License v3.0
             </a>
             , as a modified version of{' '}
-            <a href="https://github.com/SableClient/Sable" target="_blank" rel="noreferrer noopener">
+            <a
+              href="https://github.com/SableClient/Sable"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
               Sable
             </a>
             , whose licence our modifications inherit.

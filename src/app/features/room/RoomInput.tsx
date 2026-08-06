@@ -1786,9 +1786,7 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
         log.error('failed to send gif', { roomId }, error);
         // Whatever went wrong, say so. A picker that swallows failures is
         // indistinguishable from a broken one.
-        showToast(
-          error instanceof GifSendError ? error.message : 'Could not send that GIF.'
-        );
+        showToast(error instanceof GifSendError ? error.message : 'Could not send that GIF.');
       }
     };
 

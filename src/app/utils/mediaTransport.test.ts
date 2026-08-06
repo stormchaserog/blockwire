@@ -1,4 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Blob as NodeBlob } from 'node:buffer';
+
+// jsdom's Blob lacks .stream(), which undici's Response requires; use Node's.
+vi.stubGlobal('Blob', NodeBlob);
 
 const swMediaAuth = vi.hoisted(() => ({
   getCachedSWMediaAuthSupport: vi.fn<() => boolean | undefined>(),

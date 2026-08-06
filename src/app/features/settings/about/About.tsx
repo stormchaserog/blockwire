@@ -261,7 +261,9 @@ export function About({ requestBack, requestClose }: Readonly<AboutProps>) {
                       <Text size="H3">{SABLE_PRODUCT_NAME}</Text>
                       <Text size="T200">{`v${APP_VERSION}${devLabel}${buildLabel}`}</Text>
                     </Box>
-                    <Text>Private groups, public channels and direct messages for crypto communities.</Text>
+                    <Text>
+                      Private groups, public channels and direct messages for crypto communities.
+                    </Text>
                     {/* AGPL-3.0 §13 requires offering the source to anyone using
                         the app over a network, and the attribution to the project
                         this is derived from stays with it. Branding does not get

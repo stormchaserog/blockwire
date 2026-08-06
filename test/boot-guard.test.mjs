@@ -1,3 +1,4 @@
+/* oxlint-disable no-console */
 // Guards the inline boot script in index.html: stale-launch-URL
 // normalisation and share-link resolution. Run against a build:
 //   npm run build && node test/boot-guard.test.mjs
@@ -9,7 +10,10 @@
 import { readFileSync } from 'node:fs';
 const html = readFileSync(new URL('../dist/index.html', import.meta.url), 'utf8');
 const m = html.match(/\(function \(\) \{[\s\S]*?\}\)\(\);/);
-if (!m) { console.log('GUARD NOT FOUND'); process.exit(1); }
+if (!m) {
+  console.log('GUARD NOT FOUND');
+  process.exit(1);
+}
 const guard = m[0];
 
 const run = (url) => {
@@ -17,7 +21,11 @@ const run = (url) => {
   let result = u.pathname + u.search + u.hash;
   const window = {
     location: { pathname: u.pathname, search: u.search, hash: u.hash },
-    history: { replaceState: (_a, _b, to) => { result = to; } },
+    history: {
+      replaceState: (_a, _b, to) => {
+        result = to;
+      },
+    },
   };
   new Function('window', guard)(window);
   return result;
@@ -28,20 +36,32 @@ const cases = [
   ['https://blockwire.chat/degens', '/home/%23degens%3Ablockwire.chat/'],
   ['https://blockwire.chat/@stephen', '/direct/create?userId=%40stephen%3Ablockwire.chat'],
   ['https://blockwire.chat/degens/$abc', '/home/%23degens%3Ablockwire.chat/$abc/'],
-  ['https://blockwire.chat/degens?via=blockwire.chat', '/home/%23degens%3Ablockwire.chat/?via=blockwire.chat'],
+  [
+    'https://blockwire.chat/degens?via=blockwire.chat',
+    '/home/%23degens%3Ablockwire.chat/?via=blockwire.chat',
+  ],
   // a foreign account keeps its server
   ['https://blockwire.chat/@bob:other.example', '/direct/create?userId=%40bob%3Aother.example'],
   // long form, for a room with no published address
-  ['https://blockwire.chat/room/!weOKVBoq%3Ablockwire.chat?via=blockwire.chat', '/home/!weOKVBoq%3Ablockwire.chat/?via=blockwire.chat'],
+  [
+    'https://blockwire.chat/room/!weOKVBoq%3Ablockwire.chat?via=blockwire.chat',
+    '/home/!weOKVBoq%3Ablockwire.chat/?via=blockwire.chat',
+  ],
 
   // --- Invite links are resolved by a route, not here ---------------------
   ['https://blockwire.chat/+7Fk2xQwe', '/invite/7Fk2xQwe'],
   ['https://blockwire.chat/invite/7Fk2xQwe', '/invite/7Fk2xQwe'],
 
   // --- Older / cross-client permalinks still have to work -----------------
-  ['https://blockwire.chat/#/@stephen:blockwire.chat', '/direct/create?userId=%40stephen%3Ablockwire.chat'],
+  [
+    'https://blockwire.chat/#/@stephen:blockwire.chat',
+    '/direct/create?userId=%40stephen%3Ablockwire.chat',
+  ],
   ['https://blockwire.chat/#/%23news:blockwire.chat', '/home/%23news%3Ablockwire.chat/'],
-  ['https://blockwire.chat/#/!weOKVBoq:blockwire.chat?via=blockwire.chat', '/home/!weOKVBoq%3Ablockwire.chat/?via=blockwire.chat'],
+  [
+    'https://blockwire.chat/#/!weOKVBoq:blockwire.chat?via=blockwire.chat',
+    '/home/!weOKVBoq%3Ablockwire.chat/?via=blockwire.chat',
+  ],
 
   // --- The app's own pages must never be swallowed ------------------------
   ['https://blockwire.chat/', '/'],
@@ -77,7 +97,9 @@ for (const [input, expected] of cases) {
   }
   const ok = got === expected;
   if (!ok) fail++;
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${input}\n      -> ${got}${ok ? '' : `\n      expected ${expected}`}`);
+  console.log(
+    `${ok ? 'PASS' : 'FAIL'}  ${input}\n      -> ${got}${ok ? '' : `\n      expected ${expected}`}`
+  );
 }
 console.log(`\n${cases.length - fail}/${cases.length} passed`);
 process.exit(fail ? 1 : 0);

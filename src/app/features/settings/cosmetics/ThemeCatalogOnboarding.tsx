@@ -61,9 +61,9 @@ function ThemeCatalogOnboarding({ open, onEnable, onDecline }: ThemeCatalogOnboa
         </Header>
         <Box style={{ padding: config.space.S400 }} direction="Column" gap="400">
           <Text priority="400">
-            Load themes from the community theme catalog on GitHub? You can browse previews,
-            save favorites locally, and sync them with light and dark mode. If you choose not to,
-            you can keep using the built-in Light and Dark themes only.
+            Load themes from the community theme catalog on GitHub? You can browse previews, save
+            favorites locally, and sync them with light and dark mode. If you choose not to, you can
+            keep using the built-in Light and Dark themes only.
           </Text>
           <Box direction="Column" gap="200">
             <Button

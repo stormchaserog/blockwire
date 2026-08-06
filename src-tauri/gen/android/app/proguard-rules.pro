@@ -23,27 +23,27 @@
 # Keep Android bridge symbols used by Wry/Tauri JNI on release builds.
 # Without these, R8 can rename/remove methods like WryActivity.getId(),
 # which tao resolves by method name via JNI.
--keep class moe.sable.client.* {
+-keep class chat.blockwire.client.* {
   native <methods>;
 }
 
--keep class moe.sable.client.WryActivity {
+-keep class chat.blockwire.client.WryActivity {
   public <init>(...);
 
-  void setWebView(moe.sable.client.RustWebView);
+  void setWebView(chat.blockwire.client.RustWebView);
   java.lang.Class getAppClass(...);
   java.lang.String getVersion();
   int startActivity(...);
   int getId();
 }
 
--keep class moe.sable.client.Ipc {
+-keep class chat.blockwire.client.Ipc {
   public <init>(...);
 
   @android.webkit.JavascriptInterface public <methods>;
 }
 
--keep class moe.sable.client.RustWebView {
+-keep class chat.blockwire.client.RustWebView {
   public <init>(...);
 
   void loadUrlMainThread(...);
@@ -51,6 +51,6 @@
   void evalScript(...);
 }
 
--keep class moe.sable.client.RustWebChromeClient,moe.sable.client.RustWebViewClient {
+-keep class chat.blockwire.client.RustWebChromeClient,chat.blockwire.client.RustWebViewClient {
   public <init>(...);
 }

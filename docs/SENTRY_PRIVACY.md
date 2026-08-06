@@ -128,16 +128,16 @@ or numeric measurements.
 
 #### Authentication
 
-| Metric                    | Type  | Attributes | What it tracks                       |
-| ------------------------- | ----- | ---------- | ------------------------------------ |
+| Metric                        | Type  | Attributes | What it tracks                       |
+| ----------------------------- | ----- | ---------- | ------------------------------------ |
 | `blockwire.auth.login_failed` | count | `errcode`  | Login attempt failures by error code |
 
 **Code:** `src/app/pages/auth/login/loginUtil.ts`
 
 #### Cryptography
 
-| Metric                              | Type         | Attributes                          | What it tracks                                   |
-| ----------------------------------- | ------------ | ----------------------------------- | ------------------------------------------------ |
+| Metric                                  | Type         | Attributes                          | What it tracks                                   |
+| --------------------------------------- | ------------ | ----------------------------------- | ------------------------------------------------ |
 | `blockwire.decryption.failure`          | count        | `reason`                            | Unable-to-decrypt events by failure reason       |
 | `blockwire.decryption.event_ms`         | distribution | —                                   | Per-event decryption latency                     |
 | `blockwire.decryption.bulk_latency_ms`  | distribution | `event_count`                       | Bulk re-decryption time on room open             |
@@ -151,8 +151,8 @@ or numeric measurements.
 
 #### Messaging
 
-| Metric                          | Type         | Attributes  | What it tracks                      |
-| ------------------------------- | ------------ | ----------- | ----------------------------------- |
+| Metric                              | Type         | Attributes  | What it tracks                      |
+| ----------------------------------- | ------------ | ----------- | ----------------------------------- |
 | `blockwire.message.send_latency_ms` | distribution | `encrypted` | Message send round-trip time        |
 | `blockwire.message.send_error`      | count        | —           | Send errors from message composer   |
 | `blockwire.message.send_failed`     | count        | —           | Local-echo `NOT_SENT` status events |
@@ -162,8 +162,8 @@ or numeric measurements.
 
 #### Timeline
 
-| Metric                         | Type         | Attributes  | What it tracks                   |
-| ------------------------------ | ------------ | ----------- | -------------------------------- |
+| Metric                             | Type         | Attributes  | What it tracks                   |
+| ---------------------------------- | ------------ | ----------- | -------------------------------- |
 | `blockwire.timeline.open`          | count        | `mode`      | Timeline render initiations      |
 | `blockwire.timeline.render_window` | distribution | `mode`      | Initial virtual window size      |
 | `blockwire.timeline.jump_load_ms`  | distribution | —           | Event-jump timeline load latency |
@@ -174,8 +174,8 @@ or numeric measurements.
 
 #### Sync
 
-| Metric                            | Type         | Attributes                   | What it tracks                         |
-| --------------------------------- | ------------ | ---------------------------- | -------------------------------------- |
+| Metric                                | Type         | Attributes                   | What it tracks                         |
+| ------------------------------------- | ------------ | ---------------------------- | -------------------------------------- |
 | `blockwire.sync.transport`            | count        | `type` (`sliding`/`classic`) | Sync transport type used               |
 | `blockwire.sync.cycle`                | count        | (various)                    | Completed sliding sync cycles          |
 | `blockwire.sync.error`                | count        | `errcode`                    | Sliding sync errors                    |
@@ -193,8 +193,8 @@ or numeric measurements.
 
 #### Media
 
-| Metric                          | Type         | Attributes | What it tracks               |
-| ------------------------------- | ------------ | ---------- | ---------------------------- |
+| Metric                              | Type         | Attributes | What it tracks               |
+| ----------------------------------- | ------------ | ---------- | ---------------------------- |
 | `blockwire.media.upload_latency_ms` | distribution | `mimetype` | Media upload round-trip time |
 | `blockwire.media.upload_bytes`      | distribution | `mimetype` | Upload size distribution     |
 | `blockwire.media.upload_error`      | count        | `reason`   | Upload failures by reason    |
@@ -205,8 +205,8 @@ or numeric measurements.
 
 #### Background clients & debug telemetry
 
-| Metric                          | Type  | Attributes | What it tracks                         |
-| ------------------------------- | ----- | ---------- | -------------------------------------- |
+| Metric                              | Type  | Attributes | What it tracks                         |
+| ----------------------------------- | ----- | ---------- | -------------------------------------- |
 | `blockwire.background.client_count` | gauge | —          | Active background notification clients |
 | `blockwire.errors`                  | count | `category` | Error-level debug log entries          |
 | `blockwire.warnings`                | count | `category` | Warning-level debug log entries        |

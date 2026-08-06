@@ -65,7 +65,9 @@ describe('isNewBuildAvailable', () => {
 
 describe('fetchServedDocument', () => {
   it('bypasses every cache between here and the origin', async () => {
-    const fetchFn = vi.fn(async () => new Response(htmlFor(NEW), { status: 200 }));
+    const fetchFn = vi.fn<() => Promise<Response>>(
+      async () => new Response(htmlFor(NEW), { status: 200 })
+    );
     const html = await fetchServedDocument(fetchFn as unknown as typeof fetch, 1234);
 
     expect(html).toContain(NEW);
@@ -75,7 +77,7 @@ describe('fetchServedDocument', () => {
   });
 
   it('gives up quietly when offline', async () => {
-    const fetchFn = vi.fn(async () => {
+    const fetchFn = vi.fn<() => Promise<Response>>(async () => {
       throw new Error('offline');
     });
     await expect(
@@ -84,7 +86,9 @@ describe('fetchServedDocument', () => {
   });
 
   it('ignores a non-OK response', async () => {
-    const fetchFn = vi.fn(async () => new Response('nope', { status: 502 }));
+    const fetchFn = vi.fn<() => Promise<Response>>(
+      async () => new Response('nope', { status: 502 })
+    );
     await expect(
       fetchServedDocument(fetchFn as unknown as typeof fetch, 1)
     ).resolves.toBeUndefined();

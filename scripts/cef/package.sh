@@ -26,17 +26,18 @@ STAGE="$ROOT/src-tauri/target/release"
 OUT="$STAGE/bundle"
 WORK="$STAGE/cef-pkg"
 
-if [ -x "$STAGE/Sable Nightly" ]; then
-  BIN_NAME="Sable Nightly"
-  DISPLAY_NAME="Sable Nightly"
-elif [ -x "$STAGE/Sable" ]; then
-  BIN_NAME="Sable"
-  DISPLAY_NAME="Sable"
+if [ -x "$STAGE/BlockWire Nightly" ]; then
+  BIN_NAME="BlockWire Nightly"
+  DISPLAY_NAME="BlockWire Nightly"
+elif [ -x "$STAGE/BlockWire" ]; then
+  BIN_NAME="BlockWire"
+  DISPLAY_NAME="BlockWire"
 elif [ -x "$STAGE/sable" ]; then
+  # The cargo package is still named sable, so a plain cargo build lands here.
   BIN_NAME="sable"
-  DISPLAY_NAME="Sable"
+  DISPLAY_NAME="BlockWire"
 else
-  echo "missing $STAGE/Sable Nightly, Sable, or sable; build it first (pnpm tauri:cef build)" >&2
+  echo "missing $STAGE/BlockWire Nightly, BlockWire, or sable; build it first (pnpm tauri:cef build)" >&2
   exit 1
 fi
 
@@ -46,7 +47,7 @@ mkdir -p "$WORK" "$OUT/deb" "$OUT/rpm" "$OUT/appimage"
 stage_runtime() {
   local dest="$1"
   mkdir -p "$dest"
-  cp "$STAGE/$BIN_NAME" "$dest/sable"
+  cp "$STAGE/$BIN_NAME" "$dest/blockwire"
   bash scripts/cef/copy-libs.sh release "$dest"
 }
 
@@ -80,11 +81,11 @@ write_desktop() {
 Type=Application
 Name=$DISPLAY_NAME
 Comment=A Matrix client
-Exec=sable %U
-Icon=sable
+Exec=blockwire %U
+Icon=blockwire
 Terminal=false
 Categories=Network;InstantMessaging;Chat;
-StartupWMClass=sable
+StartupWMClass=blockwire
 MimeType=x-scheme-handler/sable;x-scheme-handler/moe.sable.app;
 EOF
 }
@@ -93,28 +94,28 @@ CONFIG="$ROOT/nfpm.yaml"
 if command -v nfpm >/dev/null 2>&1; then
   PKGROOT="$WORK/pkgroot"
   export PKGROOT
-  stage_runtime "$PKGROOT/opt/sable"
+  stage_runtime "$PKGROOT/opt/blockwire"
   mkdir -p "$PKGROOT/usr/bin" "$PKGROOT/usr/share/applications"
-  cat > "$PKGROOT/usr/bin/sable" <<'EOF'
+  cat > "$PKGROOT/usr/bin/blockwire" <<'EOF'
 #!/bin/sh
-exec /opt/sable/sable "$@"
+exec /opt/blockwire/blockwire "$@"
 EOF
-  chmod 755 "$PKGROOT/usr/bin/sable"
-  write_desktop "$PKGROOT/usr/share/applications/sable.desktop"
+  chmod 755 "$PKGROOT/usr/bin/blockwire"
+  write_desktop "$PKGROOT/usr/share/applications/blockwire.desktop"
   for size in 32x32 64x64 128x128; do
     mkdir -p "$PKGROOT/usr/share/icons/hicolor/${size}/apps"
     cp "src-tauri/icons/${size}.png" \
-      "$PKGROOT/usr/share/icons/hicolor/${size}/apps/sable.png"
+      "$PKGROOT/usr/share/icons/hicolor/${size}/apps/blockwire.png"
   done
   mkdir -p "$PKGROOT/usr/share/icons/hicolor/256x256/apps"
   cp "src-tauri/icons/128x128@2x.png" \
-    "$PKGROOT/usr/share/icons/hicolor/256x256/apps/sable.png"
+    "$PKGROOT/usr/share/icons/hicolor/256x256/apps/blockwire.png"
 
   PKG_VERSION="$DEB_VERSION" PKG_RELEASE=1 nfpm pkg -f "$CONFIG" -p deb \
-    -t "$OUT/deb/Sable-${VERSION}-linux-x86_64.deb"
+    -t "$OUT/deb/BlockWire-${VERSION}-linux-x86_64.deb"
 
   PKG_VERSION="$RPM_VERSION" PKG_RELEASE="$RPM_ITERATION" nfpm pkg -f "$CONFIG" -p rpm \
-    -t "$OUT/rpm/Sable-${VERSION}-linux-x86_64.rpm"
+    -t "$OUT/rpm/BlockWire-${VERSION}-linux-x86_64.rpm"
 else
   echo "nfpm not found; skipping deb/rpm"
 fi
@@ -127,23 +128,23 @@ elif command -v appimagetool >/dev/null 2>&1; then
 fi
 
 if [ -n "$APPIMAGETOOL_CMD" ]; then
-  APPDIR="$WORK/Sable.AppDir"
+  APPDIR="$WORK/BlockWire.AppDir"
   stage_runtime "$APPDIR/usr/bin"
   stage_appindicator "$APPDIR/usr/bin"
   # nosuid AppImage mount: drop setuid chrome-sandbox, use the namespace sandbox.
   rm -f "$APPDIR/usr/bin/chrome-sandbox"
-  write_desktop "$APPDIR/sable.desktop"
-  cp src-tauri/icons/128x128.png "$APPDIR/sable.png"
+  write_desktop "$APPDIR/blockwire.desktop"
+  cp src-tauri/icons/128x128.png "$APPDIR/blockwire.png"
   cat > "$APPDIR/AppRun" <<'EOF'
 #!/bin/sh
 HERE="$(dirname "$(readlink -f "$0")")"
 export LD_LIBRARY_PATH="$HERE/usr/bin${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-exec "$HERE/usr/bin/sable" "$@"
+exec "$HERE/usr/bin/blockwire" "$@"
 EOF
   chmod 755 "$APPDIR/AppRun"
 
   APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 "$APPIMAGETOOL_CMD" "$APPDIR" \
-    "$OUT/appimage/Sable-${VERSION}-linux-x86_64.AppImage"
+    "$OUT/appimage/BlockWire-${VERSION}-linux-x86_64.AppImage"
 else
   echo "appimagetool not found; skipping AppImage" >&2
 fi
