@@ -54,8 +54,6 @@ template = "chore: prepare release $version"
 
 [workflows.steps.body]
 template = """
-> **Preview the next release on [dev.sable.moe](https://dev.sable.moe)**
-
 > [!IMPORTANT]
 > Merging this PR will create a new release.
 
@@ -76,8 +74,8 @@ help_text = "Create a new change file to be included in the next release"
 type = "CreateChangeFile"
 
 [github]
-owner = "SableClient"
-repo = "Sable"
+owner = "stormchaserog"
+repo = "blockwire"
 
 [release_notes]
 change_templates = [

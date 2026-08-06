@@ -39,6 +39,7 @@ jobs:
       sentry_environment: ${{ steps.env.outputs.sentry_environment }}
       build_flavor: ${{ steps.version.outputs.build_flavor }}
       version: ${{ steps.version.outputs.version }}
+      has_cf: ${{ steps.creds.outputs.has_cf }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -48,6 +49,20 @@ jobs:
         id: version
         with:
           input-tag: ${{ inputs.git_tag }}
+
+      # Cloudflare infra is optional until the TF_* secrets are set; plan and
+      # apply skip without them instead of failing on every push.
+      - name: Check for Cloudflare credentials
+        id: creds
+        env:
+          CF_TOKEN: ${{ secrets.TF_CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -n "$CF_TOKEN" ]; then
+            echo "has_cf=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_cf=false" >> "$GITHUB_OUTPUT"
+            echo "TF_CLOUDFLARE_API_TOKEN is not set; skipping plan and apply."
+          fi
 
       - name: Detect environment
         id: env
@@ -66,7 +81,7 @@ jobs:
 
   plan:
     needs: detect
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    if: ${{ needs.detect.outputs.has_cf == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -109,7 +124,7 @@ jobs:
 
   apply:
     needs: [detect, plan]
-    if: github.event_name != 'pull_request'
+    if: ${{ needs.detect.outputs.has_cf == 'true' && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

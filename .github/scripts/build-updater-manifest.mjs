@@ -30,9 +30,18 @@ const { isNightly } = resolveReleaseMeta({
 });
 
 const dir = mkdtempSync(join(tmpdir(), 'blockwire-sigs-'));
-execSync(`gh release download "${TAG}" --repo "${REPO}" --pattern '*.sig' --dir "${dir}"`, {
-  stdio: 'inherit',
-});
+try {
+  execSync(`gh release download "${TAG}" --repo "${REPO}" --pattern '*.sig' --dir "${dir}"`, {
+    stdio: 'inherit',
+  });
+} catch {
+  // Unsigned builds (no TAURI_SIGNING_PRIVATE_KEY) upload no .sig assets, and
+  // `gh release download` exits non-zero when the pattern matches nothing. An
+  // updater manifest without signatures would be useless anyway - report and
+  // exit cleanly so the workflow can skip the upload.
+  console.warn('No .sig assets on the release; not producing an updater manifest.');
+  process.exit(0);
+}
 
 const urlFor = (name) =>
   `https://github.com/${REPO}/releases/download/${TAG}/${encodeURIComponent(name)}`;
