@@ -11,7 +11,7 @@
     {
       "name": "BlockWire",
       "bundleIdentifier": "chat.blockwire.client",
-      "developerName": "SableClient",
+      "developerName": "BlockWire",
       "subtitle": "BlockWire iOS (nightly)",
       "localizedDescription": "BlockWire for iOS. Nightly builds from dev; unsigned, resigned at install by AltStore/SideStore.",
       "iconURL": "https://raw.githubusercontent.com/stormchaserog/blockwire/dev/src-tauri/icons/icon.png",

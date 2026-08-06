@@ -7,13 +7,13 @@ variable "account_id" {
 variable "custom_domain" {
   description = "Custom domain attached to the Worker"
   type        = string
-  default     = "app.sable.moe"
+  default     = "blockwire.chat"
 }
 
 variable "worker_name" {
   description = "Cloudflare Worker name"
   type        = string
-  default     = "sable"
+  default     = "blockwire"
 }
 
 variable "workers_message" {
