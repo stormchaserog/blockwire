@@ -203,13 +203,27 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
           </Sentry.ErrorBoundary>
         }
       >
-        <Route path={SOURCE_PATH} element={<SourceCode />} />
-        <Route path={PRIVACY_PATH} element={<PrivacyPolicy />} />
-        <Route path={TERMS_PATH} element={<TermsOfService />} />
         <Route path={LOGIN_PATH} element={<Login />} />
         <Route path={REGISTER_PATH} element={<Register />} />
         <Route path={RESET_PASSWORD_PATH} element={<ResetPassword />} />
       </Route>
+
+      {/* Public documents, deliberately OUTSIDE the auth layout.
+       *
+       *  These were children of the route above, and AuthLayout assumes every
+       *  route under it is a sign-in screen: it rewrites the URL to
+       *  `<currentAuthPath>/:server` whenever the path has no `:server` param,
+       *  and `currentAuthPath` falls back to LOGIN_PATH for anything it does
+       *  not recognise. So /source, /privacy and /terms bounced straight to
+       *  /login/<server> for a logged-out visitor — which is precisely the
+       *  visitor they exist for. The AGPL §13 source offer was unreachable
+       *  from the day it shipped, and the store-required policy URLs would
+       *  have failed review the same way.
+       *
+       *  They need no server picker and no auth chrome, so they get none. */}
+      <Route path={SOURCE_PATH} element={<SourceCode />} />
+      <Route path={PRIVACY_PATH} element={<PrivacyPolicy />} />
+      <Route path={TERMS_PATH} element={<TermsOfService />} />
 
       <Route
         loader={() => {
