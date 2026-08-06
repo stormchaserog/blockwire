@@ -455,6 +455,9 @@ jobs:
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
       SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+      # The secrets context is not allowed in step `if`s, so the check lives in
+      # env, which is.
+      HAS_BOT_APP: ${{ secrets.APP_ID != '' && secrets.APP_PRIVATE_KEY != '' }}
       CARGO_INCREMENTAL: 0
       CARGO_TERM_COLOR: always
       NODE_OPTIONS: --max-old-space-size=8192
@@ -540,7 +543,7 @@ jobs:
       # manifest commit falls back to the workflow's own token.
       - name: Generate bot token
         id: app-token
-        if: ${{ secrets.APP_ID != '' && secrets.APP_PRIVATE_KEY != '' }}
+        if: ${{ env.HAS_BOT_APP == 'true' }}
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           app-id: ${{ secrets.APP_ID }}
