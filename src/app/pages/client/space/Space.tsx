@@ -414,13 +414,17 @@ function SpaceHeader({ hideText, mx }: { hideText?: boolean; mx: MatrixClient })
   );
 }
 
-type SpaceTombstoneProps = { roomId: string; replacementRoomId: string };
+// `replacementRoomId` is optional in practice: a redacted tombstone has empty
+// content, and a Join button pointing at undefined fails forever. Without a
+// replacement the space is simply closed.
+type SpaceTombstoneProps = { roomId: string; replacementRoomId?: string };
 function SpaceTombstone({ roomId, replacementRoomId }: SpaceTombstoneProps) {
   const mx = useMatrixClient();
   const { navigateSpace } = useRoomNavigate();
 
   const [joinState, handleJoin] = useAsyncCallback(
     useCallback(() => {
+      if (!replacementRoomId) return Promise.reject<Room>(new Error('No replacement space.'));
       const currentRoom = mx.getRoom(roomId);
       const via = currentRoom ? getViaServers(currentRoom) : [];
       return mx.joinRoom(replacementRoomId, {
@@ -428,7 +432,7 @@ function SpaceTombstone({ roomId, replacementRoomId }: SpaceTombstoneProps) {
       });
     }, [mx, roomId, replacementRoomId])
   );
-  const replacementRoom = mx.getRoom(replacementRoomId);
+  const replacementRoom = replacementRoomId ? mx.getRoom(replacementRoomId) : null;
 
   // Reactive, unlike `mx.getRoom(...)` above: that is a plain read taken
   // during render, so nothing re-renders this banner when the replacement
@@ -439,14 +443,14 @@ function SpaceTombstone({ roomId, replacementRoomId }: SpaceTombstoneProps) {
   // banner now settles on the right state by itself.
   const allJoinedRoomIds = useAtomValue(allRoomsAtom);
   const alreadyJoined =
-    allJoinedRoomIds.includes(replacementRoomId) ||
+    (!!replacementRoomId && allJoinedRoomIds.includes(replacementRoomId)) ||
     replacementRoom?.getMyMembership() === KnownMembership.Join ||
     joinState.status === AsyncStatus.Success;
 
   const handleOpen = () => {
     if (replacementRoom) navigateSpace(replacementRoom.roomId);
     else if (joinState.status === AsyncStatus.Success) navigateSpace(joinState.data.roomId);
-    else navigateSpace(replacementRoomId);
+    else if (replacementRoomId) navigateSpace(replacementRoomId);
   };
 
   return (
@@ -461,31 +465,37 @@ function SpaceTombstone({ roomId, replacementRoomId }: SpaceTombstoneProps) {
       gap="300"
     >
       <Box direction="Column" grow="Yes" gap="100">
-        <Text size="L400">Space Upgraded</Text>
-        <Text size="T200">This space has been replaced and is no longer active.</Text>
+        <Text size="L400">{replacementRoomId ? 'Space Upgraded' : 'Space Closed'}</Text>
+        <Text size="T200">
+          {replacementRoomId
+            ? 'This space has been replaced and is no longer active.'
+            : 'This space has been closed and is no longer active.'}
+        </Text>
         <AsyncError state={joinState} />
       </Box>
-      <Box direction="Column" shrink="No">
-        {alreadyJoined ? (
-          <Button onClick={handleOpen} size="300" variant="Success" fill="Solid" radii="300">
-            <Text size="B300">Open New Space</Text>
-          </Button>
-        ) : (
-          <Button
-            loading={joinState.status === AsyncStatus.Loading}
-            spinnerSize="100"
-            spinnerVariant="Primary"
-            spinnerFill="Solid"
-            size="300"
-            variant="Primary"
-            fill="Solid"
-            radii="300"
-            onClick={handleJoin}
-          >
-            <Text size="B300">Join New Space</Text>
-          </Button>
-        )}
-      </Box>
+      {replacementRoomId && (
+        <Box direction="Column" shrink="No">
+          {alreadyJoined ? (
+            <Button onClick={handleOpen} size="300" variant="Success" fill="Solid" radii="300">
+              <Text size="B300">Open New Space</Text>
+            </Button>
+          ) : (
+            <Button
+              loading={joinState.status === AsyncStatus.Loading}
+              spinnerSize="100"
+              spinnerVariant="Primary"
+              spinnerFill="Solid"
+              size="300"
+              variant="Primary"
+              fill="Solid"
+              radii="300"
+              onClick={handleJoin}
+            >
+              <Text size="B300">Join New Space</Text>
+            </Button>
+          )}
+        </Box>
+      )}
     </Box>
   );
 }

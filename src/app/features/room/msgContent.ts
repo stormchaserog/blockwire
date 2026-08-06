@@ -274,20 +274,29 @@ export const getGifMsgContent = async (
   mx: MatrixClient,
   gif: GifData,
   mxcUrl: string,
-  spoiler?: boolean
+  spoiler?: boolean,
+  gifBlob?: Blob
 ): Promise<IContent | undefined> => {
   if (!mxcUrl.startsWith('mxc://')) return undefined;
 
-  const proxyUrl = mxcUrlToHttp(mx, mxcUrl, true);
   let imgEl: HTMLImageElement | undefined;
   try {
-    if (proxyUrl) {
-      const blob = await fetchMediaBlob(proxyUrl);
-      const objectUrl = URL.createObjectURL(blob);
+    if (gifBlob) {
+      // The upload path just had these bytes in memory — decoding them
+      // directly saves a third full transfer of the same payload.
+      const objectUrl = URL.createObjectURL(gifBlob);
       imgEl = await loadImageElement(objectUrl);
       URL.revokeObjectURL(objectUrl);
     } else {
-      imgEl = await loadImageElement(gif.url, 'anonymous');
+      const proxyUrl = mxcUrlToHttp(mx, mxcUrl, true);
+      if (proxyUrl) {
+        const blob = await fetchMediaBlob(proxyUrl);
+        const objectUrl = URL.createObjectURL(blob);
+        imgEl = await loadImageElement(objectUrl);
+        URL.revokeObjectURL(objectUrl);
+      } else {
+        imgEl = await loadImageElement(gif.url, 'anonymous');
+      }
     }
   } catch (e) {
     log.warn('Failed to load image element for blurhash, falling back to basic metadata:', e);

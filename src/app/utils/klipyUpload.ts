@@ -30,11 +30,19 @@ export const MAX_GIF_BYTES = 8 * 1024 * 1024;
 
 export class GifSendError extends Error {}
 
+export type ResolvedGif = {
+  mxc: string;
+  /** Present when this client fetched the bytes itself (the upload path) —
+   *  callers reuse them instead of re-downloading from the media repo. */
+  blob?: Blob;
+};
+
 /**
  * Resolve a picked GIF to an mxc URI that this homeserver can serve.
  *
  * Uses the configured media proxy when there is one; otherwise fetches the
- * bytes and uploads them.
+ * bytes and uploads them, returning the bytes so callers never have to
+ * download what was just in memory.
  */
 export const resolveGifMxc = async (
   mx: MatrixClient,
@@ -44,13 +52,13 @@ export const resolveGifMxc = async (
     fetchFn?: typeof fetch;
     upload?: (blob: Blob, name: string) => Promise<string>;
   } = {}
-): Promise<string> => {
-  if (gifUrl.startsWith('mxc://')) return gifUrl;
+): Promise<ResolvedGif> => {
+  if (gifUrl.startsWith('mxc://')) return { mxc: gifUrl };
 
   // A configured proxy is cheaper — no upload, no storage — so prefer it.
   if (proxyUrl?.trim()) {
     const viaProxy = getKlipyMxcUrl(gifUrl, proxyUrl);
-    if (viaProxy.startsWith('mxc://')) return viaProxy;
+    if (viaProxy.startsWith('mxc://')) return { mxc: viaProxy };
   }
 
   const fetchFn = deps.fetchFn ?? fetch;
@@ -71,9 +79,10 @@ export const resolveGifMxc = async (
       return result.content_uri;
     });
 
-  const mxc = await upload(blob, 'gif.gif');
+  const name = blob.type === 'image/webp' ? 'gif.webp' : 'gif.gif';
+  const mxc = await upload(blob, name);
   if (!mxc?.startsWith('mxc://')) {
     throw new GifSendError('The server did not accept the GIF.');
   }
-  return mxc;
+  return { mxc, blob };
 };

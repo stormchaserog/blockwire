@@ -61,6 +61,7 @@ function createEvent({
     isRedaction: () => isRedaction,
     isEncrypted: () => false,
     getRelation: () => relation ?? null,
+    getAssociatedStatus: () => null,
     threadRootId,
   } as unknown as MatrixEvent;
 }
@@ -853,6 +854,7 @@ function createEncryptedEvent(id: string, ts: number) {
     getTs: () => ts,
     isRedacted: () => false,
     isRedaction: () => false,
+    getAssociatedStatus: () => null,
     isEncrypted: () => true,
     getRelation: () => null,
     threadRootId: undefined,

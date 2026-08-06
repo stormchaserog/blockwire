@@ -250,7 +250,8 @@ const useTimelinePagination = (
               ? freshLTimelines[0]
               : freshLTimelines[freshLTimelines.length - 1];
             if (!checkTimeline) {
-              (backwards ? setBackwardStatus : setForwardStatus)('idle');
+              // Transition lane on purpose: see the willContinue comment below.
+              startTransition(() => (backwards ? setBackwardStatus : setForwardStatus)('idle'));
               return;
             }
             const checkDirection = backwards ? Direction.Backward : Direction.Forward;
@@ -272,7 +273,11 @@ const useTimelinePagination = (
 
           // Stay in 'loading' across auto-continuation chunks so the spinner does not flicker.
           if (!willContinue) {
-            (backwards ? setBackwardStatus : setForwardStatus)('idle');
+            // Must ride the same lane as recalibratePagination's setTimeline:
+            // as an urgent update, the loading->idle edge committed BEFORE the
+            // grown timeline, so RoomTimeline cleared the VList `shift` flag
+            // one render early and every history load jumped the scroll.
+            startTransition(() => (backwards ? setBackwardStatus : setForwardStatus)('idle'));
           }
         }
       } finally {

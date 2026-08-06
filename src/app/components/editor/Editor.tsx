@@ -116,6 +116,26 @@ type MultilineMeasurementCache = {
   text: string;
 };
 
+/** Geometry and typography inputs to the wrap measurement, cached between
+ *  keystrokes so a text change costs one forced layout (the hidden measurer)
+ *  instead of two. Invalidated by the resize observer and by mode flips. */
+type MultilineLayoutInputs = {
+  multiline: boolean;
+  rowSingleLineWidth: number;
+  styleKey: string;
+  styleFields: {
+    font: string;
+    lineHeight: string;
+    letterSpacing: string;
+    fontKerning: string;
+    fontFeatureSettings: string;
+    fontVariationSettings: string;
+    textTransform: string;
+    textIndent: string;
+    tabSize: string;
+  };
+};
+
 type CustomEditorProps = {
   editableName?: string;
   top?: ReactNode;
@@ -177,6 +197,7 @@ export const CustomEditor = forwardRef<HTMLDivElement, CustomEditorProps>(
     const afterRef = useRef<HTMLDivElement>(null);
     const textMeasurerRef = useRef<HTMLDivElement | null>(null);
     const measurementCacheRef = useRef<MultilineMeasurementCache | null>(null);
+    const layoutInputsCacheRef = useRef<MultilineLayoutInputs | null>(null);
     const multilineMeasureFrameRef = useRef<number | null>(null);
     const multilineMeasureRetryRef = useRef(0);
     const singleLineWidthOffsetRef = useRef(0);
@@ -210,37 +231,73 @@ export const CustomEditor = forwardRef<HTMLDivElement, CustomEditorProps>(
         const text = value.map((node) => Node.string(node)).join('');
         const hasExplicitNewlines = text.includes('\n');
 
+        // Structurally multiline or empty needs no width measurement at all —
+        // skip every DOM read on these (very common) paths.
+        if (hasMultipleBlocks || hasExplicitNewlines || text.length === 0) {
+          const nextMultiline = hasMultipleBlocks || hasExplicitNewlines;
+          measurementCacheRef.current = null;
+          multilineMeasureRetryRef.current = 0;
+          isMultilineRef.current = nextMultiline;
+          setIsMultiline(nextMultiline);
+          return;
+        }
+
         const editable = editableRef.current;
         const row = rowRef.current;
         const textMeasurer = textMeasurerRef.current;
         if (editable && row && textMeasurer) {
-          const scroll = editable.parentElement as HTMLDivElement | null;
-          const computedStyle = getComputedStyle(editable);
-          const beforeWidth = beforeRef.current?.offsetWidth ?? 0;
-          const afterWidth = afterRef.current?.offsetWidth ?? 0;
-          const rowSingleLineWidth = row.offsetWidth - beforeWidth - afterWidth;
-          const isRenderedSingleLine = !layoutIsMultiline;
+          let layoutInputs = layoutInputsCacheRef.current;
+          if (!layoutInputs || layoutInputs.multiline !== layoutIsMultiline) {
+            const scroll = editable.parentElement as HTMLDivElement | null;
+            const computedStyle = getComputedStyle(editable);
+            const beforeWidth = beforeRef.current?.offsetWidth ?? 0;
+            const afterWidth = afterRef.current?.offsetWidth ?? 0;
+            const rowSingleLineWidth = row.offsetWidth - beforeWidth - afterWidth;
 
-          if (isRenderedSingleLine && scroll) {
-            // Scroll.clientWidth is the width the editable actually gets after padding and
-            // scrollbar math. Cache that delta while we are rendered single-line so later
-            // hidden measurements can compare against the same usable width.
-            const renderedSingleLineWidth = scroll.clientWidth;
-            if (renderedSingleLineWidth > 0) {
-              singleLineWidthOffsetRef.current = Math.max(
-                0,
-                rowSingleLineWidth - renderedSingleLineWidth
-              );
+            if (!layoutIsMultiline && scroll) {
+              // Scroll.clientWidth is the width the editable actually gets after padding and
+              // scrollbar math. Cache that delta while we are rendered single-line so later
+              // hidden measurements can compare against the same usable width.
+              const renderedSingleLineWidth = scroll.clientWidth;
+              if (renderedSingleLineWidth > 0) {
+                singleLineWidthOffsetRef.current = Math.max(
+                  0,
+                  rowSingleLineWidth - renderedSingleLineWidth
+                );
+              }
+            }
+
+            const styleFields = {
+              font: computedStyle.font,
+              lineHeight: computedStyle.lineHeight,
+              letterSpacing: computedStyle.letterSpacing,
+              fontKerning: computedStyle.fontKerning,
+              fontFeatureSettings: computedStyle.fontFeatureSettings,
+              fontVariationSettings: computedStyle.fontVariationSettings,
+              textTransform: computedStyle.textTransform,
+              textIndent: computedStyle.textIndent,
+              tabSize: computedStyle.tabSize,
+            };
+            layoutInputs = {
+              multiline: layoutIsMultiline,
+              rowSingleLineWidth,
+              styleKey: Object.values(styleFields).join('|'),
+              styleFields,
+            };
+            // A zero width means the row is not laid out yet — let the retry
+            // path re-read fresh geometry instead of caching the bad value.
+            if (rowSingleLineWidth > 0) {
+              layoutInputsCacheRef.current = layoutInputs;
             }
           }
 
+          const { rowSingleLineWidth, styleKey, styleFields } = layoutInputs;
           const singleLineWidth = Math.max(
             0,
             rowSingleLineWidth - singleLineWidthOffsetRef.current
           );
 
           if (
-            text.length > 0 &&
             singleLineWidth <= 0 &&
             multilineMeasureRetryRef.current < MAX_MULTILINE_MEASURE_RETRIES
           ) {
@@ -256,57 +313,42 @@ export const CustomEditor = forwardRef<HTMLDivElement, CustomEditorProps>(
           }
 
           multilineMeasureRetryRef.current = 0;
-          let nextMultiline = hasMultipleBlocks || hasExplicitNewlines;
-          if (!nextMultiline && text.length > 0) {
-            const styleKey = [
-              computedStyle.font,
-              computedStyle.lineHeight,
-              computedStyle.letterSpacing,
-              computedStyle.fontKerning,
-              computedStyle.fontFeatureSettings,
-              computedStyle.fontVariationSettings,
-              computedStyle.textTransform,
-              computedStyle.textIndent,
-              computedStyle.tabSize,
-            ].join('|');
-            const cachedMeasurement = measurementCacheRef.current;
+          let nextMultiline = false;
+          const cachedMeasurement = measurementCacheRef.current;
 
-            if (
-              cachedMeasurement?.text === text &&
-              cachedMeasurement.singleLineWidth === singleLineWidth &&
-              cachedMeasurement.styleKey === styleKey
-            ) {
-              nextMultiline = cachedMeasurement.result;
-            } else {
-              textMeasurer.style.font = computedStyle.font;
-              textMeasurer.style.lineHeight = computedStyle.lineHeight;
-              textMeasurer.style.letterSpacing = computedStyle.letterSpacing;
-              textMeasurer.style.fontKerning = computedStyle.fontKerning;
-              textMeasurer.style.fontFeatureSettings = computedStyle.fontFeatureSettings;
-              textMeasurer.style.fontVariationSettings = computedStyle.fontVariationSettings;
-              textMeasurer.style.textTransform = computedStyle.textTransform;
-              textMeasurer.style.textIndent = computedStyle.textIndent;
-              textMeasurer.style.tabSize = computedStyle.tabSize;
-              // Measure against a hidden clone instead of the live editable so we can ask
-              // "would this wrap at single-line width?" without the current layout feeding
-              // back into the answer.
-              const measureHeight = (content: string, width: string): number => {
-                textMeasurer.style.width = width;
-                textMeasurer.textContent = normalizeMeasurementText(content);
-                return textMeasurer.scrollHeight;
-              };
-              const singleLineHeight = measureHeight('M', 'max-content');
-              const measuredHeight = measureHeight(text, `${Math.max(singleLineWidth, 0)}px`);
-              nextMultiline = measuredHeight > singleLineHeight + MULTILINE_HEIGHT_EPSILON;
-              measurementCacheRef.current = {
-                result: nextMultiline,
-                singleLineWidth,
-                styleKey,
-                text,
-              };
-            }
+          if (
+            cachedMeasurement?.text === text &&
+            cachedMeasurement.singleLineWidth === singleLineWidth &&
+            cachedMeasurement.styleKey === styleKey
+          ) {
+            nextMultiline = cachedMeasurement.result;
           } else {
-            measurementCacheRef.current = null;
+            textMeasurer.style.font = styleFields.font;
+            textMeasurer.style.lineHeight = styleFields.lineHeight;
+            textMeasurer.style.letterSpacing = styleFields.letterSpacing;
+            textMeasurer.style.fontKerning = styleFields.fontKerning;
+            textMeasurer.style.fontFeatureSettings = styleFields.fontFeatureSettings;
+            textMeasurer.style.fontVariationSettings = styleFields.fontVariationSettings;
+            textMeasurer.style.textTransform = styleFields.textTransform;
+            textMeasurer.style.textIndent = styleFields.textIndent;
+            textMeasurer.style.tabSize = styleFields.tabSize;
+            // Measure against a hidden clone instead of the live editable so we can ask
+            // "would this wrap at single-line width?" without the current layout feeding
+            // back into the answer.
+            const measureHeight = (content: string, width: string): number => {
+              textMeasurer.style.width = width;
+              textMeasurer.textContent = normalizeMeasurementText(content);
+              return textMeasurer.scrollHeight;
+            };
+            const singleLineHeight = measureHeight('M', 'max-content');
+            const measuredHeight = measureHeight(text, `${Math.max(singleLineWidth, 0)}px`);
+            nextMultiline = measuredHeight > singleLineHeight + MULTILINE_HEIGHT_EPSILON;
+            measurementCacheRef.current = {
+              result: nextMultiline,
+              singleLineWidth,
+              styleKey,
+              text,
+            };
           }
 
           isMultilineRef.current = nextMultiline;
@@ -402,6 +444,7 @@ export const CustomEditor = forwardRef<HTMLDivElement, CustomEditorProps>(
       }
 
       const observer = new ResizeObserver(() => {
+        layoutInputsCacheRef.current = null;
         queueMultilineMeasurement();
       });
       const observedElements = [rowRef.current, beforeRef.current, afterRef.current].filter(

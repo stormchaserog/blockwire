@@ -47,7 +47,17 @@ function MenuDialog({
   return (
     <Overlay open backdrop={<OverlayBackdrop />}>
       <OverlayCenter>
-        <FocusTrap focusTrapOptions={focusTrapOptions}>
+        <FocusTrap
+          focusTrapOptions={{
+            ...focusTrapOptions,
+            // Unlike the sheet, the dialog has no swipe-down, and Android back
+            // is only wired under Tauri — without this, iOS and mobile-web
+            // users had no way to dismiss an option picker short of choosing
+            // something. focus-trap listens at document capture, so a backdrop
+            // tap deactivates the trap and onDeactivate closes the dialog.
+            clickOutsideDeactivates: true,
+          }}
+        >
           <Box direction="Column" role="dialog" aria-modal="true" className={css.DialogContent}>
             {children}
           </Box>

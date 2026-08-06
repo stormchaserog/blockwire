@@ -7,6 +7,7 @@ import type { Room } from '$types/matrix-sdk';
 import {
   Menu,
   MenuItem,
+  color,
   config,
   Text,
   Line,
@@ -643,12 +644,12 @@ export function OptionsChip({
                     placeholder="Enter a nickname…"
                     onKeyDown={handleNickKeyDown}
                     style={{
-                      background: 'var(--mx-c-surface)',
-                      color: 'var(--mx-c-on-surface)',
-                      border: '1px solid var(--mx-c-outline)',
-                      borderRadius: '6px',
-                      padding: '4px 8px',
-                      fontSize: '14px',
+                      background: color.Surface.Container,
+                      color: color.Surface.OnContainer,
+                      border: `1px solid ${color.Surface.ContainerLine}`,
+                      borderRadius: config.radii.R300,
+                      padding: `${config.space.S100} ${config.space.S200}`,
+                      fontSize: toRem(14),
                       width: '100%',
                       outline: 'none',
                     }}

@@ -49,6 +49,11 @@ export interface ProcessedEvent {
   editId: string | undefined;
   reactionsKey: string;
   content: unknown;
+  /** Send status of the local echo (null once confirmed). A failed send
+   *  mutates the same MatrixEvent in place, so without this field the row
+   *  memo comparator saw nothing changed and the failure/retry UI never
+   *  appeared. */
+  sendStatus: string | null;
 }
 
 /** Raw timeline indices for skipped events (reactions, edits, …) have no row; walk backward to a visible one. */
@@ -210,6 +215,7 @@ const computeCollapseAndDividers = (
       editId,
       reactionsKey,
       content,
+      sendStatus: mEvent.getAssociatedStatus(),
     };
   });
 };
@@ -235,6 +241,7 @@ const mergeDraftsAndExtras = (
         mEvent,
         timelineSet,
         eventSender: mEvent.getSender() ?? null,
+        sendStatus: mEvent.getAssociatedStatus(),
       },
       effectiveTs: mEvent.getTs(),
       parentId,
@@ -567,6 +574,7 @@ const processTimelineItems = (
           ?.map((r) => `${r[0]}:${r[1].size}`)
           .join(',') ?? '',
       content: mEvent.getContent(),
+      sendStatus: mEvent.getAssociatedStatus(),
     });
 
     state.prevEvent = mEvent;

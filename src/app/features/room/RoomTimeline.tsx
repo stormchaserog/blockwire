@@ -298,7 +298,8 @@ const MemoizedTimelineItem = memo(
       prev.eventData.eventSender === next.eventData.eventSender &&
       prev.eventData.editId === next.eventData.editId &&
       prev.eventData.reactionsKey === next.eventData.reactionsKey &&
-      prev.eventData.content === next.eventData.content
+      prev.eventData.content === next.eventData.content &&
+      prev.eventData.sendStatus === next.eventData.sendStatus
     );
   }
 );
@@ -731,39 +732,58 @@ export function RoomTimeline({
     }
   }, [timelineSync.backwardStatus, scrollToBottom]);
 
+  const { focusItem, setFocusItem } = timelineSync;
+
   useEffect(() => {
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
-    if (timelineSync.focusItem) {
-      if (timelineSync.focusItem.scrollTo && vListRef.current) {
-        let processedIndex = getRawIndexToProcessedIndex(timelineSync.focusItem.index);
-        let focusRawIndex = timelineSync.focusItem.index;
-        if (processedIndex === undefined) {
-          // Jump targets with no rendered row (thread replies, hidden
-          // membership/name events): land on the nearest visible row.
-          const nearest = getProcessedRowIndexForRawTimelineIndex(
-            processedEventsRef.current,
-            timelineSync.focusItem.index
-          );
-          if (nearest) {
-            processedIndex = nearest.rowIndex;
-            focusRawIndex = nearest.focusRawIndex;
-          }
-        }
-        if (processedIndex !== undefined) {
-          vListRef.current.scrollToIndex(processedIndex, { align: 'center' });
-          timelineSync.setFocusItem((prev) =>
-            prev ? { ...prev, index: focusRawIndex, scrollTo: false } : undefined
-          );
+    if (!focusItem?.scrollTo) return undefined;
+    let rafId: number | undefined;
+    let attempts = 0;
+    const tryScroll = () => {
+      if (!vListRef.current) return;
+      let processedIndex = getRawIndexToProcessedIndex(focusItem.index);
+      let focusRawIndex = focusItem.index;
+      if (processedIndex === undefined) {
+        // Jump targets with no rendered row (thread replies, hidden
+        // membership/name events): land on the nearest visible row.
+        const nearest = getProcessedRowIndexForRawTimelineIndex(
+          processedEventsRef.current,
+          focusItem.index
+        );
+        if (nearest) {
+          processedIndex = nearest.rowIndex;
+          focusRawIndex = nearest.focusRawIndex;
         }
       }
-      timeoutId = setTimeout(() => {
-        timelineSync.setFocusItem(undefined);
-      }, 2000);
-    }
-    return () => {
-      if (timeoutId !== undefined) clearTimeout(timeoutId);
+      if (processedIndex !== undefined) {
+        vListRef.current.scrollToIndex(processedIndex, { align: 'center' });
+        setFocusItem((prev) =>
+          prev ? { ...prev, index: focusRawIndex, scrollTo: false } : undefined
+        );
+        return;
+      }
+      // The jump target's rows can commit a frame after the focus item (the
+      // timeline update rides the transition lane); retry briefly instead of
+      // depending on unrelated re-renders to run this again.
+      attempts += 1;
+      if (attempts < 30) rafId = requestAnimationFrame(tryScroll);
     };
-  }, [timelineSync.focusItem, timelineSync, reducedMotion, getRawIndexToProcessedIndex]);
+    tryScroll();
+    return () => {
+      if (rafId !== undefined) cancelAnimationFrame(rafId);
+    };
+  }, [focusItem, setFocusItem, getRawIndexToProcessedIndex]);
+
+  // Clear the jump highlight after 2s — keyed only on the focus item itself.
+  // This effect used to depend on the whole timelineSync object, which is a
+  // fresh literal every render, so every render re-armed the timer; a busy
+  // room re-renders faster than every 2s, so the highlight never cleared and,
+  // because syncAtBottom refuses to re-arm while a focus item exists,
+  // new-message auto-follow stayed broken after any jump-to-reply.
+  useEffect(() => {
+    if (!focusItem) return undefined;
+    const timeoutId = setTimeout(() => setFocusItem(undefined), 2000);
+    return () => clearTimeout(timeoutId);
+  }, [focusItem, setFocusItem]);
 
   useEffect(() => {
     if (timelineSync.focusItem) {

@@ -233,6 +233,7 @@ export function ThreadDrawer({ room, threadRootId, onClose, overlay }: ThreadDra
       mEvent: ev,
       timelineSet,
       eventSender: ev.getSender() ?? null,
+      sendStatus: ev.getAssociatedStatus(),
       collapsed: false,
       willRenderNewDivider: false,
       willRenderDayDivider: false,

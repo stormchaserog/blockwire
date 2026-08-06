@@ -43,6 +43,7 @@ import {
 } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import { PageContent, SettingsSectionPage } from '$components/page';
 import { SequenceCard, SequenceCardStyle } from '$components/sequence-card';
+import { ContainerColor } from '$styles/ContainerColor.css';
 import {
   CAPTION_POSITION_OPTIONS,
   MESSAGE_LAYOUT_OPTIONS,
@@ -1401,13 +1402,13 @@ function DiagnosticsAndPrivacy() {
       <Text size="L400">Diagnostics & Privacy</Text>
       {needsRefresh && (
         <Box
+          className={ContainerColor({ variant: 'Primary' })}
           style={{
-            padding: '12px',
-            backgroundColor: 'rgba(33, 150, 243, 0.1)',
-            borderRadius: '8px',
+            padding: config.space.S300,
+            borderRadius: config.radii.R400,
           }}
         >
-          <Text size="T300" style={{ color: 'rgb(33, 150, 243)' }}>
+          <Text size="T300" style={{ color: color.Primary.OnContainer }}>
             Please refresh the page for these settings to take effect.
           </Text>
         </Box>

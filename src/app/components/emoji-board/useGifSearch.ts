@@ -31,8 +31,11 @@ type KlipyFile = {
   size?: number;
 };
 
-/** Klipy serves each size as a bag of encodings; we only ever want the gif. */
-type KlipyFormat = { gif?: KlipyFile };
+/** Klipy serves each size as a bag of encodings. Tiles render the gif, but
+ *  for SENDING the webp encoding of the same clip is typically 3-7x smaller —
+ *  and the send path pays for every byte twice (CDN download, then upload to
+ *  the media repo). */
+type KlipyFormat = { gif?: KlipyFile; webp?: KlipyFile };
 
 type KlipyResult = {
   id?: string;
@@ -46,22 +49,33 @@ const parseKlipyResult = (klipyResult: KlipyResult): GifData => {
   const formats = klipyResult.file ?? {};
   const preview = formats.xs?.gif ?? formats.sm?.gif ?? formats.md?.gif;
 
+  // For sending, prefer the webp encoding when it is actually smaller — same
+  // clip, fraction of the bytes, renders everywhere this client runs.
+  const pickEncoding = (format?: KlipyFormat): { file?: KlipyFile; mimetype: string } => {
+    const { gif, webp } = format ?? {};
+    if (webp?.url && (!gif?.size || !webp.size || webp.size < gif.size)) {
+      return { file: webp, mimetype: 'image/webp' };
+    }
+    return { file: gif, mimetype: 'image/gif' };
+  };
+
   // Full resolution, dropped to medium when it would be too large to send.
-  let fullRes = formats.hd?.gif;
-  if (fullRes?.size && fullRes.size > SIZE_LIMIT && formats.md?.gif) {
-    fullRes = formats.md.gif;
+  let fullRes = pickEncoding(formats.hd);
+  if (fullRes.file?.size && fullRes.file.size > SIZE_LIMIT && formats.md) {
+    fullRes = pickEncoding(formats.md);
   }
-  fullRes ??= formats.md?.gif ?? preview;
+  if (!fullRes.file) fullRes = pickEncoding(formats.md);
+  if (!fullRes.file && preview) fullRes = { file: preview, mimetype: 'image/gif' };
 
   return {
     id: klipyResult.id ?? '',
     title: klipyResult.title || 'GIF',
-    url: fullRes?.url ?? '',
-    preview_url: preview?.url ?? fullRes?.url ?? '',
-    width: fullRes?.width ?? preview?.width ?? 0,
-    height: fullRes?.height ?? preview?.height ?? 0,
-    size: fullRes?.size ?? preview?.size ?? 0,
-    mimetype: 'image/gif',
+    url: fullRes.file?.url ?? '',
+    preview_url: preview?.url ?? fullRes.file?.url ?? '',
+    width: fullRes.file?.width ?? preview?.width ?? 0,
+    height: fullRes.file?.height ?? preview?.height ?? 0,
+    size: fullRes.file?.size ?? preview?.size ?? 0,
+    mimetype: fullRes.mimetype,
   };
 };
 

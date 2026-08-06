@@ -1,8 +1,10 @@
-import { forwardRef, useCallback, useMemo, useRef } from 'react';
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, Box, Button, MenuItem, Text, toRem } from 'folds';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { factoryRoomIdByActivity } from '$utils/sort';
+import type { RoomEventHandlerMap } from '$types/matrix-sdk';
+import { RoomEvent } from '$types/matrix-sdk';
 import {
   NavButton,
   NavCategory,
@@ -186,14 +188,47 @@ export function Home() {
   const searchSelected = useHomeSearchSelected();
   const noRoomToDisplay = rooms.length === 0;
 
+  // Message activity is internal SDK state (getLastActiveTimestamp) invisible
+  // to React, so without a nudge the "newest on top" list freezes in the
+  // order computed at mount. One mx-level listener, filtered to this list and
+  // to live events, throttled so a burst causes one re-sort.
+  const [activityCounter, setActivityCounter] = useState(0);
+  const roomsSetRef = useRef<Set<string>>(new Set());
+  roomsSetRef.current = new Set(rooms);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const handleTimeline: RoomEventHandlerMap[RoomEvent.Timeline] = (
+      _event,
+      room,
+      toStartOfTimeline,
+      _removed,
+      data
+    ) => {
+      if (!room || !roomsSetRef.current.has(room.roomId)) return;
+      // Back-pagination and non-live events do not change recency.
+      if (toStartOfTimeline || !data.liveEvent) return;
+      if (timer !== null) return;
+      timer = setTimeout(() => {
+        timer = null;
+        setActivityCounter((c) => c + 1);
+      }, 250);
+    };
+    mx.on(RoomEvent.Timeline, handleTimeline);
+    return () => {
+      mx.removeListener(RoomEvent.Timeline, handleTimeline);
+      if (timer !== null) clearTimeout(timer);
+    };
+  }, [mx]);
+
   // One flat, always-visible list sorted by recent activity — the messenger
   // convention. Upstream grouped these under a collapsible "Rooms" category
   // that also doubled as an unread filter; both are gone, so every
   // conversation is always present and the newest is always on top.
-  const sortedRooms = useMemo(
-    () => Array.from(rooms).toSorted(factoryRoomIdByActivity(mx)),
-    [mx, rooms]
-  );
+  const sortedRooms = useMemo(() => {
+    void activityCounter;
+    return Array.from(rooms).toSorted(factoryRoomIdByActivity(mx));
+  }, [mx, rooms, activityCounter]);
 
   const getItemKey = useCallback((index: number) => sortedRooms[index] ?? index, [sortedRooms]);
 

@@ -396,6 +396,13 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
     const audioRecorderRef = useRef<AudioMessageRecorderHandle>(null);
     const micHoldStartRef = useRef(0);
     const micHoldReleaseRef = useRef<(() => void) | null>(null);
+    // The hold-to-record pointer gesture already decides stop-vs-discard on
+    // release; the browser then synthesises a click on the same button, whose
+    // stop branch would override a discard. The gesture stamps this so the
+    // immediately-following click is swallowed. A timestamp rather than a
+    // flag: pointercancel produces no click, and a stale flag would swallow
+    // the next genuine one. Keyboard/AT activations are unaffected.
+    const micGestureClickGuardRef = useRef(0);
     const HOLD_THRESHOLD_MS = 400;
 
     useEffect(
@@ -543,6 +550,25 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
         return undefined;
       });
     }, []);
+    // On desktop the board's focus trap deactivates on the trigger's own
+    // mousedown (closing the board) before the click fires, so the click's
+    // toggle would reopen it. Remember what was open at pointer-down and
+    // swallow that one click. Mobile renders a sheet with no trap, where the
+    // click must keep toggling — so nothing is stamped there.
+    const emojiBoardTabAtPointerDownRef = useRef<EmojiBoardTab | undefined>(undefined);
+    const handleEmojiBoardTriggerDown = useCallback(() => {
+      suppressEditorRefocus();
+      emojiBoardTabAtPointerDownRef.current = isMobileOrTablet() ? undefined : emojiBoardTab;
+    }, [suppressEditorRefocus, emojiBoardTab]);
+    const handleEmojiBoardTriggerClick = useCallback(
+      (tab: EmojiBoardTab) => {
+        const openAtDown = emojiBoardTabAtPointerDownRef.current;
+        emojiBoardTabAtPointerDownRef.current = undefined;
+        if (openAtDown === tab) return;
+        toggleEmojiBoardTab(tab);
+      },
+      [toggleEmojiBoardTab]
+    );
 
     const [personaPickerTab, setPersonaPickerTab] = useState<PersonaPickerTab | undefined>(
       undefined
@@ -1771,11 +1797,14 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
     const handleGifSelect = async (gif: GifData, spoiler?: boolean) => {
       if (!gif.url) return;
       try {
+        // The picker closed the moment the tile was tapped; without this the
+        // transfer window is dead air the user reads as a broken send.
+        showToast('Sending GIF…');
         // Uploads to our own media repo when no proxy is configured. This used
         // to bail on a bare `return`, so picking a GIF silently did nothing.
-        const url = await resolveGifMxc(mx, gif.url, clientConfig.gifs?.proxyUrl);
+        const { mxc, blob } = await resolveGifMxc(mx, gif.url, clientConfig.gifs?.proxyUrl);
 
-        const content = await getGifMsgContent(mx, gif, url, spoiler);
+        const content = await getGifMsgContent(mx, gif, mxc, spoiler, blob);
         if (!content) {
           showToast('Could not prepare that GIF.');
           return;
@@ -2264,8 +2293,8 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
                             <IconButton
                               ref={gifBtnRef}
                               aria-pressed={emojiBoardTab === EmojiBoardTab.Gif}
-                              onClick={() => toggleEmojiBoardTab(EmojiBoardTab.Gif)}
-                              onPointerDown={suppressEditorRefocus}
+                              onClick={() => handleEmojiBoardTriggerClick(EmojiBoardTab.Gif)}
+                              onPointerDown={handleEmojiBoardTriggerDown}
                               variant="SurfaceVariant"
                               size="300"
                               radii="300"
@@ -2283,8 +2312,8 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
                             <IconButton
                               ref={stickerBtnRef}
                               aria-pressed={emojiBoardTab === EmojiBoardTab.Sticker}
-                              onClick={() => toggleEmojiBoardTab(EmojiBoardTab.Sticker)}
-                              onPointerDown={suppressEditorRefocus}
+                              onClick={() => handleEmojiBoardTriggerClick(EmojiBoardTab.Sticker)}
+                              onPointerDown={handleEmojiBoardTriggerDown}
                               variant="SurfaceVariant"
                               size="300"
                               radii="300"
@@ -2303,8 +2332,8 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
                             <IconButton
                               ref={emojiBtnRef}
                               aria-pressed={emojiBoardTab === EmojiBoardTab.Emoji}
-                              onClick={() => toggleEmojiBoardTab(EmojiBoardTab.Emoji)}
-                              onPointerDown={suppressEditorRefocus}
+                              onClick={() => handleEmojiBoardTriggerClick(EmojiBoardTab.Emoji)}
+                              onPointerDown={handleEmojiBoardTriggerDown}
                               variant="SurfaceVariant"
                               size="300"
                               radii="300"
@@ -2397,6 +2426,10 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
                 style={{ backgroundColor: 'transparent' }}
                 aria-pressed={!hasContent && editorMicButton ? showAudioRecorder : undefined}
                 onClick={() => {
+                  if (Date.now() - micGestureClickGuardRef.current < 500) {
+                    micGestureClickGuardRef.current = 0;
+                    return;
+                  }
                   if (showAudioRecorder) {
                     audioRecorderRef.current?.stop();
                     return;
@@ -2435,6 +2468,7 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
 
                   function discardRecording() {
                     releaseListeners();
+                    micGestureClickGuardRef.current = Date.now();
                     setTimeout(() => {
                       audioRecorderRef.current?.cancel();
                     }, 50);
@@ -2443,6 +2477,7 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
                     const held = Date.now() - micHoldStartRef.current;
                     if (held >= HOLD_THRESHOLD_MS) {
                       releaseListeners();
+                      micGestureClickGuardRef.current = Date.now();
                       setTimeout(() => {
                         audioRecorderRef.current?.stop();
                       }, 50);
