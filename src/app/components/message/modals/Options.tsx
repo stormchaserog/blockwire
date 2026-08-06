@@ -41,7 +41,7 @@ import { MobileSwipeDownModal, useMobileSheetClose } from '$components/MobileSwi
 import * as css from '$features/room/message/styles.css';
 import { useAtom, useSetAtom, useStore } from 'jotai';
 import type { Dispatch, MouseEventHandler, ReactNode, SetStateAction } from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { MessageDeleteItem } from './MessageDelete';
 import FocusTrap from 'focus-trap-react';
 import { stopPropagation } from '$utils/keyboard';
@@ -470,7 +470,17 @@ export function OptionQuickMenu({
 
   const [emojiBoardAnchor, setEmojiBoardAnchor] = useState<RectCords>();
 
+  // The board's focus trap deactivates on this trigger's own mousedown
+  // (closing the board) before the click fires; without a guard the click
+  // would immediately reopen it instead of toggling it closed.
+  const boardOpenAtPointerDownRef = useRef(false);
+  const handleEmojiBoardTriggerDown = () => {
+    boardOpenAtPointerDownRef.current = emojiBoardAnchor !== undefined;
+  };
   const handleOpenEmojiBoard: MouseEventHandler<HTMLButtonElement> = (evt) => {
+    const openAtDown = boardOpenAtPointerDownRef.current;
+    boardOpenAtPointerDownRef.current = false;
+    if (openAtDown) return;
     const target = evt.currentTarget.parentElement?.parentElement ?? evt.currentTarget;
     setEmojiBoardAnchor?.(target.getBoundingClientRect());
     setIsEmoji?.(true);
@@ -494,6 +504,7 @@ export function OptionQuickMenu({
             )}
 
             <IconButton
+              onPointerDown={handleEmojiBoardTriggerDown}
               onClick={handleOpenEmojiBoard}
               variant="SurfaceVariant"
               size="300"
@@ -679,7 +690,16 @@ function OptionMenu({
     setReproxyPickerAnchor(target);
   };
 
+  // Same trap-versus-click race as the quick menu: an open board closes on
+  // this trigger's mousedown, so swallow the click that would reopen it.
+  const boardOpenAtPointerDownRef = useRef(false);
+  const handleEmojiBoardTriggerDown = () => {
+    boardOpenAtPointerDownRef.current = emojiBoardAnchor !== undefined;
+  };
   const handleOpenEmojiBoard: MouseEventHandler<HTMLButtonElement> = (evt) => {
+    const openAtDown = boardOpenAtPointerDownRef.current;
+    boardOpenAtPointerDownRef.current = false;
+    if (openAtDown) return;
     // THIS MAGIC NUMBER SHOULD BE FIXED WHEN SOMEONE FIGURES OUT WHY THE LACK OF IT CREATES A GAP IN THE EMOJIBOARD
     const target = isModal
       ? { x: 0, y: innerHeight + 10, width: 0, height: 0 }
@@ -761,6 +781,7 @@ function OptionMenu({
                   size="300"
                   after={menuIcon(Smiley)}
                   radii="300"
+                  onPointerDown={handleEmojiBoardTriggerDown}
                   onClick={handleOpenEmojiBoard}
                 >
                   <Text className={css.MessageMenuItemText} as="span" size="T300" truncate>

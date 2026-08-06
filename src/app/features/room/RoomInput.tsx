@@ -550,6 +550,25 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
         return undefined;
       });
     }, []);
+    // On desktop the board's focus trap deactivates on the trigger's own
+    // mousedown (closing the board) before the click fires, so the click's
+    // toggle would reopen it. Remember what was open at pointer-down and
+    // swallow that one click. Mobile renders a sheet with no trap, where the
+    // click must keep toggling — so nothing is stamped there.
+    const emojiBoardTabAtPointerDownRef = useRef<EmojiBoardTab | undefined>(undefined);
+    const handleEmojiBoardTriggerDown = useCallback(() => {
+      suppressEditorRefocus();
+      emojiBoardTabAtPointerDownRef.current = isMobileOrTablet() ? undefined : emojiBoardTab;
+    }, [suppressEditorRefocus, emojiBoardTab]);
+    const handleEmojiBoardTriggerClick = useCallback(
+      (tab: EmojiBoardTab) => {
+        const openAtDown = emojiBoardTabAtPointerDownRef.current;
+        emojiBoardTabAtPointerDownRef.current = undefined;
+        if (openAtDown === tab) return;
+        toggleEmojiBoardTab(tab);
+      },
+      [toggleEmojiBoardTab]
+    );
 
     const [personaPickerTab, setPersonaPickerTab] = useState<PersonaPickerTab | undefined>(
       undefined
@@ -2274,8 +2293,8 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
                             <IconButton
                               ref={gifBtnRef}
                               aria-pressed={emojiBoardTab === EmojiBoardTab.Gif}
-                              onClick={() => toggleEmojiBoardTab(EmojiBoardTab.Gif)}
-                              onPointerDown={suppressEditorRefocus}
+                              onClick={() => handleEmojiBoardTriggerClick(EmojiBoardTab.Gif)}
+                              onPointerDown={handleEmojiBoardTriggerDown}
                               variant="SurfaceVariant"
                               size="300"
                               radii="300"
@@ -2293,8 +2312,8 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
                             <IconButton
                               ref={stickerBtnRef}
                               aria-pressed={emojiBoardTab === EmojiBoardTab.Sticker}
-                              onClick={() => toggleEmojiBoardTab(EmojiBoardTab.Sticker)}
-                              onPointerDown={suppressEditorRefocus}
+                              onClick={() => handleEmojiBoardTriggerClick(EmojiBoardTab.Sticker)}
+                              onPointerDown={handleEmojiBoardTriggerDown}
                               variant="SurfaceVariant"
                               size="300"
                               radii="300"
@@ -2313,8 +2332,8 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
                             <IconButton
                               ref={emojiBtnRef}
                               aria-pressed={emojiBoardTab === EmojiBoardTab.Emoji}
-                              onClick={() => toggleEmojiBoardTab(EmojiBoardTab.Emoji)}
-                              onPointerDown={suppressEditorRefocus}
+                              onClick={() => handleEmojiBoardTriggerClick(EmojiBoardTab.Emoji)}
+                              onPointerDown={handleEmojiBoardTriggerDown}
                               variant="SurfaceVariant"
                               size="300"
                               radii="300"

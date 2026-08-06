@@ -1,5 +1,5 @@
 import type { MouseEventHandler } from 'react';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   Box,
   Modal,
@@ -75,9 +75,19 @@ export const Reactions = as<'div', ReactionsProps>(
       else setViewer(key);
     };
 
+    // The board's focus trap deactivates on this trigger's own mousedown
+    // (closing the board) before the click fires; without a guard the click
+    // would immediately reopen it, making the trigger impossible to toggle off.
+    const boardOpenAtPointerDownRef = useRef(false);
+    const handleEmojiBoardTriggerDown = () => {
+      boardOpenAtPointerDownRef.current = emojiBoardAnchor !== undefined;
+    };
     const handleOpenEmojiBoard: MouseEventHandler<HTMLButtonElement> = (evt) => {
       evt.stopPropagation();
       evt.preventDefault();
+      const openAtDown = boardOpenAtPointerDownRef.current;
+      boardOpenAtPointerDownRef.current = false;
+      if (openAtDown) return;
       setEmojiBoardAnchor(evt.currentTarget.getBoundingClientRect());
     };
 
@@ -164,6 +174,7 @@ export const Reactions = as<'div', ReactionsProps>(
                     className={css.ReactionAdd}
                     aria-label="Add Reaction"
                     aria-pressed={!!emojiBoardAnchor}
+                    onPointerDown={handleEmojiBoardTriggerDown}
                     onClick={handleOpenEmojiBoard}
                   >
                     {sizedIcon(Smiley, '100', { filled: !!emojiBoardAnchor })}
