@@ -15,7 +15,7 @@ describe('resolveGifMxc', () => {
     // The bug: with no proxy the old helper returned undefined and the send
     // handler returned early, so tapping a GIF did nothing and said nothing.
     const upload = vi.fn<() => Promise<string>>(async () => 'mxc://blockwire.chat/abc123');
-    const mxc = await resolveGifMxc(mx, GIF, undefined, { fetchFn: okFetch(), upload });
+    const { mxc } = await resolveGifMxc(mx, GIF, undefined, { fetchFn: okFetch(), upload });
 
     expect(mxc).toBe('mxc://blockwire.chat/abc123');
     expect(upload).toHaveBeenCalledTimes(1);
@@ -25,7 +25,7 @@ describe('resolveGifMxc', () => {
     const upload = vi.fn<() => Promise<string>>(
       async () => 'mxc://blockwire.chat/should-not-happen'
     );
-    const mxc = await resolveGifMxc(mx, GIF, 'gifproxy.example', {
+    const { mxc } = await resolveGifMxc(mx, GIF, 'gifproxy.example', {
       fetchFn: okFetch(),
       upload,
     });
@@ -36,7 +36,7 @@ describe('resolveGifMxc', () => {
 
   it('passes an existing mxc straight through', async () => {
     const upload = vi.fn<() => Promise<string>>(async () => 'mxc://nope/nope');
-    const mxc = await resolveGifMxc(mx, 'mxc://blockwire.chat/already', undefined, {
+    const { mxc } = await resolveGifMxc(mx, 'mxc://blockwire.chat/already', undefined, {
       fetchFn: okFetch(),
       upload,
     });

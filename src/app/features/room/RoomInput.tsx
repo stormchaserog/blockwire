@@ -1771,11 +1771,14 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
     const handleGifSelect = async (gif: GifData, spoiler?: boolean) => {
       if (!gif.url) return;
       try {
+        // The picker closed the moment the tile was tapped; without this the
+        // transfer window is dead air the user reads as a broken send.
+        showToast('Sending GIF…');
         // Uploads to our own media repo when no proxy is configured. This used
         // to bail on a bare `return`, so picking a GIF silently did nothing.
-        const url = await resolveGifMxc(mx, gif.url, clientConfig.gifs?.proxyUrl);
+        const { mxc, blob } = await resolveGifMxc(mx, gif.url, clientConfig.gifs?.proxyUrl);
 
-        const content = await getGifMsgContent(mx, gif, url, spoiler);
+        const content = await getGifMsgContent(mx, gif, mxc, spoiler, blob);
         if (!content) {
           showToast('Could not prepare that GIF.');
           return;
