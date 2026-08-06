@@ -77,6 +77,9 @@ const cases = [
   // The AGPL source offer must stay reachable — a room named "source" cannot
   // be allowed to shadow the page that discharges a licence obligation.
   ['https://blockwire.chat/source', '/source'],
+  // Store-required legal pages: app-store review links point at these.
+  ['https://blockwire.chat/privacy', '/privacy'],
+  ['https://blockwire.chat/terms', '/terms'],
   ['https://blockwire.chat/profile/', '/profile/'],
   ['https://blockwire.chat/create-room', '/create-room'],
   // reloading while inside a space must stay inside that space

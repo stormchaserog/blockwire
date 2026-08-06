@@ -1,9 +1,11 @@
-import { Box, Button, Text, config, toRem } from 'folds';
-import { Code, menuIcon } from '$components/icons/phosphor';
+import { Box, config } from 'folds';
 import { Page, PageHero, PageHeroSection } from '$components/page';
 import { versionLabel } from '$utils/platform';
 import LogoSVG from '$public/res/svg/logo.svg';
 
+/* The AGPL source offer deliberately does not live here: the welcome screen is
+ * product surface, not a compliance surface. The offer stays discharged by the
+ * /source page and the Settings > About link. */
 export function WelcomePage() {
   return (
     <Page>
@@ -18,35 +20,9 @@ export function WelcomePage() {
             icon={<img width="70" height="70" src={LogoSVG} alt={SABLE_PRODUCT_NAME} />}
             title={`Welcome to ${SABLE_PRODUCT_NAME}`}
             subTitle={
-              <span>
-                Private groups, public channels and direct messages.{' '}
-                <a
-                  href="https://github.com/SableClient/Sable"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                >
-                  {versionLabel()}
-                </a>
-              </span>
+              <span>Private groups, public channels and direct messages. {versionLabel()}</span>
             }
-          >
-            <Box justifyContent="Center">
-              <Box grow="Yes" style={{ maxWidth: toRem(300) }} direction="Column" gap="300">
-                <Button
-                  as="a"
-                  href="https://github.com/SableClient/Sable"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  before={menuIcon(Code)}
-                >
-                  <Text as="span" size="B400" truncate>
-                    Source Code
-                  </Text>
-                </Button>
-              </Box>
-            </Box>
-            <Box direction="Column" gap="200" alignItems="Center"></Box>
-          </PageHero>
+          />
         </PageHeroSection>
       </Box>
     </Page>

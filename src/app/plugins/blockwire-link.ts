@@ -71,6 +71,10 @@ export const RESERVED_SEGMENTS: ReadonlySet<string> = new Set([
   // The AGPL source offer. A room called "source" must never be able to
   // shadow the page that discharges a licence obligation.
   'source',
+  // Store-required legal pages; app-store review links point here, so no room
+  // may ever shadow them.
+  'privacy',
+  'terms',
   // Owned by the link scheme itself: `/room/<id>` is the long form for a room
   // with no published address.
   'room',

@@ -88,6 +88,7 @@ export const settingsLinkFocusIdsBySection: Record<SettingsSectionId, readonly s
     'avatar',
     'banner',
     'blocked-users',
+    'delete-account',
     'display-name',
     'email-address',
     'has-animal',

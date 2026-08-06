@@ -4,6 +4,7 @@ import { MatrixId } from './MatrixId';
 import { Profile } from './Profile';
 import { ContactInformation } from './ContactInfo';
 import { IgnoredUserList } from './IgnoredUserList';
+import { DeactivateAccount } from './DeactivateAccount';
 
 type AccountProps = {
   requestBack?: () => void;
@@ -20,6 +21,7 @@ export function Account({ requestBack, requestClose }: AccountProps) {
               <MatrixId />
               <ContactInformation />
               <IgnoredUserList />
+              <DeactivateAccount />
             </Box>
           </PageContent>
         </Scroll>
