@@ -39,7 +39,7 @@ try {
   // `gh release download` exits non-zero when the pattern matches nothing. An
   // updater manifest without signatures would be useless anyway - report and
   // exit cleanly so the workflow can skip the upload.
-  console.log('No .sig assets on the release; not producing an updater manifest.');
+  console.warn('No .sig assets on the release; not producing an updater manifest.');
   process.exit(0);
 }
 
