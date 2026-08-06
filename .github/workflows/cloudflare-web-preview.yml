@@ -30,7 +30,9 @@ concurrency:
 
 jobs:
   deploy:
-    if: (github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != 'release') || github.event_name == 'push'
+    # Skipped entirely when the Cloudflare token is absent; previews resume as
+    # soon as the TF_CLOUDFLARE_API_TOKEN / TF_VAR_ACCOUNT_ID secrets are set.
+    if: ${{ ((github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != 'release') || github.event_name == 'push') && secrets.TF_CLOUDFLARE_API_TOKEN != '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

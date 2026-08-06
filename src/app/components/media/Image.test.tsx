@@ -16,9 +16,10 @@ const lottieJson =
 // The dotlottie player fetches its WASM binary on first render, which also
 // lands in the global fetch spy; count only the media probes under test.
 const countMediaFetches = (spy: { mock: { calls: unknown[][] } }): number =>
-  spy.mock.calls.filter(([input]) =>
-    String(input instanceof Request ? input.url : input).includes('example.com')
-  ).length;
+  spy.mock.calls.filter(([input]) => {
+    const url = String(input instanceof Request ? input.url : input);
+    return URL.canParse(url) && new URL(url).hostname === 'example.com';
+  }).length;
 
 describe('Image', () => {
   it('removes executable-looking fields from Lottie JSON', () => {
