@@ -151,6 +151,40 @@ which is uploaded exactly as before; the branch only preserves version history.
 Format check must pass before a merge. Deliberately _not_ `require-changeset`:
 it fails on every Dependabot PR by design and would block all of them.
 
+**The reissued npm group landed (#14, 2026-08-07).** Dependabot reopened the
+npm group under the new minor/patch rule as #13 — 35 updates instead of 54, no
+React 19. Four checks still failed, and two were real breaking changes wearing
+minor version numbers:
+
+- **`matrix-widget-api` 1.17 → 1.18 removed a parameter.**
+  `WidgetDriver.sendDelayedEvent` went from
+  `(delay, parentDelayId, eventType, content, stateKey, roomId)` to
+  `(delay, eventType, content, stateKey?, roomId?)`, and `ClientWidgetApi` now
+  logs _"Data includes parent_delay_id, but the widgetDriver ignores it"_. Both
+  our drivers still declared six parameters. **The tempting fix — a cast — would
+  have compiled cleanly and shifted every argument by one**, putting `eventType`
+  where `parentDelayId` used to be and silently malforming every delayed event.
+  For calls, delayed events are the membership heartbeat.
+- **`dotlottie-react` 0.12 → 0.19** pulls `dotlottie-web` 0.78, which constructs
+  an `IntersectionObserver` at mount. jsdom has none, so it threw inside the
+  mount effect and took the render with it — seven lottie tests failed with an
+  _empty document body_, which reads like the component vanished rather than an
+  assertion failing. Polyfilled in `src/test/setup.ts` next to `ResizeObserver`.
+
+Also fixed a genuine latent bug the newer oxlint caught: `scaleSystemEmoji` built
+its URL regex with `new RegExp(URL_REG)` and passed it to `matchAll`, which
+throws a `TypeError` without `/g`. The flag does survive that copy today, so
+nothing was broken — but nothing would have caught it if `URL_REG` ever changed.
+
+**Both lockfiles are now updated together.** Dependabot only maintains
+`pnpm-lock.yaml`; CI installs with `pnpm --frozen-lockfile` while `DEPLOY.md`
+uses `npm install --legacy-peer-deps`. Letting them drift is exactly what broke
+every branch on `dev` the day before.
+
+⚠️ 1.18 also adds `sendStickyEvent` and `sendDelayedStickyEvent` to
+`WidgetDriver`. The base implementations reject, so this builds and runs — but
+if Element Call starts using sticky events they will fail until implemented.
+
 **Blocked on a human with devices (Phase 2 — the current gate):**
 
 - [ ] Add the `VERCEL_TOKEN` secret: GitHub repo → Settings → Secrets and
