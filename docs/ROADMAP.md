@@ -110,19 +110,19 @@ With that noise gone, the real picture:
 
 - **#10** (github-actions) — 4 pinned-SHA patch bumps. Recreated on the fixed
   `dev`, green, merged.
-- **#12** (tauri-plugin-devtools 2.0.0 → 2.1.0) — opened *after* the config
+- **#12** (tauri-plugin-devtools 2.0.0 → 2.1.0) — opened _after_ the config
   fix below and was green on arrival, including Rust check and Clippy. Merged.
 - **#4** (npm) — closed. Labelled "bump the npm group with 54 updates";
   actually React 18→19, react-router-dom 6→7, i18next 25→26,
   react-i18next 16→17, react-leaflet 4→5 and jest-dom 6→7. Around
   thirty typecheck errors of the classic React 19 shape (`Cannot find namespace
-  'JSX'`, `RefObject<T | null>`, `useRef` wanting an initial value) plus 2
+'JSX'`, `RefObject<T | null>`, `useRef` wanting an initial value) plus 2
   failing test files.
 - **#3** (cargo) — closed. Three genuine compile errors from three unrelated
   crate majors: `Body::wrap_stream` removed, an `AsFilename` trait bound, and a
   struct turned non-exhaustive.
 - **#1** (node 24→26 in Docker) — Dependabot closed it itself once the
-  config changed: *"Looks like node is no longer updatable."* A major Node jump
+  config changed: _"Looks like node is no longer updatable."_ A major Node jump
   is a real decision and will return as its own reviewable PR.
 
 **The fix is in `.github/dependabot.yml`.** Every group was a catch-all with no
@@ -138,7 +138,7 @@ now, via the same preflight pattern `vercel-deploy.yml` uses; adding the secrets
 switches it back on with no further edits.
 
 **`dev` now requires status checks** — Lint, Typecheck, Tests, Build, Knip and
-Format check must pass before a merge. Deliberately *not* `require-changeset`:
+Format check must pass before a merge. Deliberately _not_ `require-changeset`:
 it fails on every Dependabot PR by design and would block all of them.
 
 **Blocked on a human with devices (Phase 2 — the current gate):**
