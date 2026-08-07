@@ -185,6 +185,33 @@ every branch on `dev` the day before.
 `WidgetDriver`. The base implementations reject, so this builds and runs — but
 if Element Call starts using sticky events they will fail until implemented.
 
+**🔴 Connecting Vercel's Git integration nearly took the site down (#15,
+2026-08-07).** `vercel.json` pinned `"outputDirectory": "."`, correct only for
+the old ritual of deploying from _inside_ `dist/`. A Git build runs from the
+**repo root**, where `.` is the source tree. Reproduced with `vercel build`
+before touching anything: the static output was `CHANGELOG.md`, `Dockerfile`,
+`docs/`, `infra/`, `src/`, and an unbuilt `index.html` referencing
+`/src/app/…tsx` — no `assets/`, no `.well-known/`. A real client hitting that
+would show a white screen, lose homeserver discovery, and lose `rtc_foci` with
+it, so calls die too. `blockwire.chat` was safe purely by accident: its alias
+was set by hand long ago and no longer auto-assigns to new production
+deployments — one "Promote to Production" click would have shipped it.
+
+Fixed: `outputDirectory` is now `dist`, and `vite.config.ts` copies
+`public/.well-known` into the build (`publicDir` is `false`, so nothing under
+`public/` ships unless listed in `copyFiles` — these files were previously
+carried across by a manual `cp` in `DEPLOY.md`, which is exactly the kind of
+step a Git-triggered build skips). `vercel-deploy.yml` is removed; it existed
+to automate what the Git integration now does, and keeping both would race for
+the same domain. Verified the built output directly (`assets/`,
+`.well-known/matrix/*.json`, `index.html` referencing a real hashed bundle),
+then verified the Vercel preview for the fix PR the same way using a
+`_vercel_share` bypass link, _then_ verified the resulting production
+deployment's metadata matched the exact merge commit before aliasing
+`blockwire.chat` to it, then verified the live domain in an actual browser with
+the service worker cleared. `blockwire.chat` still does not auto-move to new
+deployments — every release still ends with an explicit `vercel alias set`.
+
 **Blocked on a human with devices (Phase 2 — the current gate):**
 
 - [ ] Add the `VERCEL_TOKEN` secret: GitHub repo → Settings → Secrets and
