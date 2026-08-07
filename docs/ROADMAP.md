@@ -137,6 +137,16 @@ step and left a red run on `dev` after every lockfile change. It skips cleanly
 now, via the same preflight pattern `vercel-deploy.yml` uses; adding the secrets
 switches it back on with no further edits.
 
+**The nightly iOS build had to move first.** Turning the checks on immediately
+broke it: the job commits `altstore-source-nightly.json` to `dev` with
+`[skip ci]`, so that commit can never satisfy a required check, and the push
+came back `GH006: Protected branch update failed` — which fails the whole iOS
+job. Exempting the bot is not possible here; GitHub only allows ruleset bypass
+actors on organization-owned repositories, and this is a user repo. The
+manifest now accumulates on an `altstore-manifests` branch instead. Nothing
+about sideloading changes — AltStore reads the manifest from the release asset,
+which is uploaded exactly as before; the branch only preserves version history.
+
 **`dev` now requires status checks** — Lint, Typecheck, Tests, Build, Knip and
 Format check must pass before a merge. Deliberately _not_ `require-changeset`:
 it fails on every Dependabot PR by design and would block all of them.
