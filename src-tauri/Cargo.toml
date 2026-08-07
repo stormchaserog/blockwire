@@ -76,7 +76,7 @@ tauri-plugin-dialog = "2"
 # wry/tauri-runtime-wry/webkit2gtk.
 # Pinned to =2.0.0 because 2.1.0+ introduced an unconditional call to
 # tauri::webview_version() which is gated behind tauri's `wry` feature.
-tauri-plugin-devtools = { version = "=2.0.0", default-features = false, optional = true }
+tauri-plugin-devtools = { version = "=2.1.0", default-features = false, optional = true }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 enigo = "0.5.0"
