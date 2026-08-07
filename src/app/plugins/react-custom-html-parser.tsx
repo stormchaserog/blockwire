@@ -369,7 +369,11 @@ const scaleEmojiChunk = (text: string, output: (string | JSX.Element)[]) => {
 
 export const scaleSystemEmoji = (text: string): (string | JSX.Element)[] => {
   const parts: (string | JSX.Element)[] = [];
-  const urlReg = new RegExp(URL_REG);
+  // Fresh instance so the shared URL_REG lastIndex is not carried between
+  // calls, and the global flag stated explicitly - matchAll throws a TypeError
+  // without it, and relying on the flag surviving the copy makes this depend
+  // on a detail of URL_REG that nothing here would notice changing.
+  const urlReg = new RegExp(URL_REG, 'g');
   let lastIndex = 0;
 
   [...text.matchAll(urlReg)].forEach((match) => {
