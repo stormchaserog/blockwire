@@ -96,12 +96,60 @@ and nothing else. The broken legal pages passed a curl check and were caught
 only by loading them in a browser. The same shape hid two CORS bugs that day.
 Verify user-facing behaviour in a browser.
 
-**Open pull requests:**
+**Dependency updates — the config was the bug (2026-08-06):**
 
-- Dependabot #1–#4. #1 (node 24→26 in Docker) and #2 fail every check; #3 and
-  #4 are clean. Worth rebasing onto the fixed `dev` now that the peer-dep issue
-  is resolved — some of those failures may have been the same environmental
-  cause.
+All four open Dependabot PRs showed every check red, which read as four broken
+updates. It was one cause, and it was ours: the `@testing-library/dom` peer-dep
+fix updated `package.json` and `package-lock.json` but not `pnpm-lock.yaml`, and
+CI installs with `pnpm --frozen-lockfile`. Every branch cut from `dev` died at
+the install step — `ERR_PNPM_OUTDATED_LOCKFILE ... 1 dependencies were added`
+— so a Docker base-image bump that touches no JavaScript reported Lint,
+Typecheck, Build, Knip and Tests all failing. Fixed in PR #11.
+
+With that noise gone, the real picture:
+
+- **#10** (github-actions) — 4 pinned-SHA patch bumps. Recreated on the fixed
+  `dev`, green, merged.
+- **#12** (tauri-plugin-devtools 2.0.0 → 2.1.0) — opened _after_ the config
+  fix below and was green on arrival, including Rust check and Clippy. Merged.
+- **#4** (npm) — closed. Labelled "bump the npm group with 54 updates";
+  actually React 18→19, react-router-dom 6→7, i18next 25→26,
+  react-i18next 16→17, react-leaflet 4→5 and jest-dom 6→7. Around
+  thirty typecheck errors of the classic React 19 shape (`Cannot find namespace
+'JSX'`, `RefObject<T | null>`, `useRef` wanting an initial value) plus 2
+  failing test files.
+- **#3** (cargo) — closed. Three genuine compile errors from three unrelated
+  crate majors: `Body::wrap_stream` removed, an `AsFilename` trait bound, and a
+  struct turned non-exhaustive.
+- **#1** (node 24→26 in Docker) — Dependabot closed it itself once the
+  config changed: _"Looks like node is no longer updatable."_ A major Node jump
+  is a real decision and will return as its own reviewable PR.
+
+**The fix is in `.github/dependabot.yml`.** Every group was a catch-all with no
+`update-types` filter, so majors rode in beside patches under a `chore:` prefix
+— which is how a React 19 migration arrived looking like housekeeping. Groups
+are now minor/patch only, leaving majors to open individually. #12 appearing
+green within minutes of the change is that working as intended.
+
+`flake-lock-fix.yml` is now gated on `secrets.APP_ID`. It needs a GitHub App
+inherited from upstream that this repo does not have, so it failed at its first
+step and left a red run on `dev` after every lockfile change. It skips cleanly
+now, via the same preflight pattern `vercel-deploy.yml` uses; adding the secrets
+switches it back on with no further edits.
+
+**The nightly iOS build had to move first.** Turning the checks on immediately
+broke it: the job commits `altstore-source-nightly.json` to `dev` with
+`[skip ci]`, so that commit can never satisfy a required check, and the push
+came back `GH006: Protected branch update failed` — which fails the whole iOS
+job. Exempting the bot is not possible here; GitHub only allows ruleset bypass
+actors on organization-owned repositories, and this is a user repo. The
+manifest now accumulates on an `altstore-manifests` branch instead. Nothing
+about sideloading changes — AltStore reads the manifest from the release asset,
+which is uploaded exactly as before; the branch only preserves version history.
+
+**`dev` now requires status checks** — Lint, Typecheck, Tests, Build, Knip and
+Format check must pass before a merge. Deliberately _not_ `require-changeset`:
+it fails on every Dependabot PR by design and would block all of them.
 
 **Blocked on a human with devices (Phase 2 — the current gate):**
 
@@ -119,6 +167,10 @@ Verify user-facing behaviour in a browser.
 - [ ] Create the `abuse@blockwire.chat` mailbox (`privacy@` is referenced
       too) — the Terms and Privacy pages point at them.
 - [ ] Rotate appservice tokens (in `blockwire-infra`).
+- [ ] Allow Actions to create pull requests: Settings -> Actions -> General ->
+      Workflow permissions. One checkbox. It is the entire reason the
+      "Create Release PR" job is red - knope gets back
+      `403 GitHub Actions is not permitted to create or approve pull requests`.
 
 ## Phases
 
