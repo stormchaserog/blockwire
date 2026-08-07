@@ -109,9 +109,15 @@ export class CallWidgetDriver extends WidgetDriver {
     return { roomId, eventId: r.event_id };
   }
 
+  /** Matches WidgetDriver as of matrix-widget-api 1.18, which dropped the
+   *  `parentDelayId` parameter. ClientWidgetApi now warns "Data includes
+   *  parent_delay_id, but the widgetDriver ignores it" and never forwards it,
+   *  so keeping the old arity would have shifted every argument by one -
+   *  `eventType` arriving where `parentDelayId` used to be. That type-checks
+   *  under a cast and corrupts every delayed event at runtime, which for calls
+   *  means the membership heartbeat. `delay` is likewise no longer nullable. */
   public async sendDelayedEvent(
-    delay: number | null,
-    parentDelayId: string | null,
+    delay: number,
     eventType: string,
     content: IContent,
     stateKey: string | null = null,
@@ -122,19 +128,7 @@ export class CallWidgetDriver extends WidgetDriver {
 
     if (!client || !roomId) throw new Error('Not in a room or not attached to a client');
 
-    let delayOpts;
-    if (delay !== null) {
-      delayOpts = {
-        delay,
-        ...(parentDelayId !== null && { parent_delay_id: parentDelayId }),
-      };
-    } else if (parentDelayId !== null) {
-      delayOpts = {
-        parent_delay_id: parentDelayId,
-      };
-    } else {
-      throw new Error('Must provide at least one of delay or parentDelayId');
-    }
+    const delayOpts = { delay };
 
     let r: SendDelayedEventResponse | null;
     if (stateKey !== null) {
