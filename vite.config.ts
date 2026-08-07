@@ -110,6 +110,16 @@ const copyFiles = {
       src: 'public/locales',
       dest: 'public/',
     },
+    {
+      // Matrix delegation. `publicDir` is false, so nothing under public/ is
+      // copied unless it is listed here, and these were previously carried into
+      // dist/ by a manual `cp` step in DEPLOY.md - which meant any build that
+      // was not that exact ritual shipped without them. Without these files
+      // /.well-known/matrix/client 404s: clients cannot discover the homeserver
+      // and rtc_foci disappears, so calls break.
+      src: 'public/.well-known',
+      dest: '',
+    },
   ],
 };
 

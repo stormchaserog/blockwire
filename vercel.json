@@ -47,5 +47,5 @@
       "destination": "/index.html"
     }
   ],
-  "outputDirectory": "."
+  "outputDirectory": "dist"
 }

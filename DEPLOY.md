@@ -3,22 +3,37 @@
 Static build on Vercel at **blockwire.chat**. The homeserver is separate
 (`matrix.blockwire.chat`, see `blockwire-infra`).
 
-## Build and deploy
+## Deploying
+
+**Push to `dev`. Vercel builds from the repository and deploys.** The Git
+integration runs `vercel build` at the repo root, which is why `vercel.json`
+pins `"outputDirectory": "dist"` and why the delegation files are copied into
+`dist/` by `vite.config.ts` rather than by hand.
+
+blockwire.chat does **not** move on its own — see the note below — so a release
+still ends with an explicit alias:
 
 ```bash
-export PATH="$HOME/homebrew/opt/node@24/bin:$PATH"   # needs Node 24
-npm install --legacy-peer-deps                       # see note below
-npm run build
-
-cp vercel.json dist/
-cp -r public/.well-known dist/
-
-cd dist
-rm -rf .vercel
-vercel link --project blockwire --yes                # REQUIRED after every build
-vercel deploy --prod --yes
-vercel alias set <deployment-url> blockwire.chat     # REQUIRED, see below
+vercel alias set <deployment-url> blockwire.chat
 ```
+
+### Building it yourself
+
+Only needed to reproduce a Vercel build locally or to ship without pushing:
+
+```bash
+export PATH="$HOME/homebrew/bin:$HOME/homebrew/opt/node@24/bin:$PATH"
+npm install --legacy-peer-deps          # see note below
+vercel link --project blockwire --yes   # from the repo root, NOT from dist/
+vercel build                            # writes .vercel/output/
+vercel deploy --prebuilt --prod --yes
+vercel alias set <deployment-url> blockwire.chat
+```
+
+Check `.vercel/output/static/` before deploying. It must contain `assets/`,
+`.well-known/matrix/*.json`, and an `index.html` referencing `assets/index-*.js`.
+If it instead contains `src/`, `docs/` and a `Dockerfile`, the output directory
+is resolving to the repo root and the deploy would serve the source tree.
 
 ## Four traps, each of which cost a broken deploy
 
@@ -44,19 +59,31 @@ hand, production deploys no longer auto-assign it. Every deploy needs an
 explicit `vercel alias set`, or the site serves the previous build with no
 error anywhere.
 
-**The build emits `dist/public/`, which hijacks the output directory.** Vercel's
-project setting is "`public` if it exists, or `.`", so it served `dist/public/`
-— which has no `index.html` — and _every route on the site 404'd_, including
-the Matrix delegation files. `vercel.json` pins `"outputDirectory": "."` to
-stop this. Do not remove it.
+**`outputDirectory` means different things from different directories.** The
+build emits `dist/public/`, and Vercel's default is "`public` if it exists,
+otherwise `.`" — so it once served `dist/public/`, which has no `index.html`,
+and _every route 404'd_, delegation files included. That was pinned away with
+`"outputDirectory": "."`, correct for the old ritual of deploying from **inside**
+`dist/`.
+
+Connecting the Git integration made that pin actively dangerous: a Git build
+runs from the **repo root**, where `.` is the source tree. Such a deploy serves
+the unbuilt `index.html`, no `assets/`, no `.well-known/` — a white screen and
+dead Matrix delegation, with the repo's own `docs/` and `Dockerfile` published
+on the product domain. It is now `"outputDirectory": "dist"`, which is correct
+from the repo root. **Do not deploy from inside `dist/` any more** — that would
+make Vercel look for `dist/dist`.
 
 ## Other notes
 
 - **`--legacy-peer-deps` is required**: `folds@2.7.1` pins an older
-  `@vanilla-extract/css` than the root project. Consequence: a couple of
-  pre-existing typecheck errors in `GenericWidgetDriver.ts` from a
-  `matrix-widget-api` version skew. Vite does not typecheck, so builds are
-  unaffected.
+  `@vanilla-extract/css` than the root project. Note that npm does not install
+  peer dependencies under that flag, which is how `@testing-library/dom` went
+  missing and took a third of the test suite with it.
+- **There are two lockfiles and they must move together.** CI and Vercel install
+  with `pnpm --frozen-lockfile`; the commands above use npm. A change to
+  `package.json` that updates only one lockfile fails every branch at the
+  install step, with errors that look like they come from the code.
 - **The service worker precaches aggressively.** After deploying, a browser can
   keep serving the previous build. To verify a deploy, unregister the service
   worker and clear caches, or test in a fresh profile — otherwise you will
@@ -67,4 +94,8 @@ stop this. Do not remove it.
   `productName`. If new upstream code reintroduces a literal, fix it the same way.
 - **Delegation files are load-bearing.** `public/.well-known/matrix/{client,server}.json`
   tell every client where the homeserver is. If they stop being served, all
-  clients lose the server.
+  clients lose the server and `rtc_foci` disappears, so calls break too. They
+  used to be carried into `dist/` by a manual `cp` in this file, which meant any
+  build that was not that exact ritual shipped without them. `vite.config.ts`
+  now copies them as part of the build (`publicDir` is `false`, so anything
+  under `public/` must be listed in `copyFiles` explicitly).
