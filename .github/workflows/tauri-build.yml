@@ -596,32 +596,44 @@ jobs:
           DATE="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           WT="$RUNNER_TEMP/altstore-source"
 
-          # Commit the updated manifest to the repo root on dev so version
-          # history persists; [skip ci] avoids retriggering builds.
+          # Manifest history lives on its own branch, deliberately not on dev.
+          # These commits carry [skip ci], so they can never satisfy dev's
+          # required status checks and the push comes back as GH006 - which
+          # fails this whole job. A bot cannot be exempted either: GitHub only
+          # allows ruleset bypass actors on organization-owned repositories.
+          #
+          # Nothing about distribution depends on this. AltStore reads the
+          # manifest from the release asset uploaded below; the branch exists
+          # purely so version history accumulates somewhere. dev keeps a seed
+          # copy, used as the base until the branch exists.
+          MANIFEST_BRANCH=altstore-manifests
           UPDATED=0
           for attempt in 1 2 3; do
-            git fetch origin dev
+            if ! git fetch origin "$MANIFEST_BRANCH" 2>/dev/null; then
+              echo "$MANIFEST_BRANCH does not exist yet; seeding from dev"
+              git fetch origin dev
+            fi
             git worktree remove --force "$WT" 2>/dev/null || true
-            git worktree add --detach "$WT" origin/dev
+            git worktree add --detach "$WT" FETCH_HEAD
             node .github/scripts/update-altstore-source.mjs \
               "$WT/$SOURCE_FILE" "${ALTSTORE_VERSION:-$VERSION}" "${ALTSTORE_VERSION_BUILD:-$VERSION}" "${STEPS_IPA_OUTPUTS_SIZE}" "$DOWNLOAD_URL" "$DATE" "BlockWire $VERSION"
             pnpm oxfmt "$WT/$SOURCE_FILE"
             git -C "$WT" add "$SOURCE_FILE"
             if git -C "$WT" diff --cached --quiet; then
-              echo "$SOURCE_FILE already up to date on dev"
+              echo "$SOURCE_FILE already up to date on $MANIFEST_BRANCH"
               UPDATED=1
               break
             fi
             git -C "$WT" commit -m "chore: update $SOURCE_FILE for $TAG [skip ci]"
-            if git -C "$WT" push origin HEAD:dev; then
+            if git -C "$WT" push origin "HEAD:refs/heads/$MANIFEST_BRANCH"; then
               UPDATED=1
               break
             fi
-            echo "Push to dev failed (attempt $attempt); retrying from latest dev tip"
+            echo "Push to $MANIFEST_BRANCH failed (attempt $attempt); retrying from latest tip"
           done
           if [ "$UPDATED" != "1" ]; then
             git worktree remove --force "$WT" 2>/dev/null || true
-            echo "Failed to commit $SOURCE_FILE to dev" >&2
+            echo "Failed to commit $SOURCE_FILE to $MANIFEST_BRANCH" >&2
             exit 1
           fi
 
