@@ -7,7 +7,32 @@ on:
     paths: ['pnpm-lock.yaml']
 
 jobs:
+  # This workflow came from upstream and needs a GitHub App that this repo does
+  # not have, so `create-github-app-token` failed outright and every push that
+  # touched pnpm-lock.yaml left a red run on dev. The `secrets` context is not
+  # allowed in a job-level `if`, so a preflight job exposes the check as an
+  # output - the same shape vercel-deploy.yml uses. Adding APP_ID and
+  # APP_PRIVATE_KEY switches the whole thing back on with no further changes.
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      has_app: ${{ steps.check.outputs.has_app }}
+    steps:
+      - name: Check for the GitHub App credentials
+        id: check
+        env:
+          APP_ID: ${{ secrets.APP_ID }}
+        run: |
+          if [ -n "$APP_ID" ]; then
+            echo "has_app=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_app=false" >> "$GITHUB_OUTPUT"
+            echo "APP_ID is not set; skipping the nix hash fix."
+          fi
+
   fix:
+    needs: preflight
+    if: ${{ needs.preflight.outputs.has_app == 'true' }}
     name: Fix flake hashes
     runs-on: ubuntu-latest
     permissions:

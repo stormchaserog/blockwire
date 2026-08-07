@@ -1,6 +1,13 @@
 # Docs: <https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/customizing-dependency-updates>
 
 version: 2
+
+# Every group below is deliberately restricted to `update-types: [minor, patch]`.
+# Majors are left ungrouped so each one opens as its own pull request with its
+# own changelog. Without that, a grouped update arrives wearing a `chore:`
+# prefix and hides real migration work - a single "bump the npm group" PR once
+# carried React 18 -> 19, react-router-dom 6 -> 7, i18next 25 -> 26 and
+# react-leaflet 4 -> 5 together, and was closed unmerged.
 updates:
   - package-ecosystem: github-actions
     cooldown:
@@ -17,6 +24,7 @@ updates:
       github-actions:
         patterns:
           - '*'
+        update-types: [minor, patch]
 
   - package-ecosystem: docker
     cooldown:
@@ -33,6 +41,7 @@ updates:
       docker:
         patterns:
           - '*'
+        update-types: [minor, patch]
 
   - package-ecosystem: npm
     cooldown:
@@ -49,6 +58,7 @@ updates:
       npm:
         patterns:
           - '*'
+        update-types: [minor, patch]
 
   - package-ecosystem: cargo
     cooldown:
@@ -65,3 +75,4 @@ updates:
       cargo:
         patterns:
           - '*'
+        update-types: [minor, patch]
