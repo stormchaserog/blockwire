@@ -115,7 +115,7 @@
     "slate-dom": "^0.126.0",
     "slate-history": "^0.113.1",
     "slate-react": "^0.126.0",
-    "tauri-plugin-android-fs-api": "28.4.0",
+    "tauri-plugin-android-fs-api": "29.0.0",
     "ua-parser-js": "^2.0.10",
     "virtua": "^0.50.0",
     "workbox-precaching": "^7.4.1"
