@@ -45,6 +45,12 @@ export function RoomTombstone({ roomId, body, replacementRoomId }: RoomTombstone
     replacementRoom?.getMyMembership() === KnownMembership.Join ||
     joinState.status === AsyncStatus.Success;
 
+  // See SpaceTombstone: only show the banner when the replacement room is
+  // actionable (known to the client, or already joined). A tombstone pointing
+  // at a room that no longer exists would otherwise be a permanent dead end.
+  const hasActionableReplacement = !!replacementRoom || alreadyJoined;
+  if (!hasActionableReplacement) return null;
+
   const handleOpen = () => {
     if (replacementRoom) navigateRoom(replacementRoom.roomId);
     else if (joinState.status === AsyncStatus.Success) navigateRoom(joinState.data.roomId);
