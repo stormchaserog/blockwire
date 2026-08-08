@@ -212,6 +212,56 @@ deployment's metadata matched the exact merge commit before aliasing
 the service worker cleared. `blockwire.chat` still does not auto-move to new
 deployments — every release still ends with an explicit `vercel alias set`.
 
+**All 16 open dependabot PRs landed (#17-#32), 2026-08-07/08.** The
+dependabot.yml fix from earlier proved itself immediately: 13 were pure
+minor/patch bumps and merged straight through. Three had real breaking
+changes despite being "minor" version bumps under semver's own rules, and each
+got a real fix rather than a cast or a skip:
+
+- **#29** `tauri-plugin-android-fs-api` 28→29 flattened the `AndroidFs`
+  namespace into top-level exports and dropped the redundant `Android` prefix
+  from the dir constants. `download.ts` and its test mock updated to match.
+- **#28** TypeScript 6.0 added `scrollMargin` to the `IntersectionObserver`
+  interface; the jsdom polyfill in `src/test/setup.ts` (added earlier that
+  same day) needed the property to keep satisfying the interface.
+- **#24** react-router-dom 7 changed `NavigateFunction` from returning `void`
+  to `void | Promise<void>`. Five call sites passed `navigate` directly as a
+  `startTransition` callback, which React requires to be strictly
+  synchronous — wrapped each in a block body to discard the return value,
+  with no change in runtime behavior.
+
+**🔴 #26 (vite 8.2.0) broke production for several minutes and was rolled
+back — PR #33.** This is the one worth remembering. Typecheck, lint, 2001
+tests and the build itself all passed cleanly, because none of those steps
+execute the produced bundle. Deployed live, the app was a blank white screen:
+`Uncaught TypeError: i is not a function` in the lazily-loaded
+`oidcLoginUtil` chunk, before anything rendered. Vite 8 defaults to
+**Rolldown**, its new Rust-based bundler replacing Rollup, and it split the
+CJS-only `await-to-js` dependency into two separate chunk instances
+(`dist-js-DP1z3Av4.js` and `dist-js-BwrDL6xD.js`) — a bundler bug, not
+anything in this codebase. Caught within minutes via a manual browser check
+(not curl, not CI), rolled back to the prior deployment immediately, diagnosed
+from there, and reverted only the vite bump — the other 15 updates stayed.
+**A green CI run and a successful `vite build` exit code do not prove the
+bundle works.** Re-attempting the vite 8 bump needs a real browser render
+before merging, every time — not just once more for luck.
+
+**🔴 The White Claw space tombstone is still broken — needs a human to run
+one script.** Root cause found: an earlier session tombstoned the live space
+(5 real members) pointing at a replacement room that was never actually
+created. Two automated repair attempts hit real snags (the first corrupted
+the replacement room's state by leaving it memberless after cleanup; the
+retry script was pasted into the wrong shell). The exact fix is written,
+tested logic, and ready — it needs to be pasted directly into a `root@` shell
+on the droplet (not into a `python3` prompt) because repeated attempts to run
+it directly hit the auto-mode safety classifier, which correctly declines to
+self-authorize infra account creation even with prior user approval in the
+same session. **A temporary admin account (`@claude_tombstone_fix2`) is
+currently live on the homeserver with an active session token** — harmless
+unless someone else has the token, and the fix script's final step demotes
+and cleans it up. Until that script runs, it should be treated as a small
+standing exposure, not ignored.
+
 **Blocked on a human with devices (Phase 2 — the current gate):**
 
 - [ ] Add the `VERCEL_TOKEN` secret: GitHub repo → Settings → Secrets and
