@@ -447,6 +447,15 @@ function SpaceTombstone({ roomId, replacementRoomId }: SpaceTombstoneProps) {
     replacementRoom?.getMyMembership() === KnownMembership.Join ||
     joinState.status === AsyncStatus.Success;
 
+  // Only surface the banner when the replacement space is something the client
+  // can actually act on: a room it knows (a genuine upgrade auto-invites its
+  // members, so getRoom resolves the successor as an invite or join) or one
+  // already joined. A tombstone whose replacement no longer exists - e.g. an
+  // erroneous tombstone whose target space was later removed - would otherwise
+  // leave a permanent dead-end "Join New Space" button that only ever errors.
+  const hasActionableReplacement = !!replacementRoom || alreadyJoined;
+  if (!hasActionableReplacement) return null;
+
   const handleOpen = () => {
     if (replacementRoom) navigateSpace(replacementRoom.roomId);
     else if (joinState.status === AsyncStatus.Success) navigateSpace(joinState.data.roomId);
