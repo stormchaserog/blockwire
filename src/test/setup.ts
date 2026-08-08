@@ -19,6 +19,11 @@ class IntersectionObserverPolyfill implements IntersectionObserver {
 
   readonly rootMargin: string = '';
 
+  // TypeScript 6's updated DOM lib added `scrollMargin` to the interface
+  // (a scroll-driven-animations addition); this polyfill only needs to
+  // satisfy the shape, so an empty default is fine.
+  readonly scrollMargin: string = '';
+
   readonly thresholds: ReadonlyArray<number> = [];
 
   observe() {}
