@@ -251,8 +251,8 @@ importers:
         specifier: ^0.126.0
         version: 0.126.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(slate-dom@0.126.0(slate@0.126.0))(slate@0.126.0)
       tauri-plugin-android-fs-api:
-        specifier: 28.4.0
-        version: 28.4.0
+        specifier: 29.0.0
+        version: 29.0.0
       ua-parser-js:
         specifier: ^2.0.10
         version: 2.0.10
@@ -5532,8 +5532,8 @@ packages:
   tar-stream@3.2.0:
     resolution: {integrity: sha512-ojzvCvVaNp6aOTFmG7jaRD0meowIAuPc3cMMhSgKiVWws1GyHbGd/xvnyuRKcKlMpt3qvxx6r0hreCNITP9hIg==}
 
-  tauri-plugin-android-fs-api@28.4.0:
-    resolution: {integrity: sha512-YOo1P+cRjuaoPbTNZprMhr56ruKO4hIDq7kJOum91NqkN+VWY9F+UPAdjZokhzJSsbkeY0nsb1VDLXb2/h3f3w==}
+  tauri-plugin-android-fs-api@29.0.0:
+    resolution: {integrity: sha512-fDCyz/EFyWGEKXu3AxjhgSM07kSXKKzK1Jg4W3CR0kQABrqS9JekvjXz68tgq44JFXpLH9IgL7CwQ+ed8WGiUw==}
 
   teex@1.0.1:
     resolution: {integrity: sha512-eYE6iEI62Ni1H8oIa7KlDU6uQBtqr4Eajni3wX7rpfXD8ysFx8z0+dri+KWEPWpBsxXfxu58x/0jvTVT1ekOSg==}
@@ -11088,7 +11088,7 @@ snapshots:
       - bare-buffer
       - react-native-b4a
 
-  tauri-plugin-android-fs-api@28.4.0:
+  tauri-plugin-android-fs-api@29.0.0:
     dependencies:
       '@tauri-apps/api': 2.11.1
       create-web-stream: 1.1.3

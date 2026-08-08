@@ -35,10 +35,13 @@ vi.mock('@tauri-apps/api/core', () => ({
 vi.mock('@tauri-apps/plugin-os', () => ({ type: mocks.osType }));
 vi.mock('$state/toast', () => ({ showToast: mocks.showToast }));
 vi.mock('$utils/fetch', () => ({ fetch: mocks.fetch }));
+// v29 flattened the AndroidFs namespace into top-level named exports and
+// dropped the "Android" prefix from the dir constants; mirror that shape here
+// while keeping the same mock functions the assertions below already use.
 vi.mock('tauri-plugin-android-fs-api', () => ({
-  AndroidFs: mocks.androidFs,
-  AndroidPublicGeneralPurposeDir: { Download: 'Download' },
-  AndroidPublicImageDir: { Pictures: 'Pictures' },
+  ...mocks.androidFs,
+  PublicGeneralPurposeDir: { Download: 'Download' },
+  PublicImageDir: { Pictures: 'Pictures' },
 }));
 vi.mock('@tauri-apps/plugin-dialog', () => ({ save: mocks.save }));
 vi.mock('@tauri-apps/plugin-fs', () => ({ writeFile: mocks.writeFile }));

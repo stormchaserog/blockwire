@@ -79,29 +79,39 @@ export async function saveMediaToGallery(
   }
 
   if (platform === 'android') {
-    const { AndroidFs, AndroidPublicImageDir } = await import('tauri-plugin-android-fs-api');
-    let uri: Awaited<ReturnType<typeof AndroidFs.createNewPublicImageFile>> | undefined;
+    // v29 flattened the AndroidFs namespace into top-level functions and
+    // dropped the redundant "Android" prefix from the dir constants
+    // (AndroidPublicImageDir -> PublicImageDir); member names are unchanged.
+    const {
+      checkPublicFilesPermission,
+      requestPublicFilesPermission,
+      createNewPublicImageFile,
+      writeFile: writeAndroidFile,
+      setPublicFilePending,
+      scanPublicFile,
+      removeFile: removeAndroidFile,
+      PublicImageDir,
+    } = await import('tauri-plugin-android-fs-api');
+    let uri: Awaited<ReturnType<typeof createNewPublicImageFile>> | undefined;
     try {
       const blob = await resolveBlob(input);
       const bytes = new Uint8Array(await blob.arrayBuffer());
 
-      if (!(await AndroidFs.checkPublicFilesPermission())) {
-        const granted = await AndroidFs.requestPublicFilesPermission();
+      if (!(await checkPublicFilesPermission())) {
+        const granted = await requestPublicFilesPermission();
         if (!granted) throw new Error('Storage permission was denied');
       }
 
-      uri = await AndroidFs.createNewPublicImageFile(
-        AndroidPublicImageDir.Pictures,
-        filename,
-        mediaMimeType,
-        { isPending: true, requestPermission: true }
-      );
-      await AndroidFs.writeFile(uri, bytes);
-      await AndroidFs.setPublicFilePending(uri, false);
-      await AndroidFs.scanPublicFile(uri);
+      uri = await createNewPublicImageFile(PublicImageDir.Pictures, filename, mediaMimeType, {
+        isPending: true,
+        requestPermission: true,
+      });
+      await writeAndroidFile(uri, bytes);
+      await setPublicFilePending(uri, false);
+      await scanPublicFile(uri);
       showToast('Saved to Gallery');
     } catch (error) {
-      if (uri) await AndroidFs.removeFile(uri).catch(() => undefined);
+      if (uri) await removeAndroidFile(uri).catch(() => undefined);
       const message = error instanceof Error ? error.message : 'unknown error';
       showToast(`Failed to save to gallery: ${message}`);
     }
@@ -135,28 +145,36 @@ export async function saveFileToDevice(
       const bytes = new Uint8Array(await blob.arrayBuffer());
 
       if (osType() === 'android') {
-        const { AndroidFs, AndroidPublicGeneralPurposeDir } =
-          await import('tauri-plugin-android-fs-api');
-        let uri: Awaited<ReturnType<typeof AndroidFs.createNewPublicFile>> | undefined;
+        const {
+          checkPublicFilesPermission,
+          requestPublicFilesPermission,
+          createNewPublicFile,
+          writeFile: writeAndroidFile,
+          setPublicFilePending,
+          scanPublicFile,
+          removeFile: removeAndroidFile,
+          PublicGeneralPurposeDir,
+        } = await import('tauri-plugin-android-fs-api');
+        let uri: Awaited<ReturnType<typeof createNewPublicFile>> | undefined;
         try {
-          if (!(await AndroidFs.checkPublicFilesPermission())) {
-            const granted = await AndroidFs.requestPublicFilesPermission();
+          if (!(await checkPublicFilesPermission())) {
+            const granted = await requestPublicFilesPermission();
             if (!granted) throw new Error('Storage permission was denied');
           }
 
-          uri = await AndroidFs.createNewPublicFile(
-            AndroidPublicGeneralPurposeDir.Download,
+          uri = await createNewPublicFile(
+            PublicGeneralPurposeDir.Download,
             filename,
             mimeType || blob.type || null,
             { isPending: true, requestPermission: true }
           );
-          await AndroidFs.writeFile(uri, bytes);
-          await AndroidFs.setPublicFilePending(uri, false);
-          await AndroidFs.scanPublicFile(uri);
+          await writeAndroidFile(uri, bytes);
+          await setPublicFilePending(uri, false);
+          await scanPublicFile(uri);
           showToast('Saved to Downloads');
           return 'saved';
         } catch (error) {
-          if (uri) await AndroidFs.removeFile(uri).catch(() => undefined);
+          if (uri) await removeAndroidFile(uri).catch(() => undefined);
           throw error;
         }
       }
