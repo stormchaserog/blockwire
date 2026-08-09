@@ -85,6 +85,7 @@ import { InviteUserPrompt } from '$components/invite-user-prompt';
 import { useCallEmbed } from '$hooks/useCallEmbed';
 import { createDebugLogger } from '$utils/debugLogger';
 import { SidebarResizer } from '$pages/client/sidebar/SidebarResizer';
+import { ScreenSize, useScreenSizeOptionally } from '$hooks/useScreenSize';
 import { useSidebarWidth } from '$hooks/useSidebarWidth';
 import { RoomAvatar } from '$components/room-avatar';
 import { getRoomAvatarUrl } from '$utils/room/display';
@@ -282,6 +283,7 @@ function SpaceHeader({ hideText, mx }: { hideText?: boolean; mx: MatrixClient })
   const bannerMXC = bannerState?.getContent<RoomBannerContent>()?.url;
   const rawBannerURI = mxcUrlToHttp(mx, bannerMXC ?? '', useAuthentication);
   const bannerURI = useRenderableMediaUrl(rawBannerURI || undefined);
+  const screenSize = useScreenSizeOptionally();
   const hasBanner = !!(bannerURI && !hideText && showBanners);
 
   const [bannerViewerOpen, setBannerViewerOpen] = useState(false);
@@ -381,16 +383,18 @@ function SpaceHeader({ hideText, mx }: { hideText?: boolean; mx: MatrixClient })
                   onError={() => reportMediaLoadFailure('room_banner')}
                 />
               </button>
-              <SidebarResizer
-                setCurWidth={setCurHeight}
-                sidebarWidth={roomBannerHeight}
-                setSidebarWidth={setRoomBannerHeight}
-                instep={56}
-                outstep={66}
-                minValue={56}
-                maxValue={500}
-                topSided
-              />
+              {screenSize !== ScreenSize.Mobile && (
+                <SidebarResizer
+                  setCurWidth={setCurHeight}
+                  sidebarWidth={roomBannerHeight}
+                  setSidebarWidth={setRoomBannerHeight}
+                  instep={56}
+                  outstep={66}
+                  minValue={56}
+                  maxValue={500}
+                  topSided
+                />
+              )}
             </div>
           </Box>
         </>

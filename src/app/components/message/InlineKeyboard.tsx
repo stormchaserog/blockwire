@@ -71,7 +71,7 @@ export function InlineKeyboard({ roomId, keyboard }: InlineKeyboardProps) {
                   href={button.url}
                   target="_blank"
                   rel="noreferrer noopener"
-                  size="300"
+                  size="400"
                   variant="Secondary"
                   fill="Soft"
                   outlined
@@ -89,7 +89,7 @@ export function InlineKeyboard({ roomId, keyboard }: InlineKeyboardProps) {
               <Button
                 key={key}
                 type="button"
-                size="300"
+                size="400"
                 variant="Secondary"
                 fill="Soft"
                 outlined

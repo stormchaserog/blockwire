@@ -299,6 +299,7 @@ export function Settings({
       requestClose={handleRequestClose}
       renderHeader={renderHeader}
       showCloseInHeader={visibleSection === null}
+      mobileDrawer={false}
       menuItemTextSize={screenSize === ScreenSize.Mobile ? 'T400' : 'T300'}
       closeButtonAriaLabel="Close settings"
       renderSection={(viewport) =>
