@@ -34,7 +34,11 @@ sentry = { version = "0.49.0", default-features = false, features = [
 tokio = { version = "1", features = ["time", "sync", "fs", "io-util"] }
 ts-rs = "12.0.0"
 sha2 = "0.10"
-aes = "0.9"
+# aes stays on 0.8 (cipher 0.4) to match ctr 0.9. aes 0.9 switched to cipher 0.5,
+# whose Aes256 no longer satisfies ctr 0.9's KeyIvInit — that mismatch is what
+# broke the desktop build. To move forward, bump BOTH (aes 0.9 + ctr 0.10) and
+# update the key/iv `.into()` calls in network/media_protocol.rs for cipher 0.5.
+aes = "0.8"
 ctr = "0.9"
 infer = { version = "0.22", default-features = false }
 percent-encoding = "2"
