@@ -41,4 +41,11 @@
   html body [data-message-id][data-message-item]:hover {
     background-color: transparent !important;
   }
+
+  /* Touch tap-target floor: icon buttons default to ~32px, below the ~44px
+     guideline. Height-only, so it never widens a dense toolbar (e.g. the room
+     header) and cannot introduce horizontal overflow. */
+  html body [class*='IconButton'] {
+    min-height: 44px;
+  }
 }

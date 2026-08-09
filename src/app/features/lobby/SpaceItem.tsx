@@ -394,7 +394,7 @@ export const SpaceItemCard = as<'div', SpaceItemCardProps>(
       >
         {before}
         <Box grow="Yes" gap="100" alignItems="Inherit" justifyContent="SpaceBetween">
-          <Box ref={canReorder ? targetRef : null}>
+          <Box ref={canReorder ? targetRef : null} style={{ minWidth: 0 }}>
             {space ? (
               <LocalRoomSummaryLoader room={space}>
                 {(localSummary) =>

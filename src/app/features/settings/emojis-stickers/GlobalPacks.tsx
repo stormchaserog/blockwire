@@ -473,7 +473,7 @@ export function GlobalPacks({ onViewPack }: GlobalPacksProps) {
                         style={{
                           display: 'flex',
                           maxWidth: toRem(400),
-                          width: '100vw',
+                          width: 'calc(100vw - 1rem)',
                           maxHeight: toRem(500),
                         }}
                       >
