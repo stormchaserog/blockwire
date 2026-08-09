@@ -341,7 +341,7 @@ export function RoomViewHeader({ callView }: Readonly<{ callView?: boolean }>) {
             )}
           </BackRouteHandler>
         )}
-        <Box grow="Yes" alignItems="Center" gap="300">
+        <Box grow="Yes" alignItems="Center" gap="300" style={{ minWidth: 0 }}>
           {screenSize !== ScreenSize.Mobile && (
             <Avatar size="300">
               <RoomAvatar
@@ -359,7 +359,7 @@ export function RoomViewHeader({ callView }: Readonly<{ callView?: boolean }>) {
               />
             </Avatar>
           )}
-          <Box direction="Column">
+          <Box direction="Column" style={{ minWidth: 0 }}>
             <Text size={topic ? 'H5' : 'H3'} truncate>
               {name}
             </Text>

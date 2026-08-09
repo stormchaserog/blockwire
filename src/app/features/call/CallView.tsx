@@ -287,7 +287,7 @@ export function CallView({ resizable }: CallViewProps) {
       {!currentJoined && <CallPrescreen />}
       <CallJoined containerRef={callContainerRef} />
 
-      {resizable && (
+      {resizable && !isMobile && (
         <button
           type="button"
           onMouseDown={startResizing}

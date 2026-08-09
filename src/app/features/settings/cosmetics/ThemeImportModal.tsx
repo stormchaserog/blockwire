@@ -183,7 +183,7 @@ export function ThemeImportModal({ open, onClose }: ThemeImportModalProps) {
   if (!open) return null;
 
   return (
-    <ModalOverlay requestClose={dismissSafe} dismissOnClickOutside={false}>
+    <ModalOverlay requestClose={dismissSafe} dismissOnClickOutside={false} mobile="fullscreen">
       <Dialog variant="Surface" aria-labelledby="theme-import-title">
         <Header
           style={{

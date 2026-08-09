@@ -1,4 +1,5 @@
 import { Box, config, toRem } from 'folds';
+import { isTauri } from '@tauri-apps/api/core';
 import { InboxTab } from './InboxTab';
 import { NavigateTab } from './NavigateTab';
 import { SettingsTab } from './SettingsTab';
@@ -32,7 +33,12 @@ export function UserQuickTools({
                 ? {
                     borderTopLeftRadius: config.radii.R500,
                     borderTopRightRadius: config.radii.R500,
-                    width: '100vw',
+                    width: '100%',
+                    // Notched phones in mobile web / installed PWA: keep the tab
+                    // bar above the home indicator. The native Tauri shell already
+                    // reserves this via SystemBarStrip, so skip it there to avoid
+                    // double padding.
+                    paddingBottom: isTauri() ? undefined : 'env(safe-area-inset-bottom)',
                   }
                 : {
                     width: toRem(width ?? 100),
