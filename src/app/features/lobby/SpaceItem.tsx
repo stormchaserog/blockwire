@@ -1,20 +1,6 @@
 import type { MouseEventHandler, ReactNode } from 'react';
 import { useCallback, useRef, useState } from 'react';
-import type { RectCords } from 'folds';
-import {
-  Box,
-  Avatar,
-  Text,
-  Chip,
-  as,
-  Badge,
-  toRem,
-  Spinner,
-  PopOut,
-  config,
-  Menu,
-  MenuItem,
-} from 'folds';
+import { Box, Avatar, Text, Chip, as, Badge, toRem, Spinner, config, Menu, MenuItem } from 'folds';
 import classNames from 'classnames';
 import type { MatrixError, Room, IHierarchyRoom } from '$types/matrix-sdk';
 import type { HierarchyItem } from '$hooks/useSpaceHierarchy';
@@ -29,8 +15,8 @@ import { useMediaAuthentication } from '$hooks/useMediaAuthentication';
 import { AddExistingModal } from '$features/add-existing';
 import { useOpenShallowRoute } from '$pages/client/useShallowRoute';
 import { getCreateRoomPath, getCreateSpacePath } from '$pages/pathUtils';
-import { stopPropagation } from '$utils/keyboard';
-import FocusTrap from 'focus-trap-react';
+import { ResponsiveMenu } from '$components/ResponsiveMenu';
+import { useMenuAnchor } from '$hooks/useMenuAnchor';
 import * as css from './SpaceItem.css';
 import * as styleCss from './style.css';
 import { useDraggableItem } from './DnD';
@@ -238,40 +224,28 @@ function RootSpaceProfile({ closed, categoryId, handleClose }: RootSpaceProfileP
 }
 
 function AddRoomButton({ item }: { item: HierarchyItem }) {
-  const [cords, setCords] = useState<RectCords>();
+  const menu = useMenuAnchor<HTMLButtonElement>();
   const openShallowRoute = useOpenShallowRoute();
   const [addExisting, setAddExisting] = useState(false);
 
-  const handleAddRoom: MouseEventHandler<HTMLButtonElement> = (evt) => {
-    setCords(evt.currentTarget.getBoundingClientRect());
-  };
-
   const handleCreateRoom = () => {
     openShallowRoute(getCreateRoomPath(item.roomId));
-    setCords(undefined);
+    menu.close();
   };
 
   const handleAddExisting = () => {
     setAddExisting(true);
-    setCords(undefined);
+    menu.close();
   };
 
   return (
-    <PopOut
-      anchor={cords}
-      position="Bottom"
-      align="End"
-      content={
-        <FocusTrap
-          focusTrapOptions={{
-            initialFocus: false,
-            onDeactivate: () => setCords(undefined),
-            clickOutsideDeactivates: true,
-            isKeyForward: (evt: KeyboardEvent) => evt.key === 'ArrowDown',
-            isKeyBackward: (evt: KeyboardEvent) => evt.key === 'ArrowUp',
-            escapeDeactivates: stopPropagation,
-          }}
-        >
+    <>
+      <ResponsiveMenu
+        anchor={menu.anchor}
+        requestClose={menu.close}
+        position="Bottom"
+        align="End"
+        menu={
           <Menu style={{ padding: config.space.S100 }}>
             <MenuItem
               size="300"
@@ -286,61 +260,49 @@ function AddRoomButton({ item }: { item: HierarchyItem }) {
               <Text size="T300">Existing Room</Text>
             </MenuItem>
           </Menu>
-        </FocusTrap>
-      }
-    >
-      {item.parentId === undefined && (
-        <Chip
-          variant="Primary"
-          radii="Pill"
-          before={chipIcon(Plus)}
-          onClick={handleAddRoom}
-          aria-pressed={!!cords}
-        >
-          <Text size="B300">Add Room</Text>
-        </Chip>
-      )}
+        }
+      >
+        {item.parentId === undefined && (
+          <Chip
+            variant="Primary"
+            radii="Pill"
+            before={chipIcon(Plus)}
+            onClick={menu.triggerProps.onClick}
+            aria-pressed={!!menu.anchor}
+          >
+            <Text size="B300">Add Room</Text>
+          </Chip>
+        )}
+      </ResponsiveMenu>
       {addExisting && (
         <AddExistingModal parentId={item.roomId} requestClose={() => setAddExisting(false)} />
       )}
-    </PopOut>
+    </>
   );
 }
 
 function AddSpaceButton({ item }: { item: HierarchyItem }) {
-  const [cords, setCords] = useState<RectCords>();
+  const menu = useMenuAnchor<HTMLButtonElement>();
   const openShallowRoute = useOpenShallowRoute();
   const [addExisting, setAddExisting] = useState(false);
 
-  const handleAddSpace: MouseEventHandler<HTMLButtonElement> = (evt) => {
-    setCords(evt.currentTarget.getBoundingClientRect());
-  };
-
   const handleCreateSpace = () => {
     openShallowRoute(getCreateSpacePath(item.roomId));
-    setCords(undefined);
+    menu.close();
   };
 
   const handleAddExisting = () => {
     setAddExisting(true);
-    setCords(undefined);
+    menu.close();
   };
   return (
-    <PopOut
-      anchor={cords}
-      position="Bottom"
-      align="End"
-      content={
-        <FocusTrap
-          focusTrapOptions={{
-            initialFocus: false,
-            onDeactivate: () => setCords(undefined),
-            clickOutsideDeactivates: true,
-            isKeyForward: (evt: KeyboardEvent) => evt.key === 'ArrowDown',
-            isKeyBackward: (evt: KeyboardEvent) => evt.key === 'ArrowUp',
-            escapeDeactivates: stopPropagation,
-          }}
-        >
+    <>
+      <ResponsiveMenu
+        anchor={menu.anchor}
+        requestClose={menu.close}
+        position="Bottom"
+        align="End"
+        menu={
           <Menu style={{ padding: config.space.S100 }}>
             <MenuItem
               size="300"
@@ -355,24 +317,24 @@ function AddSpaceButton({ item }: { item: HierarchyItem }) {
               <Text size="T300">Existing Space</Text>
             </MenuItem>
           </Menu>
-        </FocusTrap>
-      }
-    >
-      {item.parentId === undefined && (
-        <Chip
-          variant="SurfaceVariant"
-          radii="Pill"
-          before={chipIcon(Plus)}
-          onClick={handleAddSpace}
-          aria-pressed={!!cords}
-        >
-          <Text size="B300">Add Space</Text>
-        </Chip>
-      )}
+        }
+      >
+        {item.parentId === undefined && (
+          <Chip
+            variant="SurfaceVariant"
+            radii="Pill"
+            before={chipIcon(Plus)}
+            onClick={menu.triggerProps.onClick}
+            aria-pressed={!!menu.anchor}
+          >
+            <Text size="B300">Add Space</Text>
+          </Chip>
+        )}
+      </ResponsiveMenu>
       {addExisting && (
         <AddExistingModal space parentId={item.roomId} requestClose={() => setAddExisting(false)} />
       )}
-    </PopOut>
+    </>
   );
 }
 
