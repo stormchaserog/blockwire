@@ -122,6 +122,24 @@ export const fetchProjectBySlug = async (mx: MatrixClient, slug: string): Promis
   return (await res.json()) as ProjectRecord;
 };
 
+/** Given a Matrix Space room id, returns the Project bound to it, or null
+ *  if that space has no BlockWire project yet. This is the check a
+ *  space-scoped screen (the Lobby) makes to decide whether to show any
+ *  Project Identity content at all — most Sable/BlockWire spaces are just
+ *  ordinary Spaces with no project, and that's a normal, expected outcome,
+ *  not an error (see the 404-to-null translation below). */
+export const fetchProjectBySpace = async (
+  mx: MatrixClient, spaceRoomId: string,
+): Promise<ProjectRecord | null> => {
+  const res = await fetch(
+    `${mx.baseUrl}/_blockwire/projects/by-space/${encodeURIComponent(spaceRoomId)}`,
+    { headers: authHeaders(mx) },
+  );
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(await parseError(res, 'Could not check this space for a project.'));
+  return (await res.json()) as ProjectRecord;
+};
+
 export const fetchMyProjects = async (mx: MatrixClient): Promise<ProjectRecord[]> => {
   const res = await fetch(`${mx.baseUrl}/_blockwire/projects/mine`, { headers: authHeaders(mx) });
   if (!res.ok) throw new Error(await parseError(res, 'Could not load your projects.'));
