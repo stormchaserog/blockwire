@@ -79,6 +79,10 @@ export type ExploreServerPathSearchParams = {
 export const EXPLORE_SERVER_PATH = `/explore/${SERVER_PATH_SEGMENT}`;
 
 export const CREATE_PATH = '/create';
+/** BlockWire's own — creates a Matrix Space AND binds a Project to it in
+ *  one flow, distinct from the plain "/create" (space-only) path Sable
+ *  already ships. See src/app/features/create-project. */
+export const CREATE_PROJECT_PATH = '/create-project';
 export const CREATE_ROOM_PATH = '/create-room';
 export const BUG_REPORT_PATH = '/bug-report';
 export const NAVIGATE_PATH = '/navigate';

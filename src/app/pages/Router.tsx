@@ -45,6 +45,7 @@ import {
   SEARCH_PATH_SEGMENT,
   SERVER_PATH_SEGMENT,
   CREATE_PATH,
+  CREATE_PROJECT_PATH,
   TO_ROOM_EVENT_PATH,
   INVITE_PATH,
   SOURCE_PATH,
@@ -114,6 +115,7 @@ import { AuthRouteThemeManager, UnAuthRouteThemeManager } from './ThemeManager';
 import { TauriDeepLinkBridge } from './TauriDeepLinkBridge';
 import { ClientRoomsNotificationPreferences } from './client/ClientRoomsNotificationPreferences';
 import { Create } from './client/create';
+import { CreateProject } from './client/create-project';
 import { ToRoomEvent } from './client/ToRoomEvent';
 import { CallStatusRenderer } from './CallStatusRenderer';
 import { UserQuickToolsProvider } from '$components/UserQuickToolsProvider';
@@ -432,6 +434,7 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
           />
         </Route>
         <Route path={CREATE_PATH} element={<Create />} />
+        <Route path={CREATE_PROJECT_PATH} element={<CreateProject />} />
         <Route
           path={CREATE_ROOM_PATH}
           element={
