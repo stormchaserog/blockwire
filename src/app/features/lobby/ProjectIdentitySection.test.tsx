@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { ProjectIdentitySection } from './ProjectIdentitySection';
-import type { ProjectRecord, ProjectChainAsset } from '$utils/blockwire/projects';
+import type { ProjectRecord, ProjectChainAsset, ProjectLinkRecord } from '$utils/blockwire/projects';
 
 const mockMatrixClient = {
   baseUrl: 'https://matrix.blockwire.chat',
@@ -12,14 +12,20 @@ vi.mock('$hooks/useMatrixClient', () => ({
   useMatrixClient: () => mockMatrixClient,
 }));
 
-const { fetchProjectBySpace, fetchChainAssets } = vi.hoisted(() => ({
+const { fetchProjectBySpace, fetchChainAssets, fetchProjectLinks } = vi.hoisted(() => ({
   fetchProjectBySpace: vi.fn<(mx: unknown, spaceRoomId: string) => Promise<ProjectRecord | null>>(),
   fetchChainAssets: vi.fn<(mx: unknown, projectId: number) => Promise<ProjectChainAsset[]>>(),
+  fetchProjectLinks: vi.fn<(mx: unknown, projectId: number) => Promise<ProjectLinkRecord[]>>(),
 }));
 
 vi.mock('$utils/blockwire/projects', () => ({
   fetchProjectBySpace,
   fetchChainAssets,
+  fetchProjectLinks,
+}));
+
+vi.mock('$utils/blockwire/chainExplorers', () => ({
+  getExplorerUrl: (chain: string, address: string) => `https://explorer.test/${chain}/${address}`,
 }));
 
 vi.mock('$features/project-identity', () => ({
@@ -32,11 +38,31 @@ vi.mock('$features/project-identity', () => ({
       project {projectId} asset {chainAssetId}
     </div>
   ),
+  ContractAddressBadge: ({ asset }: { asset: ProjectChainAsset }) => (
+    <div data-testid="contract-badge">{asset.contract_address}</div>
+  ),
+  VerificationBadge: ({ state, label }: { state: string; label: string }) =>
+    state === 'unverified' ? null : <div data-testid="verification-badge">{label}</div>,
+  OfficialLinksVault: ({ links }: { links: ProjectLinkRecord[] }) =>
+    links.length === 0 ? null : (
+      <div data-testid="links-vault">
+        {links.map((l) => (
+          <span key={l.id}>{l.link_type}</span>
+        ))}
+      </div>
+    ),
 }));
 
 afterEach(() => {
   vi.clearAllMocks();
 });
+
+const baseProject: ProjectRecord = {
+  project_id: 42, slug: 'test-proj', name: 'Test Project', ticker: null,
+  description: null, avatar_url: null, banner_url: null,
+  space_room_id: '!bound:blockwire.chat', owner_mxid: '@owner:blockwire.chat',
+  status: 'active', created_at: new Date().toISOString(),
+};
 
 describe('ProjectIdentitySection', () => {
   it('renders nothing for an ordinary space with no bound project (Bible §3: progressive disclosure)', async () => {
@@ -45,6 +71,7 @@ describe('ProjectIdentitySection', () => {
     await waitFor(() => expect(fetchProjectBySpace).toHaveBeenCalled());
     expect(container).toBeEmptyDOMElement();
     expect(fetchChainAssets).not.toHaveBeenCalled();
+    expect(fetchProjectLinks).not.toHaveBeenCalled();
   });
 
   it('renders nothing while still checking, not a flash of empty content', () => {
@@ -54,36 +81,74 @@ describe('ProjectIdentitySection', () => {
   });
 
   it('renders the project name and description once a bound project is found', async () => {
-    fetchProjectBySpace.mockResolvedValue({
-      project_id: 42, slug: 'test-proj', name: 'Test Project', ticker: null,
-      description: 'A project for testing.', avatar_url: null, banner_url: null,
-      space_room_id: '!bound:blockwire.chat', owner_mxid: '@owner:blockwire.chat',
-      status: 'active', created_at: new Date().toISOString(),
-    });
+    fetchProjectBySpace.mockResolvedValue({ ...baseProject, description: 'A project for testing.' });
     fetchChainAssets.mockResolvedValue([]);
+    fetchProjectLinks.mockResolvedValue([]);
 
     render(<ProjectIdentitySection spaceRoomId="!bound:blockwire.chat" />);
     expect(await screen.findByText('Test Project')).toBeInTheDocument();
     expect(screen.getByText('A project for testing.')).toBeInTheDocument();
   });
 
-  it('renders the price card only once the project has at least one chain asset', async () => {
-    fetchProjectBySpace.mockResolvedValue({
-      project_id: 42, slug: 'test-proj', name: 'Test Project', ticker: null,
-      description: null, avatar_url: null, banner_url: null,
-      space_room_id: '!bound:blockwire.chat', owner_mxid: '@owner:blockwire.chat',
-      status: 'active', created_at: new Date().toISOString(),
-    });
+  it('renders the ticker with a leading $ when the project has one', async () => {
+    fetchProjectBySpace.mockResolvedValue({ ...baseProject, ticker: 'TEST' });
+    fetchChainAssets.mockResolvedValue([]);
+    fetchProjectLinks.mockResolvedValue([]);
+
+    render(<ProjectIdentitySection spaceRoomId="!bound:blockwire.chat" />);
+    expect(await screen.findByText('$TEST')).toBeInTheDocument();
+  });
+
+  it('does not render a ticker element at all when the project has none', async () => {
+    fetchProjectBySpace.mockResolvedValue(baseProject);
+    fetchChainAssets.mockResolvedValue([]);
+    fetchProjectLinks.mockResolvedValue([]);
+
+    render(<ProjectIdentitySection spaceRoomId="!bound:blockwire.chat" />);
+    await screen.findByText('Test Project');
+    expect(screen.queryByText(/^\$/)).not.toBeInTheDocument();
+  });
+
+  it('renders the price card, contract badge, and verification badge once the project has a chain asset', async () => {
+    fetchProjectBySpace.mockResolvedValue(baseProject);
     fetchChainAssets.mockResolvedValue([
       {
         id: 7, project_id: 42, chain: 'solana', contract_address: 'Sol1',
-        token_symbol: 'TEST', token_decimals: 9, verified_control_state: 'unverified',
+        token_symbol: 'TEST', token_decimals: 9, verified_control_state: 'verified',
         created_at: new Date().toISOString(),
+      },
+    ]);
+    fetchProjectLinks.mockResolvedValue([]);
+
+    render(<ProjectIdentitySection spaceRoomId="!bound:blockwire.chat" />);
+    expect(await screen.findByTestId('price-card')).toHaveTextContent('project 42 asset 7');
+    expect(screen.getByTestId('contract-badge')).toHaveTextContent('Sol1');
+    expect(screen.getByTestId('verification-badge')).toHaveTextContent('Contract Verified');
+  });
+
+  it('renders no chain-asset UI at all when the project has zero chain assets', async () => {
+    fetchProjectBySpace.mockResolvedValue(baseProject);
+    fetchChainAssets.mockResolvedValue([]);
+    fetchProjectLinks.mockResolvedValue([]);
+
+    render(<ProjectIdentitySection spaceRoomId="!bound:blockwire.chat" />);
+    await screen.findByText('Test Project');
+    expect(screen.queryByTestId('price-card')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('contract-badge')).not.toBeInTheDocument();
+  });
+
+  it('renders the Official Links Vault once the project has official links', async () => {
+    fetchProjectBySpace.mockResolvedValue(baseProject);
+    fetchChainAssets.mockResolvedValue([]);
+    fetchProjectLinks.mockResolvedValue([
+      {
+        id: 1, project_id: 42, link_type: 'website', url: 'https://example.com',
+        verification_state: 'unverified', created_at: new Date().toISOString(),
       },
     ]);
 
     render(<ProjectIdentitySection spaceRoomId="!bound:blockwire.chat" />);
-    expect(await screen.findByTestId('price-card')).toHaveTextContent('project 42 asset 7');
+    expect(await screen.findByTestId('links-vault')).toHaveTextContent('website');
   });
 
   it('treats a fetch failure the same as "no project" rather than showing an error card', async () => {

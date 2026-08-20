@@ -3,9 +3,13 @@ import { Box, Text, color, config } from 'folds';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { useAlive } from '$hooks/useAlive';
 import {
-  fetchProjectBySpace, fetchChainAssets, type ProjectRecord, type ProjectChainAsset,
+  fetchProjectBySpace, fetchChainAssets, fetchProjectLinks,
+  type ProjectRecord, type ProjectChainAsset, type ProjectLinkRecord,
 } from '$utils/blockwire/projects';
-import { ProjectChainAssetPrice } from '$features/project-identity';
+import { getExplorerUrl } from '$utils/blockwire/chainExplorers';
+import {
+  ProjectChainAssetPrice, ContractAddressBadge, VerificationBadge, OfficialLinksVault,
+} from '$features/project-identity';
 
 export type ProjectIdentitySectionProps = {
   spaceRoomId: string;
@@ -19,28 +23,39 @@ export type ProjectIdentitySectionProps = {
  *  community with no Project must look exactly like it did before this
  *  feature existed, not grow an empty "Project" card no one asked for.
  *
- *  This is the seed of the full Project Identity Page (Bible §12) -- it
- *  currently surfaces name/description/live price for the FIRST chain
- *  asset only. Ticker, verification badges, the full Official Links Vault
- *  (§13), and a proper multi-asset layout are explicit follow-up work
- *  (see BLOCKWIRE.md), not silently declared "done" here.
+ *  This is the Project Identity Page (Bible §12) content, seeded here
+ *  rather than as a separate route -- name, ticker, project-owner
+ *  verification, live price for the first chain asset with its contract
+ *  address/explorer/verification badge, and the Official Links Vault
+ *  (§13). What is NOT yet here: banner/avatar display, multi-chain-asset
+ *  layout (only the first asset renders), and a dedicated full-page
+ *  route separate from the Lobby -- tracked as explicit follow-up in
+ *  BLOCKWIRE.md, not silently skipped.
  */
 export function ProjectIdentitySection({ spaceRoomId }: ProjectIdentitySectionProps) {
   const mx = useMatrixClient();
   const alive = useAlive();
   const [project, setProject] = useState<ProjectRecord | null | undefined>(undefined);
   const [chainAssets, setChainAssets] = useState<ProjectChainAsset[]>([]);
+  const [links, setLinks] = useState<ProjectLinkRecord[]>([]);
 
   useEffect(() => {
     setProject(undefined);
     setChainAssets([]);
+    setLinks([]);
     fetchProjectBySpace(mx, spaceRoomId)
       .then(async (result) => {
         if (!alive()) return;
         setProject(result);
         if (result) {
-          const assets = await fetchChainAssets(mx, result.project_id).catch(() => []);
-          if (alive()) setChainAssets(assets);
+          const [assets, projectLinks] = await Promise.all([
+            fetchChainAssets(mx, result.project_id).catch(() => []),
+            fetchProjectLinks(mx, result.project_id).catch(() => []),
+          ]);
+          if (alive()) {
+            setChainAssets(assets);
+            setLinks(projectLinks);
+          }
         }
       })
       .catch(() => {
@@ -60,16 +75,43 @@ export function ProjectIdentitySection({ spaceRoomId }: ProjectIdentitySectionPr
   const primaryAsset = chainAssets[0];
 
   return (
-    <Box direction="Column" gap="200" style={{ padding: config.space.S400 }}>
-      <Text size="H4">{project.name}</Text>
-      {project.description && (
-        <Text size="T300" style={{ color: color.Surface.OnContainer }}>
-          {project.description}
-        </Text>
-      )}
+    <Box direction="Column" gap="300" style={{ padding: config.space.S400 }}>
+      <Box direction="Column" gap="100">
+        <Box alignItems="Center" gap="200">
+          <Text size="H4">{project.name}</Text>
+          {project.ticker && (
+            <Text size="T300" style={{ color: color.Surface.OnContainer }}>
+              ${project.ticker}
+            </Text>
+          )}
+          {/* UI Bible §18: "Project Owner Verified" is the precise claim --
+           *  this reflects whether the PROJECT's owner has proven control
+           *  of the project (a separate fact from any individual chain
+           *  asset's verified_control_state, which is checked below next
+           *  to that specific contract address). BlockWire does not yet
+           *  have a dedicated project-owner verification flow -- there is
+           *  no ProjectRecord field for it -- so nothing renders here
+           *  until that's built, rather than fabricating a state. */}
+        </Box>
+        {project.description && (
+          <Text size="T300" style={{ color: color.Surface.OnContainer }}>
+            {project.description}
+          </Text>
+        )}
+      </Box>
+
       {primaryAsset && (
-        <ProjectChainAssetPrice projectId={project.project_id} chainAssetId={primaryAsset.id} />
+        <Box direction="Column" gap="200">
+          <ContractAddressBadge
+            asset={primaryAsset}
+            explorerUrl={getExplorerUrl(primaryAsset.chain, primaryAsset.contract_address)}
+          />
+          <VerificationBadge state={primaryAsset.verified_control_state} label="Contract Verified" />
+          <ProjectChainAssetPrice projectId={project.project_id} chainAssetId={primaryAsset.id} />
+        </Box>
       )}
+
+      <OfficialLinksVault links={links} />
     </Box>
   );
 }

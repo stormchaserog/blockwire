@@ -24,6 +24,12 @@ export interface ProjectRecord {
   created_at: string;
 }
 
+/** Mirrors blockwire-botgw's VerifiedControlState (store/types.ts) exactly
+ *  — one named type here rather than the same union inlined twice, so
+ *  ProjectChainAsset and ProjectLinkRecord can't silently drift apart
+ *  from each other or from the server's own type. */
+export type VerifiedControlState = 'unverified' | 'pending' | 'verified';
+
 export interface ProjectChainAsset {
   id: number;
   project_id: number;
@@ -31,7 +37,7 @@ export interface ProjectChainAsset {
   contract_address: string;
   token_symbol: string | null;
   token_decimals: number | null;
-  verified_control_state: 'unverified' | 'pending' | 'verified';
+  verified_control_state: VerifiedControlState;
   created_at: string;
 }
 
@@ -40,7 +46,7 @@ export interface ProjectLinkRecord {
   project_id: number;
   link_type: string;
   url: string;
-  verification_state: 'unverified' | 'pending' | 'verified';
+  verification_state: VerifiedControlState;
   created_at: string;
 }
 
