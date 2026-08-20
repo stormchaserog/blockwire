@@ -8,7 +8,7 @@ import {
 } from '$utils/blockwire/projects';
 import { getExplorerUrl } from '$utils/blockwire/chainExplorers';
 import {
-  ProjectChainAssetPrice, ContractAddressBadge, VerificationBadge, OfficialLinksVault,
+  ProjectChainAssetPrice, ContractAddressBadge, VerificationBadge, OfficialLinksVault, BuyFeed,
 } from '$features/project-identity';
 
 export type ProjectIdentitySectionProps = {
@@ -108,6 +108,7 @@ export function ProjectIdentitySection({ spaceRoomId }: ProjectIdentitySectionPr
           />
           <VerificationBadge state={primaryAsset.verified_control_state} label="Contract Verified" />
           <ProjectChainAssetPrice projectId={project.project_id} chainAssetId={primaryAsset.id} />
+          <BuyFeed projectId={project.project_id} chainAssetId={primaryAsset.id} />
         </Box>
       )}
 

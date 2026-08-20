@@ -42,6 +42,29 @@ export interface ChainAssetSnapshotResponse {
   canonical: TokenSnapshot | null;
 }
 
+/** A single on-chain buy/sell, normalized the same way regardless of which
+ *  provider (DexScreener, Helius, etc.) it came from. Mirrors
+ *  blockwire-botgw's chain-adapter.ts TradeEvent exactly. */
+export interface TradeEvent {
+  chain: string;
+  contractAddress: string;
+  side: 'buy' | 'sell';
+  amountUsd: number | null;
+  id: string;
+  occurredAt: string | null;
+}
+
+export interface ChainAssetTradesResponse {
+  asset: ChainAssetSnapshotResponse['asset'];
+  trades: TradeEvent[];
+  /** false means the configured backend provider does not support
+   *  per-transaction trade data yet (true today: DexScreener's free API
+   *  has no such endpoint) -- NOT "this token has zero trades." A client
+   *  MUST render these two cases differently (Bible §31/§33: an empty
+   *  state and an unavailable-feature state are not the same thing). */
+  supported: boolean;
+}
+
 /** Deliberately unauthenticated on the wire (matches the server: seeing a
  *  token's public market data isn't a project-permission-gated action —
  *  see getChainAssetSnapshot's doc comment in blockwire-botgw/src/projects.ts).
@@ -64,4 +87,24 @@ export const fetchChainAssetSnapshot = async (
     throw new Error(body.error ?? `Could not load live price data (${res.status})`);
   }
   return (await res.json()) as ChainAssetSnapshotResponse;
+};
+
+/** Same public/unauthenticated posture as fetchChainAssetSnapshot -- trade
+ *  history is exactly as public as the price data next to it. */
+export const fetchChainAssetTrades = async (
+  mx: MatrixClient, projectId: number, assetId: number,
+): Promise<ChainAssetTradesResponse> => {
+  const headers: Record<string, string> = {};
+  const token = mx.getAccessToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const res = await fetch(
+    `${mx.baseUrl}/_blockwire/projects/${projectId}/chain-assets/${assetId}/trades`,
+    { headers },
+  );
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? `Could not load recent trades (${res.status})`);
+  }
+  return (await res.json()) as ChainAssetTradesResponse;
 };

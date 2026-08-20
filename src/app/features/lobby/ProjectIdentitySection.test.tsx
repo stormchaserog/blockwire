@@ -51,6 +51,11 @@ vi.mock('$features/project-identity', () => ({
         ))}
       </div>
     ),
+  BuyFeed: ({ projectId, chainAssetId }: { projectId: number; chainAssetId: number }) => (
+    <div data-testid="buy-feed">
+      buy-feed project {projectId} asset {chainAssetId}
+    </div>
+  ),
 }));
 
 afterEach(() => {
@@ -124,6 +129,7 @@ describe('ProjectIdentitySection', () => {
     expect(await screen.findByTestId('price-card')).toHaveTextContent('project 42 asset 7');
     expect(screen.getByTestId('contract-badge')).toHaveTextContent('Sol1');
     expect(screen.getByTestId('verification-badge')).toHaveTextContent('Contract Verified');
+    expect(screen.getByTestId('buy-feed')).toHaveTextContent('buy-feed project 42 asset 7');
   });
 
   it('renders no chain-asset UI at all when the project has zero chain assets', async () => {
@@ -135,6 +141,7 @@ describe('ProjectIdentitySection', () => {
     await screen.findByText('Test Project');
     expect(screen.queryByTestId('price-card')).not.toBeInTheDocument();
     expect(screen.queryByTestId('contract-badge')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('buy-feed')).not.toBeInTheDocument();
   });
 
   it('renders the Official Links Vault once the project has official links', async () => {
