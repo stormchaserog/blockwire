@@ -26,7 +26,10 @@ export function VerificationBadge({ state, label }: VerificationBadgeProps) {
 
   return (
     <Box alignItems="Center" gap="100">
-      {sizedIcon(SealCheck, '100', { weight: state === 'verified' ? 'fill' : 'regular', style: { color: tone } })}
+      {sizedIcon(SealCheck, '100', {
+        weight: state === 'verified' ? 'fill' : 'regular',
+        style: { color: tone },
+      })}
       <Text size="T200" style={{ color: tone }}>
         {state === 'verified' ? label : `${label} (Pending)`}
       </Text>

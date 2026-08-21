@@ -1,6 +1,12 @@
 import { Box, Text, color, config } from 'folds';
 import {
-  Globe, XLogo, RedditLogo, GithubLogo, ArrowSquareOut, Link as LinkIcon, sizedIcon,
+  Globe,
+  XLogo,
+  RedditLogo,
+  GithubLogo,
+  ArrowSquareOut,
+  Link as LinkIcon,
+  sizedIcon,
 } from '$components/icons/phosphor';
 import type { ProjectLinkRecord } from '$utils/blockwire/projects';
 import { VerificationBadge } from './VerificationBadge';

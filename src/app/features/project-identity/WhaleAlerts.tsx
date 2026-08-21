@@ -56,7 +56,10 @@ export type WhaleAlertsProps = {
  *  trading right now."
  */
 export function WhaleAlerts({
-  projectId, chainAssetId, whaleThreshold = 5000, pollIntervalMs = 20_000,
+  projectId,
+  chainAssetId,
+  whaleThreshold = 5000,
+  pollIntervalMs = 20_000,
 }: WhaleAlertsProps) {
   const mx = useMatrixClient();
   const alive = useAlive();
@@ -150,7 +153,10 @@ export function WhaleAlerts({
               }}
             >
               <Box alignItems="Center" gap="200">
-                <Text size="T300" style={{ fontFamily: 'monospace', color: color.Surface.OnContainer }}>
+                <Text
+                  size="T300"
+                  style={{ fontFamily: 'monospace', color: color.Surface.OnContainer }}
+                >
                   {trade.walletAddress ? walletShorthand(trade.walletAddress) : 'Unknown wallet'}
                 </Text>
                 <Text size="T300" style={{ color: tone }}>

@@ -13,7 +13,11 @@ describe('ProjectBanner', () => {
   it('renders only the avatar image when only avatar_url is set', () => {
     render(
       <ProjectBanner
-        project={{ name: 'Test Project', avatar_url: 'https://cdn.test/avatar.png', banner_url: null }}
+        project={{
+          name: 'Test Project',
+          avatar_url: 'https://cdn.test/avatar.png',
+          banner_url: null,
+        }}
       />
     );
     const img = screen.getByRole('img', { name: 'Test Project' });
@@ -23,7 +27,11 @@ describe('ProjectBanner', () => {
   it('renders the banner even when there is no avatar', () => {
     const { container } = render(
       <ProjectBanner
-        project={{ name: 'Test Project', avatar_url: null, banner_url: 'https://cdn.test/banner.png' }}
+        project={{
+          name: 'Test Project',
+          avatar_url: null,
+          banner_url: 'https://cdn.test/banner.png',
+        }}
       />
     );
     expect(container.innerHTML).toContain('https://cdn.test/banner.png');
@@ -40,7 +48,8 @@ describe('ProjectBanner', () => {
       />
     );
     expect(screen.getByRole('img', { name: 'Test Project' })).toHaveAttribute(
-      'src', 'https://cdn.test/avatar.png',
+      'src',
+      'https://cdn.test/avatar.png'
     );
   });
 });

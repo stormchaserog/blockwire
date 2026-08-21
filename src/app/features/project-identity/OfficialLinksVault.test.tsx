@@ -5,8 +5,12 @@ import type { ProjectLinkRecord } from '$utils/blockwire/projects';
 
 function makeLink(overrides: Partial<ProjectLinkRecord> = {}): ProjectLinkRecord {
   return {
-    id: 1, project_id: 42, link_type: 'website', url: 'https://example.com',
-    verification_state: 'unverified', created_at: new Date().toISOString(),
+    id: 1,
+    project_id: 42,
+    link_type: 'website',
+    url: 'https://example.com',
+    verification_state: 'unverified',
+    created_at: new Date().toISOString(),
     ...overrides,
   };
 }

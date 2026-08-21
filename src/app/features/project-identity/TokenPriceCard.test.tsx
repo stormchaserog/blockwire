@@ -30,12 +30,22 @@ describe('TokenPriceCard', () => {
   });
 
   it('renders a positive 24h change with a plus sign, not just the raw number', () => {
-    render(<TokenPriceCard snapshot={makeSnapshot({ priceChangePercent: { m5: 0, h1: 0, h6: 0, h24: 12.5 } })} status="ready" />);
+    render(
+      <TokenPriceCard
+        snapshot={makeSnapshot({ priceChangePercent: { m5: 0, h1: 0, h6: 0, h24: 12.5 } })}
+        status="ready"
+      />
+    );
     expect(screen.getByText('+12.50%')).toBeInTheDocument();
   });
 
   it('renders a negative 24h change with its own minus sign (toFixed already includes it)', () => {
-    render(<TokenPriceCard snapshot={makeSnapshot({ priceChangePercent: { m5: 0, h1: 0, h6: 0, h24: -8.25 } })} status="ready" />);
+    render(
+      <TokenPriceCard
+        snapshot={makeSnapshot({ priceChangePercent: { m5: 0, h1: 0, h6: 0, h24: -8.25 } })}
+        status="ready"
+      />
+    );
     expect(screen.getByText('-8.25%')).toBeInTheDocument();
   });
 
@@ -62,7 +72,12 @@ describe('TokenPriceCard', () => {
   });
 
   it('abbreviates large volume/liquidity figures (K/M) rather than printing every digit', () => {
-    render(<TokenPriceCard snapshot={makeSnapshot({ volumeUsd24h: 4_200_000, liquidityUsd: 15_500 })} status="ready" />);
+    render(
+      <TokenPriceCard
+        snapshot={makeSnapshot({ volumeUsd24h: 4_200_000, liquidityUsd: 15_500 })}
+        status="ready"
+      />
+    );
     expect(screen.getByText('$4.20M')).toBeInTheDocument();
     expect(screen.getByText('$15.5K')).toBeInTheDocument();
   });

@@ -94,7 +94,13 @@ function authHeaders(mx: MatrixClient, json = false): Record<string, string> {
  */
 export const createProject = async (
   mx: MatrixClient,
-  params: { slug: string; name: string; ticker?: string | null; description?: string | null; spaceRoomId: string },
+  params: {
+    slug: string;
+    name: string;
+    ticker?: string | null;
+    description?: string | null;
+    spaceRoomId: string;
+  }
 ): Promise<ProjectRecord> => {
   const res = await fetch(`${mx.baseUrl}/_blockwire/projects`, {
     method: 'POST',
@@ -121,7 +127,10 @@ export const fetchProject = async (mx: MatrixClient, projectId: number): Promise
   return (await res.json()) as ProjectRecord;
 };
 
-export const fetchProjectBySlug = async (mx: MatrixClient, slug: string): Promise<ProjectRecord> => {
+export const fetchProjectBySlug = async (
+  mx: MatrixClient,
+  slug: string
+): Promise<ProjectRecord> => {
   const res = await fetch(`${mx.baseUrl}/_blockwire/projects/by-slug/${encodeURIComponent(slug)}`, {
     headers: authHeaders(mx),
   });
@@ -136,11 +145,12 @@ export const fetchProjectBySlug = async (mx: MatrixClient, slug: string): Promis
  *  ordinary Spaces with no project, and that's a normal, expected outcome,
  *  not an error (see the 404-to-null translation below). */
 export const fetchProjectBySpace = async (
-  mx: MatrixClient, spaceRoomId: string,
+  mx: MatrixClient,
+  spaceRoomId: string
 ): Promise<ProjectRecord | null> => {
   const res = await fetch(
     `${mx.baseUrl}/_blockwire/projects/by-space/${encodeURIComponent(spaceRoomId)}`,
-    { headers: authHeaders(mx) },
+    { headers: authHeaders(mx) }
   );
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(await parseError(res, 'Could not check this space for a project.'));
@@ -160,19 +170,23 @@ export const fetchMyProjects = async (mx: MatrixClient): Promise<ProjectRecord[]
  *  client-provided role or entitlement claims" demands of the client too:
  *  it must ask, not assert. */
 export const fetchMyProjectPermissions = async (
-  mx: MatrixClient, projectId: number,
+  mx: MatrixClient,
+  projectId: number
 ): Promise<MyProjectPermissions> => {
   const res = await fetch(`${mx.baseUrl}/_blockwire/projects/${projectId}/permissions/mine`, {
     headers: authHeaders(mx),
   });
-  if (!res.ok) throw new Error(await parseError(res, 'Could not load your permissions for this project.'));
+  if (!res.ok)
+    throw new Error(await parseError(res, 'Could not load your permissions for this project.'));
   return (await res.json()) as MyProjectPermissions;
 };
 
 export const updateProject = async (
   mx: MatrixClient,
   projectId: number,
-  patch: Partial<Pick<ProjectRecord, 'name' | 'ticker' | 'description' | 'avatar_url' | 'banner_url' | 'status'>>,
+  patch: Partial<
+    Pick<ProjectRecord, 'name' | 'ticker' | 'description' | 'avatar_url' | 'banner_url' | 'status'>
+  >
 ): Promise<ProjectRecord> => {
   const res = await fetch(`${mx.baseUrl}/_blockwire/projects/${projectId}`, {
     method: 'POST',
@@ -183,7 +197,10 @@ export const updateProject = async (
   return (await res.json()) as ProjectRecord;
 };
 
-export const fetchChainAssets = async (mx: MatrixClient, projectId: number): Promise<ProjectChainAsset[]> => {
+export const fetchChainAssets = async (
+  mx: MatrixClient,
+  projectId: number
+): Promise<ProjectChainAsset[]> => {
   const res = await fetch(`${mx.baseUrl}/_blockwire/projects/${projectId}/chain-assets`, {
     headers: authHeaders(mx),
   });
@@ -195,7 +212,12 @@ export const fetchChainAssets = async (mx: MatrixClient, projectId: number): Pro
 export const addChainAsset = async (
   mx: MatrixClient,
   projectId: number,
-  params: { chain: string; contractAddress: string; tokenSymbol?: string | null; tokenDecimals?: number | null },
+  params: {
+    chain: string;
+    contractAddress: string;
+    tokenSymbol?: string | null;
+    tokenDecimals?: number | null;
+  }
 ): Promise<ProjectChainAsset> => {
   const res = await fetch(`${mx.baseUrl}/_blockwire/projects/${projectId}/chain-assets`, {
     method: 'POST',
@@ -211,25 +233,37 @@ export const addChainAsset = async (
   return (await res.json()) as ProjectChainAsset;
 };
 
-export const removeChainAsset = async (mx: MatrixClient, projectId: number, assetId: number): Promise<void> => {
-  const res = await fetch(`${mx.baseUrl}/_blockwire/projects/${projectId}/chain-assets/${assetId}`, {
-    method: 'DELETE',
-    headers: authHeaders(mx),
-  });
+export const removeChainAsset = async (
+  mx: MatrixClient,
+  projectId: number,
+  assetId: number
+): Promise<void> => {
+  const res = await fetch(
+    `${mx.baseUrl}/_blockwire/projects/${projectId}/chain-assets/${assetId}`,
+    {
+      method: 'DELETE',
+      headers: authHeaders(mx),
+    }
+  );
   if (!res.ok) throw new Error(await parseError(res, 'Could not remove this chain asset.'));
 };
 
-export const fetchProjectLinks = async (mx: MatrixClient, projectId: number): Promise<ProjectLinkRecord[]> => {
+export const fetchProjectLinks = async (
+  mx: MatrixClient,
+  projectId: number
+): Promise<ProjectLinkRecord[]> => {
   const res = await fetch(`${mx.baseUrl}/_blockwire/projects/${projectId}/links`, {
     headers: authHeaders(mx),
   });
-  if (!res.ok) throw new Error(await parseError(res, 'Could not load this project\'s links.'));
+  if (!res.ok) throw new Error(await parseError(res, "Could not load this project's links."));
   const body: unknown = await res.json();
   return Array.isArray(body) ? (body as ProjectLinkRecord[]) : [];
 };
 
 export const addProjectLink = async (
-  mx: MatrixClient, projectId: number, params: { linkType: string; url: string },
+  mx: MatrixClient,
+  projectId: number,
+  params: { linkType: string; url: string }
 ): Promise<ProjectLinkRecord> => {
   const res = await fetch(`${mx.baseUrl}/_blockwire/projects/${projectId}/links`, {
     method: 'POST',
@@ -240,7 +274,11 @@ export const addProjectLink = async (
   return (await res.json()) as ProjectLinkRecord;
 };
 
-export const removeProjectLink = async (mx: MatrixClient, projectId: number, linkId: number): Promise<void> => {
+export const removeProjectLink = async (
+  mx: MatrixClient,
+  projectId: number,
+  linkId: number
+): Promise<void> => {
   const res = await fetch(`${mx.baseUrl}/_blockwire/projects/${projectId}/links/${linkId}`, {
     method: 'DELETE',
     headers: authHeaders(mx),
@@ -250,7 +288,8 @@ export const removeProjectLink = async (mx: MatrixClient, projectId: number, lin
 
 export const fetchPlatformPermissions = async (mx: MatrixClient): Promise<PlatformPermission[]> => {
   const res = await fetch(`${mx.baseUrl}/_blockwire/permissions`);
-  if (!res.ok) throw new Error(await parseError(res, 'Could not load the platform permission list.'));
+  if (!res.ok)
+    throw new Error(await parseError(res, 'Could not load the platform permission list.'));
   const body: unknown = await res.json();
   return Array.isArray(body) ? (body as PlatformPermission[]) : [];
 };
@@ -265,7 +304,9 @@ export const fetchRoles = async (mx: MatrixClient, projectId: number): Promise<R
 };
 
 export const createRole = async (
-  mx: MatrixClient, projectId: number, params: { name: string; systemKey?: string | null },
+  mx: MatrixClient,
+  projectId: number,
+  params: { name: string; systemKey?: string | null }
 ): Promise<RoleRecord> => {
   const res = await fetch(`${mx.baseUrl}/_blockwire/projects/${projectId}/roles`, {
     method: 'POST',
@@ -276,7 +317,11 @@ export const createRole = async (
   return (await res.json()) as RoleRecord;
 };
 
-export const deleteRole = async (mx: MatrixClient, projectId: number, roleId: number): Promise<void> => {
+export const deleteRole = async (
+  mx: MatrixClient,
+  projectId: number,
+  roleId: number
+): Promise<void> => {
   const res = await fetch(`${mx.baseUrl}/_blockwire/projects/${projectId}/roles/${roleId}`, {
     method: 'DELETE',
     headers: authHeaders(mx),
@@ -285,44 +330,58 @@ export const deleteRole = async (mx: MatrixClient, projectId: number, roleId: nu
 };
 
 export const setRolePermissions = async (
-  mx: MatrixClient, projectId: number, roleId: number, permissionKeys: string[],
+  mx: MatrixClient,
+  projectId: number,
+  roleId: number,
+  permissionKeys: string[]
 ): Promise<void> => {
-  const res = await fetch(`${mx.baseUrl}/_blockwire/projects/${projectId}/roles/${roleId}/permissions`, {
-    method: 'POST',
-    headers: authHeaders(mx, true),
-    body: JSON.stringify({ permissions: permissionKeys }),
-  });
-  if (!res.ok) throw new Error(await parseError(res, 'Could not update this role\'s permissions.'));
+  const res = await fetch(
+    `${mx.baseUrl}/_blockwire/projects/${projectId}/roles/${roleId}/permissions`,
+    {
+      method: 'POST',
+      headers: authHeaders(mx, true),
+      body: JSON.stringify({ permissions: permissionKeys }),
+    }
+  );
+  if (!res.ok) throw new Error(await parseError(res, "Could not update this role's permissions."));
 };
 
 export const grantMemberRole = async (
-  mx: MatrixClient, projectId: number, targetMxid: string, roleId: number,
+  mx: MatrixClient,
+  projectId: number,
+  targetMxid: string,
+  roleId: number
 ): Promise<void> => {
   const res = await fetch(
     `${mx.baseUrl}/_blockwire/projects/${projectId}/members/${encodeURIComponent(targetMxid)}/roles`,
-    { method: 'POST', headers: authHeaders(mx, true), body: JSON.stringify({ role_id: roleId }) },
+    { method: 'POST', headers: authHeaders(mx, true), body: JSON.stringify({ role_id: roleId }) }
   );
   if (!res.ok) throw new Error(await parseError(res, 'Could not grant this role.'));
 };
 
 export const revokeMemberRole = async (
-  mx: MatrixClient, projectId: number, targetMxid: string, roleId: number,
+  mx: MatrixClient,
+  projectId: number,
+  targetMxid: string,
+  roleId: number
 ): Promise<void> => {
   const res = await fetch(
     `${mx.baseUrl}/_blockwire/projects/${projectId}/members/${encodeURIComponent(targetMxid)}/roles/${roleId}`,
-    { method: 'DELETE', headers: authHeaders(mx) },
+    { method: 'DELETE', headers: authHeaders(mx) }
   );
   if (!res.ok) throw new Error(await parseError(res, 'Could not revoke this role.'));
 };
 
 export const fetchMemberRoles = async (
-  mx: MatrixClient, projectId: number, targetMxid: string,
+  mx: MatrixClient,
+  projectId: number,
+  targetMxid: string
 ): Promise<RoleRecord[]> => {
   const res = await fetch(
     `${mx.baseUrl}/_blockwire/projects/${projectId}/members/${encodeURIComponent(targetMxid)}/roles`,
-    { headers: authHeaders(mx) },
+    { headers: authHeaders(mx) }
   );
-  if (!res.ok) throw new Error(await parseError(res, 'Could not load this member\'s roles.'));
+  if (!res.ok) throw new Error(await parseError(res, "Could not load this member's roles."));
   const body: unknown = await res.json();
   return Array.isArray(body) ? (body as RoleRecord[]) : [];
 };

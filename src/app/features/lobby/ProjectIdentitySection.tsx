@@ -3,13 +3,22 @@ import { Box, Chip, Text, color, config } from 'folds';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { useAlive } from '$hooks/useAlive';
 import {
-  fetchProjectBySpace, fetchChainAssets, fetchProjectLinks,
-  type ProjectRecord, type ProjectChainAsset, type ProjectLinkRecord,
+  fetchProjectBySpace,
+  fetchChainAssets,
+  fetchProjectLinks,
+  type ProjectRecord,
+  type ProjectChainAsset,
+  type ProjectLinkRecord,
 } from '$utils/blockwire/projects';
 import { getExplorerUrl } from '$utils/blockwire/chainExplorers';
 import {
-  ProjectChainAssetPrice, ContractAddressBadge, VerificationBadge, OfficialLinksVault, BuyFeed,
-  ProjectBanner, WhaleAlerts,
+  ProjectChainAssetPrice,
+  ContractAddressBadge,
+  VerificationBadge,
+  OfficialLinksVault,
+  BuyFeed,
+  ProjectBanner,
+  WhaleAlerts,
 } from '$features/project-identity';
 
 export type ProjectIdentitySectionProps = {
@@ -78,7 +87,7 @@ export function ProjectIdentitySection({ spaceRoomId }: ProjectIdentitySectionPr
 
   const selectedAsset = useMemo(
     () => chainAssets.find((a) => a.id === selectedAssetId) ?? null,
-    [chainAssets, selectedAssetId],
+    [chainAssets, selectedAssetId]
   );
 
   // Still checking, or checked and this space has no project: render
@@ -142,7 +151,10 @@ export function ProjectIdentitySection({ spaceRoomId }: ProjectIdentitySectionPr
             asset={selectedAsset}
             explorerUrl={getExplorerUrl(selectedAsset.chain, selectedAsset.contract_address)}
           />
-          <VerificationBadge state={selectedAsset.verified_control_state} label="Contract Verified" />
+          <VerificationBadge
+            state={selectedAsset.verified_control_state}
+            label="Contract Verified"
+          />
           <ProjectChainAssetPrice projectId={project.project_id} chainAssetId={selectedAsset.id} />
           <BuyFeed projectId={project.project_id} chainAssetId={selectedAsset.id} />
           <WhaleAlerts projectId={project.project_id} chainAssetId={selectedAsset.id} />

@@ -1,7 +1,12 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Box, Text, IconButton, Chip, color, config } from 'folds';
 import {
-  CaretUp, CaretDown, Bell, BellSlash, ArrowSquareOut, sizedIcon,
+  CaretUp,
+  CaretDown,
+  Bell,
+  BellSlash,
+  ArrowSquareOut,
+  sizedIcon,
 } from '$components/icons/phosphor';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { useAlive } from '$hooks/useAlive';
@@ -174,8 +179,14 @@ function CelebrationTradeRow({ trade }: { trade: TradeEvent }) {
 }
 
 function TradeRow({
-  trade, style, whaleThreshold,
-}: { trade: TradeEvent; style: BuyFeedStyle; whaleThreshold: number }) {
+  trade,
+  style,
+  whaleThreshold,
+}: {
+  trade: TradeEvent;
+  style: BuyFeedStyle;
+  whaleThreshold: number;
+}) {
   if (style === 'Celebration' && trade.side === 'buy' && isWhale(trade, whaleThreshold)) {
     return <CelebrationTradeRow trade={trade} />;
   }
@@ -213,7 +224,10 @@ export type BuyFeedProps = {
  *  with an arbitrary row-count cap.
  */
 export function BuyFeed({
-  projectId, chainAssetId, pollIntervalMs = 20_000, defaultStyle = 'Compact',
+  projectId,
+  chainAssetId,
+  pollIntervalMs = 20_000,
+  defaultStyle = 'Compact',
 }: BuyFeedProps) {
   const mx = useMatrixClient();
   const alive = useAlive();
@@ -232,7 +246,7 @@ export function BuyFeed({
     return raw ? Number(raw) : 5000;
   });
   const [muted, setMuted] = useState(
-    () => localStorage.getItem(`${MUTED_KEY_PREFIX}${storageKey}`) === 'true',
+    () => localStorage.getItem(`${MUTED_KEY_PREFIX}${storageKey}`) === 'true'
   );
 
   const toggleMuted = useCallback(() => {
@@ -272,7 +286,7 @@ export function BuyFeed({
 
   const visibleTrades = useMemo(
     () => trades.filter((t) => passesMinAmount(t, minAmount)),
-    [trades, minAmount],
+    [trades, minAmount]
   );
 
   if (muted) {
@@ -281,7 +295,13 @@ export function BuyFeed({
         <Text size="T200" style={{ color: color.Surface.OnContainer }}>
           Buy/sell activity is muted for you.
         </Text>
-        <IconButton size="300" variant="Background" radii="300" onClick={toggleMuted} aria-label="Unmute">
+        <IconButton
+          size="300"
+          variant="Background"
+          radii="300"
+          onClick={toggleMuted}
+          aria-label="Unmute"
+        >
           {sizedIcon(Bell, '100')}
         </IconButton>
       </Box>
@@ -301,7 +321,13 @@ export function BuyFeed({
         >
           <Text size="T200">⋯</Text>
         </IconButton>
-        <IconButton size="300" variant="Background" radii="300" onClick={toggleMuted} aria-label="Mute">
+        <IconButton
+          size="300"
+          variant="Background"
+          radii="300"
+          onClick={toggleMuted}
+          aria-label="Mute"
+        >
           {sizedIcon(BellSlash, '100')}
         </IconButton>
       </Box>
@@ -338,7 +364,10 @@ export function BuyFeed({
               radii="Pill"
               onClick={() => {
                 setWhaleThreshold(threshold);
-                localStorage.setItem(`${WHALE_THRESHOLD_KEY_PREFIX}${storageKey}`, String(threshold));
+                localStorage.setItem(
+                  `${WHALE_THRESHOLD_KEY_PREFIX}${storageKey}`,
+                  String(threshold)
+                );
               }}
             >
               <Text size="T200">Whale {formatUsd(threshold)}+</Text>

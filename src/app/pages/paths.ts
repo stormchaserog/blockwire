@@ -26,6 +26,7 @@ export type SettingsPathSearchParams = {
 export const CREATE_PATH_SEGMENT = 'create/';
 export const JOIN_PATH_SEGMENT = 'join/';
 export const LOBBY_PATH_SEGMENT = 'lobby/';
+export const PROJECT_PATH_SEGMENT = 'project/';
 export const BOOKMARKS_PATH_SEGMENT = 'bookmarks/';
 /**
  * array of rooms and senders mxId assigned
@@ -61,6 +62,7 @@ export const DIRECT_ROOM_PATH = `/direct/${ROOM_PATH_SEGMENT}`;
 
 export const SPACE_PATH = '/:spaceIdOrAlias/';
 export const SPACE_LOBBY_PATH = `/:spaceIdOrAlias/${LOBBY_PATH_SEGMENT}`;
+export const SPACE_PROJECT_PATH = `/:spaceIdOrAlias/${PROJECT_PATH_SEGMENT}`;
 export const SPACE_SEARCH_PATH = `/:spaceIdOrAlias/${SEARCH_PATH_SEGMENT}`;
 export const SPACE_ROOM_PATH = `/:spaceIdOrAlias/${ROOM_PATH_SEGMENT}`;
 

@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { Box, Text, IconButton, color } from 'folds';
-import {
-  ArrowSquareOut, Copy, Check, sizedIcon,
-} from '$components/icons/phosphor';
+import { ArrowSquareOut, Copy, Check, sizedIcon } from '$components/icons/phosphor';
 import { copyToClipboard } from '$utils/dom';
 import type { ProjectChainAsset } from '$utils/blockwire/projects';
 

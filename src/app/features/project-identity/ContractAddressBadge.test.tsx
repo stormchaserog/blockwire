@@ -15,8 +15,13 @@ afterEach(() => {
 
 function makeAsset(overrides: Partial<ProjectChainAsset> = {}): ProjectChainAsset {
   return {
-    id: 1, project_id: 42, chain: 'solana', contract_address: 'SoLTest1111111111111111111111111111abcd',
-    token_symbol: 'TEST', token_decimals: 9, verified_control_state: 'unverified',
+    id: 1,
+    project_id: 42,
+    chain: 'solana',
+    contract_address: 'SoLTest1111111111111111111111111111abcd',
+    token_symbol: 'TEST',
+    token_decimals: 9,
+    verified_control_state: 'unverified',
     created_at: new Date().toISOString(),
     ...overrides,
   };
@@ -34,7 +39,9 @@ describe('ContractAddressBadge', () => {
     copyToClipboard.mockResolvedValue(true);
     render(<ContractAddressBadge asset={makeAsset()} explorerUrl={null} />);
     fireEvent.click(screen.getByRole('button', { name: /copy contract address/i }));
-    await waitFor(() => expect(copyToClipboard).toHaveBeenCalledWith('SoLTest1111111111111111111111111111abcd'));
+    await waitFor(() =>
+      expect(copyToClipboard).toHaveBeenCalledWith('SoLTest1111111111111111111111111111abcd')
+    );
   });
 
   it('renders no explorer button when no explorer URL is available for this chain', () => {

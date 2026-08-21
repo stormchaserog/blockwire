@@ -4,7 +4,9 @@ import { VerificationBadge } from './VerificationBadge';
 
 describe('VerificationBadge', () => {
   it('renders nothing for unverified — an absent badge, not a grey/crossed-out one (Bible §18)', () => {
-    const { container } = render(<VerificationBadge state="unverified" label="Contract Verified" />);
+    const { container } = render(
+      <VerificationBadge state="unverified" label="Contract Verified" />
+    );
     expect(container).toBeEmptyDOMElement();
   });
 

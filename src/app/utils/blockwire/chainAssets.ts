@@ -73,7 +73,9 @@ export interface ChainAssetTradesResponse {
  *  doesn't get treated any differently, but this call must also succeed
  *  for a signed-out visitor viewing a public Project Identity Page. */
 export const fetchChainAssetSnapshot = async (
-  mx: MatrixClient, projectId: number, assetId: number,
+  mx: MatrixClient,
+  projectId: number,
+  assetId: number
 ): Promise<ChainAssetSnapshotResponse> => {
   const headers: Record<string, string> = {};
   const token = mx.getAccessToken();
@@ -81,7 +83,7 @@ export const fetchChainAssetSnapshot = async (
 
   const res = await fetch(
     `${mx.baseUrl}/_blockwire/projects/${projectId}/chain-assets/${assetId}/snapshot`,
-    { headers },
+    { headers }
   );
   if (!res.ok) {
     const body = (await res.json().catch(() => ({}))) as { error?: string };
@@ -93,7 +95,9 @@ export const fetchChainAssetSnapshot = async (
 /** Same public/unauthenticated posture as fetchChainAssetSnapshot -- trade
  *  history is exactly as public as the price data next to it. */
 export const fetchChainAssetTrades = async (
-  mx: MatrixClient, projectId: number, assetId: number,
+  mx: MatrixClient,
+  projectId: number,
+  assetId: number
 ): Promise<ChainAssetTradesResponse> => {
   const headers: Record<string, string> = {};
   const token = mx.getAccessToken();
@@ -101,7 +105,7 @@ export const fetchChainAssetTrades = async (
 
   const res = await fetch(
     `${mx.baseUrl}/_blockwire/projects/${projectId}/chain-assets/${assetId}/trades`,
-    { headers },
+    { headers }
   );
   if (!res.ok) {
     const body = (await res.json().catch(() => ({}))) as { error?: string };
