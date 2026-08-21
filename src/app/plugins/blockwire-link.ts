@@ -85,7 +85,7 @@ export const RESERVED_SEGMENTS: ReadonlySet<string> = new Set([
   'sw.js',
   'assets',
   'public',
-  'manifest.webmanifest',
+  'manifest.json',
   '.well-known',
 ]);
 
