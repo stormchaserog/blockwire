@@ -9,7 +9,7 @@ import {
 import { getExplorerUrl } from '$utils/blockwire/chainExplorers';
 import {
   ProjectChainAssetPrice, ContractAddressBadge, VerificationBadge, OfficialLinksVault, BuyFeed,
-  ProjectBanner,
+  ProjectBanner, WhaleAlerts,
 } from '$features/project-identity';
 
 export type ProjectIdentitySectionProps = {
@@ -145,6 +145,7 @@ export function ProjectIdentitySection({ spaceRoomId }: ProjectIdentitySectionPr
           <VerificationBadge state={selectedAsset.verified_control_state} label="Contract Verified" />
           <ProjectChainAssetPrice projectId={project.project_id} chainAssetId={selectedAsset.id} />
           <BuyFeed projectId={project.project_id} chainAssetId={selectedAsset.id} />
+          <WhaleAlerts projectId={project.project_id} chainAssetId={selectedAsset.id} />
         </Box>
       )}
 

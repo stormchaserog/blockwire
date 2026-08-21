@@ -50,6 +50,7 @@ export interface TradeEvent {
   contractAddress: string;
   side: 'buy' | 'sell';
   amountUsd: number | null;
+  walletAddress: string | null;
   id: string;
   occurredAt: string | null;
 }

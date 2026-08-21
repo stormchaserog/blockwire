@@ -62,6 +62,7 @@ vi.mock('$features/project-identity', () => ({
     </div>
   ),
   ProjectBanner: () => null,
+  WhaleAlerts: () => null,
 }));
 
 afterEach(() => {

@@ -50,8 +50,8 @@ describe('BuyFeed', () => {
       asset: baseAsset,
       supported: true,
       trades: [
-        { chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: 500, id: 't1', occurredAt: null },
-        { chain: 'solana', contractAddress: 'Sol1', side: 'sell', amountUsd: 250, id: 't2', occurredAt: null },
+        { chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: 500, walletAddress: null, id: 't1', occurredAt: null },
+        { chain: 'solana', contractAddress: 'Sol1', side: 'sell', amountUsd: 250, walletAddress: null, id: 't2', occurredAt: null },
       ],
     });
     render(<BuyFeed projectId={42} chainAssetId={7} />);
@@ -66,7 +66,7 @@ describe('BuyFeed', () => {
       asset: baseAsset,
       supported: true,
       trades: [
-        { chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: 500, id: 't1', occurredAt: null },
+        { chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: 500, walletAddress: null, id: 't1', occurredAt: null },
       ],
     });
     render(<BuyFeed projectId={42} chainAssetId={7} />);
@@ -83,7 +83,7 @@ describe('BuyFeed', () => {
   it('mutes on click, stops fetching further, and offers a distinct unmute control', async () => {
     fetchChainAssetTrades.mockResolvedValue({
       asset: baseAsset, supported: true,
-      trades: [{ chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: 500, id: 't1', occurredAt: null }],
+      trades: [{ chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: 500, walletAddress: null, id: 't1', occurredAt: null }],
     });
     render(<BuyFeed projectId={42} chainAssetId={7} />);
     await screen.findByText('Buy');
@@ -104,7 +104,7 @@ describe('BuyFeed', () => {
   it('persists mute across remounts (per-device preference, not just component state)', async () => {
     fetchChainAssetTrades.mockResolvedValue({
       asset: baseAsset, supported: true,
-      trades: [{ chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: 500, id: 't1', occurredAt: null }],
+      trades: [{ chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: 500, walletAddress: null, id: 't1', occurredAt: null }],
     });
     const { unmount } = render(<BuyFeed projectId={42} chainAssetId={7} />);
     await screen.findByText('Buy');
@@ -120,9 +120,9 @@ describe('BuyFeed', () => {
     fetchChainAssetTrades.mockResolvedValue({
       asset: baseAsset, supported: true,
       trades: [
-        { chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: 50, id: 'small', occurredAt: null },
-        { chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: 5000, id: 'big', occurredAt: null },
-        { chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: null, id: 'unknown', occurredAt: null },
+        { chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: 50, walletAddress: null, id: 'small', occurredAt: null },
+        { chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: 5000, walletAddress: null, id: 'big', occurredAt: null },
+        { chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: null, walletAddress: null, id: 'unknown', occurredAt: null },
       ],
     });
     render(<BuyFeed projectId={42} chainAssetId={7} />);
@@ -141,7 +141,7 @@ describe('BuyFeed', () => {
   it('Standard style renders a transaction explorer link, Compact does not', async () => {
     fetchChainAssetTrades.mockResolvedValue({
       asset: baseAsset, supported: true,
-      trades: [{ chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: 500, id: 'txsig123', occurredAt: null }],
+      trades: [{ chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: 500, walletAddress: null, id: 'txsig123', occurredAt: null }],
     });
     render(<BuyFeed projectId={42} chainAssetId={7} defaultStyle="Standard" />);
     expect(await screen.findByRole('link', { name: /view transaction/i })).toHaveAttribute(
@@ -153,8 +153,8 @@ describe('BuyFeed', () => {
     fetchChainAssetTrades.mockResolvedValue({
       asset: baseAsset, supported: true,
       trades: [
-        { chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: 10_000, id: 'whale-buy', occurredAt: null },
-        { chain: 'solana', contractAddress: 'Sol1', side: 'sell', amountUsd: 10_000, id: 'whale-sell', occurredAt: null },
+        { chain: 'solana', contractAddress: 'Sol1', side: 'buy', amountUsd: 10_000, walletAddress: null, id: 'whale-buy', occurredAt: null },
+        { chain: 'solana', contractAddress: 'Sol1', side: 'sell', amountUsd: 10_000, walletAddress: null, id: 'whale-sell', occurredAt: null },
       ],
     });
     render(<BuyFeed projectId={42} chainAssetId={7} defaultStyle="Celebration" />);
