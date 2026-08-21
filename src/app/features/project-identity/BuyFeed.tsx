@@ -21,6 +21,21 @@ function formatUsd(value: number | null): string {
   return `$${value.toFixed(2)}`;
 }
 
+/** Same truncation convention as WhaleAlerts.walletShorthand and
+ *  ContractAddressBadge -- one visual language for "truncated address"
+ *  everywhere in the app, not a third slightly-different version. Used
+ *  here as the fallback signal when amountUsd is null (true for every
+ *  Helius-sourced trade today -- USD estimation from the SOL-side
+ *  transfer is tracked as separate follow-up work, not built here).
+ *  Confirmed via real screenshot QA (Bible sec45) that a high-volume
+ *  token with every trade missing amountUsd renders as an unhelpful
+ *  wall of bare "Buy"/"Sell" text with nothing else -- showing the
+ *  trader's wallet instead of nothing is a real fix, not a nice-to-have. */
+function walletShorthand(address: string): string {
+  if (address.length <= 12) return address;
+  return `${address.slice(0, 6)}\u2026${address.slice(-4)}`;
+}
+
 /** UI Bible §14 controls: "Minimum amount, Whale threshold... Mute."
  *  Persisted per project+chain-asset in localStorage, matching the plain
  *  localStorage.getItem/setItem pattern already used throughout this
@@ -66,10 +81,16 @@ function CompactTradeRow({ trade }: { trade: TradeEvent }) {
       <Text size="T300" style={{ color: tone }}>
         {isBuy ? 'Buy' : 'Sell'}
       </Text>
-      {trade.amountUsd !== null && (
+      {trade.amountUsd !== null ? (
         <Text size="T300" style={{ color: color.Surface.OnContainer }}>
           {formatUsd(trade.amountUsd)}
         </Text>
+      ) : (
+        trade.walletAddress && (
+          <Text size="T300" style={{ fontFamily: 'monospace', color: color.Surface.OnContainer }}>
+            {walletShorthand(trade.walletAddress)}
+          </Text>
+        )
       )}
     </Box>
   );
@@ -104,10 +125,16 @@ function StandardTradeRow({ trade }: { trade: TradeEvent }) {
         <Text size="T300" style={{ color: tone }}>
           {isBuy ? 'Buy' : 'Sell'}
         </Text>
-        {trade.amountUsd !== null && (
+        {trade.amountUsd !== null ? (
           <Text size="T300" style={{ color: color.Surface.OnContainer }}>
             {formatUsd(trade.amountUsd)}
           </Text>
+        ) : (
+          trade.walletAddress && (
+            <Text size="T300" style={{ fontFamily: 'monospace', color: color.Surface.OnContainer }}>
+              {walletShorthand(trade.walletAddress)}
+            </Text>
+          )
         )}
       </Box>
       {explorerUrl && (

@@ -278,4 +278,24 @@ describe('BuyFeed', () => {
     expect(buyContainer).not.toBeNull();
     expect(sellContainer).toBeNull();
   });
+
+  it('shows wallet shorthand instead of nothing when amountUsd is unknown but a wallet is known -- real screenshot QA found a wall of bare Buy/Sell text was unhelpful for a high-volume token with no per-trade USD data', async () => {
+    fetchChainAssetTrades.mockResolvedValue({
+      asset: baseAsset,
+      supported: true,
+      trades: [
+        {
+          chain: 'solana',
+          contractAddress: 'Sol1',
+          side: 'buy',
+          amountUsd: null,
+          walletAddress: 'EQbcrkr7nxkVVpFe3Knh9yMq5AmSyEEwhcYo19mSFXCw',
+          id: 'no-amount',
+          occurredAt: null,
+        },
+      ],
+    });
+    render(<BuyFeed projectId={42} chainAssetId={7} />);
+    expect(await screen.findByText('EQbcrk\u2026FXCw')).toBeInTheDocument();
+  });
 });
