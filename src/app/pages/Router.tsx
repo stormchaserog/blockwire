@@ -41,10 +41,12 @@ import {
   JOIN_PATH_SEGMENT,
   LOBBY_PATH_SEGMENT,
   NOTIFICATIONS_PATH_SEGMENT,
+  PROJECT_PATH_SEGMENT,
   ROOM_PATH_SEGMENT,
   SEARCH_PATH_SEGMENT,
   SERVER_PATH_SEGMENT,
   CREATE_PATH,
+  CREATE_PROJECT_PATH,
   TO_ROOM_EVENT_PATH,
   INVITE_PATH,
   SOURCE_PATH,
@@ -72,7 +74,13 @@ import { ShallowRouteRenderer } from './client/ShallowRouteRenderer';
 import { HandleNotificationClick, ClientNonUIFeatures } from './client/ClientNonUIFeatures';
 import { Home, HomeRouteRoomProvider, HomeSearch } from './client/home';
 import { Direct, DirectCreate, DirectRouteRoomProvider } from './client/direct';
-import { RouteSpaceProvider, Space, SpaceRouteRoomProvider, SpaceSearch } from './client/space';
+import {
+  RouteSpaceProvider,
+  Space,
+  SpaceRouteRoomProvider,
+  SpaceSearch,
+  SpaceProject,
+} from './client/space';
 // Lazy-loaded: auth subtree, settings, inbox/bookmarks, explore
 const AuthLayout = lazy(() => import('./auth').then((m) => ({ default: m.AuthLayout })));
 const Login = lazy(() => import('./auth').then((m) => ({ default: m.Login })));
@@ -114,6 +122,7 @@ import { AuthRouteThemeManager, UnAuthRouteThemeManager } from './ThemeManager';
 import { TauriDeepLinkBridge } from './TauriDeepLinkBridge';
 import { ClientRoomsNotificationPreferences } from './client/ClientRoomsNotificationPreferences';
 import { Create } from './client/create';
+import { CreateProject } from './client/create-project';
 import { ToRoomEvent } from './client/ToRoomEvent';
 import { CallStatusRenderer } from './CallStatusRenderer';
 import { UserQuickToolsProvider } from '$components/UserQuickToolsProvider';
@@ -382,6 +391,7 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
             />
           )}
           <Route path={LOBBY_PATH_SEGMENT} element={<Lobby />} />
+          <Route path={PROJECT_PATH_SEGMENT} element={<SpaceProject />} />
           <Route path={SEARCH_PATH_SEGMENT} element={<SpaceSearch />} />
           <Route
             path={ROOM_PATH_SEGMENT}
@@ -432,6 +442,7 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
           />
         </Route>
         <Route path={CREATE_PATH} element={<Create />} />
+        <Route path={CREATE_PROJECT_PATH} element={<CreateProject />} />
         <Route
           path={CREATE_ROOM_PATH}
           element={

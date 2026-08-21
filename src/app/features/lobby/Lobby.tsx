@@ -62,6 +62,7 @@ import type { CanDropCallback } from './DnD';
 import { useDnDMonitor } from './DnD';
 import { LobbyHero } from './LobbyHero';
 import { LobbyHeader } from './LobbyHeader';
+import { ProjectIdentitySection } from './ProjectIdentitySection';
 import { SpaceHierarchyNavItem } from './SpaceHierarchyNavItem';
 import { CustomAccountDataEvent } from '$types/matrix/accountData';
 
@@ -634,6 +635,7 @@ export function Lobby() {
                   >
                     <PageHeroSection ref={heroSectionRef} style={{ paddingTop: 0 }}>
                       <LobbyHero />
+                      <ProjectIdentitySection spaceRoomId={space.roomId} />
                     </PageHeroSection>
                     {vItems.map((vItem) => {
                       const item = hierarchy[vItem.index];
