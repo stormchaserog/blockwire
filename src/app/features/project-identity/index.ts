@@ -6,3 +6,5 @@ export * from './OfficialLinksVault';
 export * from './BuyFeed';
 export * from './ProjectBanner';
 export * from './WhaleAlerts';
+export * from './useProjectIdentity';
+export * from './ProjectIdentityContent';

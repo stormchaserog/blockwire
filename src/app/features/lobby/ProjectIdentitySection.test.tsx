@@ -33,11 +33,16 @@ vi.mock('$utils/blockwire/chainExplorers', () => ({
   getExplorerUrl: (chain: string, address: string) => `https://explorer.test/${chain}/${address}`,
 }));
 
-vi.mock('$features/project-identity', () => ({
-  // Real component network/timer behavior is already covered by
-  // TokenPriceCard.test.tsx / ProjectChainAssetPrice; this test only cares
-  // whether the section decides to render it AT ALL, so a stub that
-  // reports its own props is a faithful, low-noise stand-in.
+// ProjectIdentityContent imports each display component directly from its
+// own module (./VerificationBadge, ./BuyFeed, etc.), NOT through the
+// $features/project-identity barrel -- so mocking the barrel above has no
+// effect on what ProjectIdentityContent actually renders. Each concrete
+// module needs its own mock. Real component network/timer behavior is
+// already covered by TokenPriceCard.test.tsx / ProjectChainAssetPrice; this
+// test only cares whether the section (via the real useProjectIdentity +
+// real ProjectIdentityContent) decides to render each piece AT ALL, so a
+// stub that reports its own props is a faithful, low-noise stand-in.
+vi.mock('$features/project-identity/ProjectChainAssetPrice', () => ({
   ProjectChainAssetPrice: ({
     projectId,
     chainAssetId,
@@ -49,15 +54,24 @@ vi.mock('$features/project-identity', () => ({
       project {projectId} asset {chainAssetId}
     </div>
   ),
+}));
+
+vi.mock('$features/project-identity/ContractAddressBadge', () => ({
   ContractAddressBadge: ({ asset }: { asset: ProjectChainAsset }) => (
     <div data-testid="contract-badge">{asset.contract_address}</div>
   ),
+}));
+
+vi.mock('$features/project-identity/VerificationBadge', () => ({
   VerificationBadge: ({ state, label }: { state: string; label: string }) =>
     state === 'unverified' ? null : (
       <div data-testid={`verification-badge-${label.replace(/\s+/g, '-').toLowerCase()}`}>
         {label}
       </div>
     ),
+}));
+
+vi.mock('$features/project-identity/OfficialLinksVault', () => ({
   OfficialLinksVault: ({ links }: { links: ProjectLinkRecord[] }) =>
     links.length === 0 ? null : (
       <div data-testid="links-vault">
@@ -66,12 +80,21 @@ vi.mock('$features/project-identity', () => ({
         ))}
       </div>
     ),
+}));
+
+vi.mock('$features/project-identity/BuyFeed', () => ({
   BuyFeed: ({ projectId, chainAssetId }: { projectId: number; chainAssetId: number }) => (
     <div data-testid="buy-feed">
       buy-feed project {projectId} asset {chainAssetId}
     </div>
   ),
+}));
+
+vi.mock('$features/project-identity/ProjectBanner', () => ({
   ProjectBanner: () => null,
+}));
+
+vi.mock('$features/project-identity/WhaleAlerts', () => ({
   WhaleAlerts: () => null,
 }));
 

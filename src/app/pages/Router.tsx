@@ -41,6 +41,7 @@ import {
   JOIN_PATH_SEGMENT,
   LOBBY_PATH_SEGMENT,
   NOTIFICATIONS_PATH_SEGMENT,
+  PROJECT_PATH_SEGMENT,
   ROOM_PATH_SEGMENT,
   SEARCH_PATH_SEGMENT,
   SERVER_PATH_SEGMENT,
@@ -73,7 +74,13 @@ import { ShallowRouteRenderer } from './client/ShallowRouteRenderer';
 import { HandleNotificationClick, ClientNonUIFeatures } from './client/ClientNonUIFeatures';
 import { Home, HomeRouteRoomProvider, HomeSearch } from './client/home';
 import { Direct, DirectCreate, DirectRouteRoomProvider } from './client/direct';
-import { RouteSpaceProvider, Space, SpaceRouteRoomProvider, SpaceSearch } from './client/space';
+import {
+  RouteSpaceProvider,
+  Space,
+  SpaceRouteRoomProvider,
+  SpaceSearch,
+  SpaceProject,
+} from './client/space';
 // Lazy-loaded: auth subtree, settings, inbox/bookmarks, explore
 const AuthLayout = lazy(() => import('./auth').then((m) => ({ default: m.AuthLayout })));
 const Login = lazy(() => import('./auth').then((m) => ({ default: m.Login })));
@@ -384,6 +391,7 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
             />
           )}
           <Route path={LOBBY_PATH_SEGMENT} element={<Lobby />} />
+          <Route path={PROJECT_PATH_SEGMENT} element={<SpaceProject />} />
           <Route path={SEARCH_PATH_SEGMENT} element={<SpaceSearch />} />
           <Route
             path={ROOM_PATH_SEGMENT}
