@@ -20,12 +20,12 @@
       "screenshots": [],
       "versions": [
         {
-          "version": "1.20.1787341324",
-          "buildVersion": "1.20.1787341324",
-          "date": "2026-08-21T19:50:36Z",
-          "size": 23735101,
-          "downloadURL": "https://github.com/stormchaserog/blockwire/releases/download/nightly/BlockWire-1.20.1-nightly.260821194204-ios-arm64.ipa",
-          "localizedDescription": "BlockWire 1.20.1-nightly.260821194204"
+          "version": "1.20.1787342378",
+          "buildVersion": "1.20.1787342378",
+          "date": "2026-08-21T20:11:51Z",
+          "size": 23735609,
+          "downloadURL": "https://github.com/stormchaserog/blockwire/releases/download/nightly/BlockWire-1.20.1-nightly.260821195938-ios-arm64.ipa",
+          "localizedDescription": "BlockWire 1.20.1-nightly.260821195938"
         }
       ],
       "appPermissions": {
