@@ -1,7 +1,7 @@
 import { EventType } from 'matrix-js-sdk/lib/@types/event';
 
-export const DEFAULT_NOTIFICATION_ICON = '/public/res/logo-maskable/logo-maskable-180x180.png';
-export const DEFAULT_NOTIFICATION_BADGE = '/public/res/logo-maskable/logo-maskable-72x72.png';
+export const DEFAULT_NOTIFICATION_ICON = '/public/logo-maskable/logo-maskable-180x180.png';
+export const DEFAULT_NOTIFICATION_BADGE = '/public/logo-maskable/logo-maskable-72x72.png';
 const DEFAULT_MESSAGE_PREVIEW = 'new message';
 export const ENCRYPTED_MESSAGE_PREVIEW = 'Encrypted message';
 
