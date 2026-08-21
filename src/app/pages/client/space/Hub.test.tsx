@@ -52,6 +52,21 @@ vi.mock('$components/BackRouteHandler', () => ({
   BackRouteHandler: () => null,
 }));
 
+const { hasProjectPermissionMock } = vi.hoisted(() => ({
+  hasProjectPermissionMock: vi.fn<(permissionKey: string) => boolean>(() => false),
+}));
+
+vi.mock('$hooks/useMyProjectPermissions', () => ({
+  useMyProjectPermissions: () => ({
+    permissions: { mxid: '@owner:blockwire.chat', isOwner: false, permissions: [] },
+    has: hasProjectPermissionMock,
+  }),
+}));
+
+vi.mock('$features/project-identity/RolesPanel', () => ({
+  RolesPanel: () => <div>roles-panel</div>,
+}));
+
 const { fetchProjectBySpace, fetchChainAssets, fetchProjectLinks } = vi.hoisted(() => ({
   fetchProjectBySpace: vi.fn<(mx: unknown, spaceRoomId: string) => Promise<ProjectRecord | null>>(),
   fetchChainAssets: vi.fn<(mx: unknown, projectId: number) => Promise<ProjectChainAsset[]>>(),
@@ -155,5 +170,28 @@ describe('SpaceHub', () => {
 
     render(<SpaceHub />);
     await waitFor(() => expect(screen.getByText(/not an investment rating/i)).toBeInTheDocument());
+  });
+
+  it('shows the Roles panel to a user who holds role.assign', async () => {
+    stateEventMock.mockReturnValue(true);
+    hasProjectPermissionMock.mockReturnValue(true);
+    fetchProjectBySpace.mockResolvedValue(baseProject);
+    fetchChainAssets.mockResolvedValue([]);
+    fetchProjectLinks.mockResolvedValue([]);
+
+    render(<SpaceHub />);
+    expect(await screen.findByText('roles-panel')).toBeInTheDocument();
+  });
+
+  it('hides the Roles panel from a user without role.assign, even though they can already see the Hub -- Hub access and role-management are separate permission checks', async () => {
+    stateEventMock.mockReturnValue(true);
+    hasProjectPermissionMock.mockReturnValue(false);
+    fetchProjectBySpace.mockResolvedValue(baseProject);
+    fetchChainAssets.mockResolvedValue([]);
+    fetchProjectLinks.mockResolvedValue([]);
+
+    render(<SpaceHub />);
+    await waitFor(() => expect(screen.getByText('Test Project Hub')).toBeInTheDocument());
+    expect(screen.queryByText('roles-panel')).not.toBeInTheDocument();
   });
 });

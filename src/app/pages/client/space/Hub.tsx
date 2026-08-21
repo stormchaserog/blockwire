@@ -18,7 +18,8 @@ import { useRoomCreators } from '$hooks/useRoomCreators';
 import { useRoomPermissions } from '$hooks/useRoomPermissions';
 import { EventType } from '$types/matrix-sdk';
 import { getSpaceProjectPath } from '$pages/pathUtils';
-import { useProjectIdentity } from '$features/project-identity';
+import { useMyProjectPermissions } from '$hooks/useMyProjectPermissions';
+import { useProjectIdentity, RolesPanel } from '$features/project-identity';
 
 function HubHeader({ title }: { title: string }) {
   const screenSize = useScreenSizeContext();
@@ -103,6 +104,7 @@ export function SpaceHub() {
   const userId = mx.getUserId();
   const canManage = !!userId && permissions.stateEvent(EventType.RoomName, userId);
   const { project, chainAssets, links } = useProjectIdentity(space.roomId);
+  const { has: hasProjectPermission } = useMyProjectPermissions(project?.project_id);
 
   if (project === undefined) {
     return (
@@ -168,6 +170,9 @@ export function SpaceHub() {
                     nothing about the project&apos;s legitimacy or quality.
                   </Text>
                 </HubCard>
+                {hasProjectPermission('role.assign') && (
+                  <RolesPanel projectId={project.project_id} />
+                )}
                 <Box
                   as="a"
                   href={getSpaceProjectPath(space.roomId)}
