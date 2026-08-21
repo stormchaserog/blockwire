@@ -21,6 +21,7 @@ export interface ProjectRecord {
   space_room_id: string;
   owner_mxid: string;
   status: 'active' | 'archived' | 'suspended';
+  owner_verification_state: VerifiedControlState;
   created_at: string;
 }
 

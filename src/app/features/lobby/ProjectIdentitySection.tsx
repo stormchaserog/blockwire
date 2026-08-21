@@ -26,13 +26,13 @@ export type ProjectIdentitySectionProps = {
  *
  *  This is the Project Identity Page (Bible §12) content, seeded here
  *  rather than as a separate route -- name, ticker, project-owner
- *  verification, live price/buy-feed for the SELECTED chain asset (a
- *  Chip selector when the project has more than one -- Steven's own
- *  stated UI preference is tabbed/chip selection over scrolling for
- *  exactly this kind of "which of several things" choice), and the
- *  Official Links Vault (§13). What is NOT yet here: banner/avatar
- *  display and a dedicated full-page route separate from the Lobby --
- *  tracked as explicit follow-up in BLOCKWIRE.md, not silently skipped.
+ *  verification, banner/avatar, live price/buy-feed for the SELECTED
+ *  chain asset (a Chip selector when the project has more than one --
+ *  Steven's own stated UI preference is tabbed/chip selection over
+ *  scrolling for exactly this kind of "which of several things" choice),
+ *  and the Official Links Vault (§13). What is NOT yet here: a dedicated
+ *  full-page route separate from the Lobby -- tracked as explicit
+ *  follow-up in BLOCKWIRE.md, not silently skipped.
  */
 export function ProjectIdentitySection({ spaceRoomId }: ProjectIdentitySectionProps) {
   const mx = useMatrixClient();
@@ -97,14 +97,17 @@ export function ProjectIdentitySection({ spaceRoomId }: ProjectIdentitySectionPr
               ${project.ticker}
             </Text>
           )}
-          {/* UI Bible §18: "Project Owner Verified" is the precise claim --
-           *  this reflects whether the PROJECT's owner has proven control
-           *  of the project (a separate fact from any individual chain
-           *  asset's verified_control_state, which is checked below next
-           *  to that specific contract address). BlockWire does not yet
-           *  have a dedicated project-owner verification flow -- there is
-           *  no ProjectRecord field for it -- so nothing renders here
-           *  until that's built, rather than fabricating a state. */}
+          {/* UI Bible §18: "Project Owner Verified" is a DIFFERENT precise
+           *  claim than a chain asset's or link's own verified_control_state
+           *  (checked separately, next to that specific contract/link) --
+           *  this reflects whether the human running the PROJECT has proven
+           *  their identity. Renders nothing for 'unverified' (see
+           *  VerificationBadge) so a brand-new, not-yet-checked project
+           *  shows no badge at all, never a fabricated one. */}
+          <VerificationBadge
+            state={project.owner_verification_state}
+            label="Project Owner Verified"
+          />
         </Box>
         {project.description && (
           <Text size="T300" style={{ color: color.Surface.OnContainer }}>

@@ -43,7 +43,11 @@ vi.mock('$features/project-identity', () => ({
     <div data-testid="contract-badge">{asset.contract_address}</div>
   ),
   VerificationBadge: ({ state, label }: { state: string; label: string }) =>
-    state === 'unverified' ? null : <div data-testid="verification-badge">{label}</div>,
+    state === 'unverified' ? null : (
+      <div data-testid={`verification-badge-${label.replace(/\s+/g, '-').toLowerCase()}`}>
+        {label}
+      </div>
+    ),
   OfficialLinksVault: ({ links }: { links: ProjectLinkRecord[] }) =>
     links.length === 0 ? null : (
       <div data-testid="links-vault">
@@ -68,7 +72,7 @@ const baseProject: ProjectRecord = {
   project_id: 42, slug: 'test-proj', name: 'Test Project', ticker: null,
   description: null, avatar_url: null, banner_url: null,
   space_room_id: '!bound:blockwire.chat', owner_mxid: '@owner:blockwire.chat',
-  status: 'active', created_at: new Date().toISOString(),
+  status: 'active', owner_verification_state: 'unverified', created_at: new Date().toISOString(),
 };
 
 describe('ProjectIdentitySection', () => {
@@ -95,6 +99,27 @@ describe('ProjectIdentitySection', () => {
     render(<ProjectIdentitySection spaceRoomId="!bound:blockwire.chat" />);
     expect(await screen.findByText('Test Project')).toBeInTheDocument();
     expect(screen.getByText('A project for testing.')).toBeInTheDocument();
+  });
+
+  it('shows no "Project Owner Verified" badge for an unverified owner (the default, common case)', async () => {
+    fetchProjectBySpace.mockResolvedValue(baseProject); // owner_verification_state: 'unverified'
+    fetchChainAssets.mockResolvedValue([]);
+    fetchProjectLinks.mockResolvedValue([]);
+
+    render(<ProjectIdentitySection spaceRoomId="!bound:blockwire.chat" />);
+    await screen.findByText('Test Project');
+    expect(screen.queryByTestId('verification-badge-project-owner-verified')).not.toBeInTheDocument();
+  });
+
+  it('shows the "Project Owner Verified" badge once the owner is verified', async () => {
+    fetchProjectBySpace.mockResolvedValue({ ...baseProject, owner_verification_state: 'verified' });
+    fetchChainAssets.mockResolvedValue([]);
+    fetchProjectLinks.mockResolvedValue([]);
+
+    render(<ProjectIdentitySection spaceRoomId="!bound:blockwire.chat" />);
+    expect(await screen.findByTestId('verification-badge-project-owner-verified')).toHaveTextContent(
+      'Project Owner Verified',
+    );
   });
 
   it('renders the ticker with a leading $ when the project has one', async () => {
@@ -130,7 +155,7 @@ describe('ProjectIdentitySection', () => {
     render(<ProjectIdentitySection spaceRoomId="!bound:blockwire.chat" />);
     expect(await screen.findByTestId('price-card')).toHaveTextContent('project 42 asset 7');
     expect(screen.getByTestId('contract-badge')).toHaveTextContent('Sol1');
-    expect(screen.getByTestId('verification-badge')).toHaveTextContent('Contract Verified');
+    expect(screen.getByTestId('verification-badge-contract-verified')).toHaveTextContent('Contract Verified');
     expect(screen.getByTestId('buy-feed')).toHaveTextContent('buy-feed project 42 asset 7');
   });
 
