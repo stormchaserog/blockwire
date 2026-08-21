@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Box, Text, color, config } from 'folds';
+import { useEffect, useMemo, useState } from 'react';
+import { Box, Chip, Text, color, config } from 'folds';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { useAlive } from '$hooks/useAlive';
 import {
@@ -25,12 +25,13 @@ export type ProjectIdentitySectionProps = {
  *
  *  This is the Project Identity Page (Bible §12) content, seeded here
  *  rather than as a separate route -- name, ticker, project-owner
- *  verification, live price for the first chain asset with its contract
- *  address/explorer/verification badge, and the Official Links Vault
- *  (§13). What is NOT yet here: banner/avatar display, multi-chain-asset
- *  layout (only the first asset renders), and a dedicated full-page
- *  route separate from the Lobby -- tracked as explicit follow-up in
- *  BLOCKWIRE.md, not silently skipped.
+ *  verification, live price/buy-feed for the SELECTED chain asset (a
+ *  Chip selector when the project has more than one -- Steven's own
+ *  stated UI preference is tabbed/chip selection over scrolling for
+ *  exactly this kind of "which of several things" choice), and the
+ *  Official Links Vault (§13). What is NOT yet here: banner/avatar
+ *  display and a dedicated full-page route separate from the Lobby --
+ *  tracked as explicit follow-up in BLOCKWIRE.md, not silently skipped.
  */
 export function ProjectIdentitySection({ spaceRoomId }: ProjectIdentitySectionProps) {
   const mx = useMatrixClient();
@@ -38,11 +39,13 @@ export function ProjectIdentitySection({ spaceRoomId }: ProjectIdentitySectionPr
   const [project, setProject] = useState<ProjectRecord | null | undefined>(undefined);
   const [chainAssets, setChainAssets] = useState<ProjectChainAsset[]>([]);
   const [links, setLinks] = useState<ProjectLinkRecord[]>([]);
+  const [selectedAssetId, setSelectedAssetId] = useState<number | null>(null);
 
   useEffect(() => {
     setProject(undefined);
     setChainAssets([]);
     setLinks([]);
+    setSelectedAssetId(null);
     fetchProjectBySpace(mx, spaceRoomId)
       .then(async (result) => {
         if (!alive()) return;
@@ -55,6 +58,11 @@ export function ProjectIdentitySection({ spaceRoomId }: ProjectIdentitySectionPr
           if (alive()) {
             setChainAssets(assets);
             setLinks(projectLinks);
+            // Default to the first asset -- a stable, deterministic choice
+            // (the order the server returns them in) rather than picking
+            // "highest liquidity" or similar, which would require an extra
+            // snapshot fetch per asset just to decide what to show first.
+            setSelectedAssetId(assets[0]?.id ?? null);
           }
         }
       })
@@ -67,12 +75,15 @@ export function ProjectIdentitySection({ spaceRoomId }: ProjectIdentitySectionPr
       });
   }, [mx, spaceRoomId, alive]);
 
+  const selectedAsset = useMemo(
+    () => chainAssets.find((a) => a.id === selectedAssetId) ?? null,
+    [chainAssets, selectedAssetId],
+  );
+
   // Still checking, or checked and this space has no project: render
   // nothing. Bible §3/§8: do not show founder/project tooling to a plain
   // community space.
   if (!project) return null;
-
-  const primaryAsset = chainAssets[0];
 
   return (
     <Box direction="Column" gap="300" style={{ padding: config.space.S400 }}>
@@ -100,15 +111,35 @@ export function ProjectIdentitySection({ spaceRoomId }: ProjectIdentitySectionPr
         )}
       </Box>
 
-      {primaryAsset && (
+      {/* Chip selector only when there's an actual choice to make -- a
+       *  single-asset project (the common case today) shows no selector at
+       *  all, same progressive-disclosure principle as the rest of this
+       *  section. */}
+      {chainAssets.length > 1 && (
+        <Box gap="100" style={{ flexWrap: 'wrap' }}>
+          {chainAssets.map((asset) => (
+            <Chip
+              key={asset.id}
+              variant={asset.id === selectedAssetId ? 'Primary' : 'Secondary'}
+              radii="Pill"
+              onClick={() => setSelectedAssetId(asset.id)}
+              aria-pressed={asset.id === selectedAssetId}
+            >
+              <Text size="T200">{asset.token_symbol ?? asset.chain}</Text>
+            </Chip>
+          ))}
+        </Box>
+      )}
+
+      {selectedAsset && (
         <Box direction="Column" gap="200">
           <ContractAddressBadge
-            asset={primaryAsset}
-            explorerUrl={getExplorerUrl(primaryAsset.chain, primaryAsset.contract_address)}
+            asset={selectedAsset}
+            explorerUrl={getExplorerUrl(selectedAsset.chain, selectedAsset.contract_address)}
           />
-          <VerificationBadge state={primaryAsset.verified_control_state} label="Contract Verified" />
-          <ProjectChainAssetPrice projectId={project.project_id} chainAssetId={primaryAsset.id} />
-          <BuyFeed projectId={project.project_id} chainAssetId={primaryAsset.id} />
+          <VerificationBadge state={selectedAsset.verified_control_state} label="Contract Verified" />
+          <ProjectChainAssetPrice projectId={project.project_id} chainAssetId={selectedAsset.id} />
+          <BuyFeed projectId={project.project_id} chainAssetId={selectedAsset.id} />
         </Box>
       )}
 

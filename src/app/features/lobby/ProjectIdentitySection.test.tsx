@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { ProjectIdentitySection } from './ProjectIdentitySection';
 import type { ProjectRecord, ProjectChainAsset, ProjectLinkRecord } from '$utils/blockwire/projects';
@@ -142,6 +143,52 @@ describe('ProjectIdentitySection', () => {
     expect(screen.queryByTestId('price-card')).not.toBeInTheDocument();
     expect(screen.queryByTestId('contract-badge')).not.toBeInTheDocument();
     expect(screen.queryByTestId('buy-feed')).not.toBeInTheDocument();
+  });
+
+  it('shows no chip selector for a single chain asset (only render the choice when there is one)', async () => {
+    fetchProjectBySpace.mockResolvedValue(baseProject);
+    fetchChainAssets.mockResolvedValue([
+      {
+        id: 7, project_id: 42, chain: 'solana', contract_address: 'Sol1',
+        token_symbol: 'TEST', token_decimals: 9, verified_control_state: 'unverified',
+        created_at: new Date().toISOString(),
+      },
+    ]);
+    fetchProjectLinks.mockResolvedValue([]);
+
+    render(<ProjectIdentitySection spaceRoomId="!bound:blockwire.chat" />);
+    await screen.findByTestId('price-card');
+    expect(screen.queryAllByRole('button')).toHaveLength(0);
+  });
+
+  it('defaults to the first chain asset and lets a chip switch which one is shown', async () => {
+    fetchProjectBySpace.mockResolvedValue(baseProject);
+    fetchChainAssets.mockResolvedValue([
+      {
+        id: 7, project_id: 42, chain: 'solana', contract_address: 'SolFirst',
+        token_symbol: 'FIRST', token_decimals: 9, verified_control_state: 'unverified',
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: 9, project_id: 42, chain: 'solana', contract_address: 'SolSecond',
+        token_symbol: 'SECOND', token_decimals: 9, verified_control_state: 'unverified',
+        created_at: new Date().toISOString(),
+      },
+    ]);
+    fetchProjectLinks.mockResolvedValue([]);
+
+    render(<ProjectIdentitySection spaceRoomId="!bound:blockwire.chat" />);
+
+    // Defaults to the first asset.
+    expect(await screen.findByTestId('price-card')).toHaveTextContent('project 42 asset 7');
+    expect(screen.getByText('FIRST')).toBeInTheDocument();
+    expect(screen.getByText('SECOND')).toBeInTheDocument();
+
+    // Switching the chip swaps which asset's data renders.
+    const user = userEvent.setup();
+    await user.click(screen.getByText('SECOND'));
+    expect(await screen.findByTestId('price-card')).toHaveTextContent('project 42 asset 9');
+    expect(screen.getByTestId('contract-badge')).toHaveTextContent('SolSecond');
   });
 
   it('renders the Official Links Vault once the project has official links', async () => {
