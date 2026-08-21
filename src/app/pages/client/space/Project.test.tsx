@@ -10,6 +10,7 @@ import type {
 const mockMatrixClient = {
   baseUrl: 'https://matrix.blockwire.chat',
   getAccessToken: () => 'test-token',
+  getUserId: () => '@owner:blockwire.chat',
 };
 
 vi.mock('$hooks/useMatrixClient', () => ({
@@ -18,6 +19,28 @@ vi.mock('$hooks/useMatrixClient', () => ({
 
 vi.mock('$hooks/useSpace', () => ({
   useSpace: () => ({ roomId: '!bound:blockwire.chat', name: 'Test Space' }),
+}));
+
+vi.mock('$hooks/usePowerLevels', () => ({
+  usePowerLevels: () => ({}),
+}));
+
+vi.mock('$hooks/useRoomCreators', () => ({
+  useRoomCreators: () => new Set(['@owner:blockwire.chat']),
+}));
+
+const { stateEventMock } = vi.hoisted(() => ({
+  stateEventMock: vi.fn<(type: string, userId: string) => boolean>(() => true),
+}));
+
+vi.mock('$hooks/useRoomPermissions', () => ({
+  useRoomPermissions: () => ({
+    event: () => true,
+    message: () => true,
+    stateEvent: stateEventMock,
+    action: () => true,
+    notificationAction: () => true,
+  }),
 }));
 
 vi.mock('$hooks/useScreenSize', () => ({
@@ -52,6 +75,9 @@ vi.mock('$utils/blockwire/chainExplorers', () => ({
 // and each component's own test file already cover the granular cases.
 vi.mock('$features/project-identity/BuyFeed', () => ({ BuyFeed: () => null }));
 vi.mock('$features/project-identity/WhaleAlerts', () => ({ WhaleAlerts: () => null }));
+vi.mock('$features/project-identity/ManageProjectPanel', () => ({
+  ManageProjectPanel: () => <div>manage-project-panel</div>,
+}));
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -101,5 +127,26 @@ describe('SpaceProject', () => {
     fetchProjectBySpace.mockRejectedValue(new Error('network blip'));
     render(<SpaceProject />);
     expect(await screen.findByText('No project yet')).toBeInTheDocument();
+  });
+
+  it("shows the Manage Project panel to a user who can edit this room's settings", async () => {
+    stateEventMock.mockReturnValue(true);
+    fetchProjectBySpace.mockResolvedValue(baseProject);
+    fetchChainAssets.mockResolvedValue([]);
+    fetchProjectLinks.mockResolvedValue([]);
+
+    render(<SpaceProject />);
+    expect(await screen.findByText('manage-project-panel')).toBeInTheDocument();
+  });
+
+  it('hides the Manage Project panel from an ordinary member -- adding a contract address or official link is a project-management action, not something every member should see', async () => {
+    stateEventMock.mockReturnValue(false);
+    fetchProjectBySpace.mockResolvedValue(baseProject);
+    fetchChainAssets.mockResolvedValue([]);
+    fetchProjectLinks.mockResolvedValue([]);
+
+    render(<SpaceProject />);
+    await waitFor(() => expect(screen.getAllByText('Test Project')).not.toHaveLength(0));
+    expect(screen.queryByText('manage-project-panel')).not.toBeInTheDocument();
   });
 });

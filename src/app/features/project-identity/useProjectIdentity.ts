@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { useAlive } from '$hooks/useAlive';
 import {
@@ -22,6 +22,12 @@ export type UseProjectIdentityResult = {
   selectedAssetId: number | null;
   setSelectedAssetId: (id: number) => void;
   selectedAsset: ProjectChainAsset | null;
+  /** Re-runs the chain-assets and links fetch for the CURRENT project,
+   *  without resetting to the loading/no-project state first -- used
+   *  after a management action (add a chain asset, add a link) so the
+   *  page reflects what was just added without a jarring full reload of
+   *  the whole hook. A no-op if there is no project bound yet. */
+  refetchProjectDetails: () => void;
 };
 
 /** Shared data-fetching for the Project Identity page's content (Bible
@@ -39,6 +45,7 @@ export function useProjectIdentity(spaceRoomId: string): UseProjectIdentityResul
   const [chainAssets, setChainAssets] = useState<ProjectChainAsset[]>([]);
   const [links, setLinks] = useState<ProjectLinkRecord[]>([]);
   const [selectedAssetId, setSelectedAssetId] = useState<number | null>(null);
+  const [detailsRefetchNonce, setDetailsRefetchNonce] = useState(0);
 
   useEffect(() => {
     setProject(undefined);
@@ -61,7 +68,7 @@ export function useProjectIdentity(spaceRoomId: string): UseProjectIdentityResul
             // (the order the server returns them in) rather than picking
             // "highest liquidity" or similar, which would require an extra
             // snapshot fetch per asset just to decide what to show first.
-            setSelectedAssetId(assets[0]?.id ?? null);
+            setSelectedAssetId((prev) => prev ?? assets[0]?.id ?? null);
           }
         }
       })
@@ -71,12 +78,24 @@ export function useProjectIdentity(spaceRoomId: string): UseProjectIdentityResul
         // not even apply to this space.
         if (alive()) setProject(null);
       });
-  }, [mx, spaceRoomId, alive]);
+  }, [mx, spaceRoomId, alive, detailsRefetchNonce]);
+
+  const refetchProjectDetails = useCallback(() => {
+    setDetailsRefetchNonce((n) => n + 1);
+  }, []);
 
   const selectedAsset = useMemo(
     () => chainAssets.find((a) => a.id === selectedAssetId) ?? null,
     [chainAssets, selectedAssetId]
   );
 
-  return { project, chainAssets, links, selectedAssetId, setSelectedAssetId, selectedAsset };
+  return {
+    project,
+    chainAssets,
+    links,
+    selectedAssetId,
+    setSelectedAssetId,
+    selectedAsset,
+    refetchProjectDetails,
+  };
 }

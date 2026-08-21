@@ -9,7 +9,16 @@ import { BackRouteHandler } from '$components/BackRouteHandler';
 import { Page, PageContent, PageContentCenter, PageHeader } from '$components/page';
 import { ScreenSize, useScreenSizeContext } from '$hooks/useScreenSize';
 import { useSpace } from '$hooks/useSpace';
-import { useProjectIdentity, ProjectIdentityContent } from '$features/project-identity';
+import { useMatrixClient } from '$hooks/useMatrixClient';
+import { usePowerLevels } from '$hooks/usePowerLevels';
+import { useRoomCreators } from '$hooks/useRoomCreators';
+import { useRoomPermissions } from '$hooks/useRoomPermissions';
+import { EventType } from '$types/matrix-sdk';
+import {
+  useProjectIdentity,
+  ProjectIdentityContent,
+  ManageProjectPanel,
+} from '$features/project-identity';
 
 function ProjectHeader({ title }: { title: string }) {
   const screenSize = useScreenSizeContext();
@@ -51,8 +60,21 @@ function ProjectHeader({ title }: { title: string }) {
  *  nothing, which would look like the page itself is broken. */
 export function SpaceProject() {
   const space = useSpace();
-  const { project, chainAssets, links, selectedAssetId, setSelectedAssetId, selectedAsset } =
-    useProjectIdentity(space.roomId);
+  const mx = useMatrixClient();
+  const powerLevels = usePowerLevels(space);
+  const creators = useRoomCreators(space);
+  const permissions = useRoomPermissions(creators, powerLevels);
+  const userId = mx.getUserId();
+  const canManage = !!userId && permissions.stateEvent(EventType.RoomName, userId);
+  const {
+    project,
+    chainAssets,
+    links,
+    selectedAssetId,
+    setSelectedAssetId,
+    selectedAsset,
+    refetchProjectDetails,
+  } = useProjectIdentity(space.roomId);
 
   if (project === undefined) {
     return (
@@ -84,14 +106,22 @@ export function SpaceProject() {
         <Scroll hideTrack visibility="Hover">
           <PageContent>
             <PageContentCenter>
-              <ProjectIdentityContent
-                project={project}
-                chainAssets={chainAssets}
-                links={links}
-                selectedAssetId={selectedAssetId}
-                setSelectedAssetId={setSelectedAssetId}
-                selectedAsset={selectedAsset}
-              />
+              <Box direction="Column" gap="600">
+                <ProjectIdentityContent
+                  project={project}
+                  chainAssets={chainAssets}
+                  links={links}
+                  selectedAssetId={selectedAssetId}
+                  setSelectedAssetId={setSelectedAssetId}
+                  selectedAsset={selectedAsset}
+                />
+                {canManage && (
+                  <ManageProjectPanel
+                    projectId={project.project_id}
+                    onDetailsChanged={refetchProjectDetails}
+                  />
+                )}
+              </Box>
             </PageContentCenter>
           </PageContent>
         </Scroll>
