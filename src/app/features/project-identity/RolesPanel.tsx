@@ -6,7 +6,8 @@ import { AsyncStatus, useAsyncCallback } from '$hooks/useAsyncCallback';
 import { useAlive } from '$hooks/useAlive';
 import { fetchRoles, createRole, deleteRole, type RoleRecord } from '$utils/blockwire/projects';
 import { Button } from '$components/button';
-import { Warning, Trash, sizedIcon } from '$components/icons/phosphor';
+import { Warning, Trash, Shield, sizedIcon } from '$components/icons/phosphor';
+import { RolePermissionsEditor } from './RolePermissionsEditor';
 
 type RolesPanelProps = {
   projectId: number;
@@ -28,6 +29,7 @@ export function RolesPanel({ projectId }: RolesPanelProps) {
   const alive = useAlive();
   const [roles, setRoles] = useState<RoleRecord[] | undefined>(undefined);
   const [loadError, setLoadError] = useState<string | undefined>(undefined);
+  const [editingRole, setEditingRole] = useState<RoleRecord | undefined>(undefined);
 
   const loadRoles = useCallback(() => {
     setRoles(undefined);
@@ -107,19 +109,42 @@ export function RolesPanel({ projectId }: RolesPanelProps) {
       {roles && roles.length > 0 && (
         <Box direction="Column" gap="100">
           {roles.map((role) => (
-            <Box key={role.role_id} alignItems="Center" justifyContent="SpaceBetween" gap="200">
-              <Text size="T300">{role.name}</Text>
-              <Button
-                type="button"
-                size="300"
-                variant="Critical"
-                fill="Soft"
-                radii="400"
-                disabled={deleting}
-                onClick={() => handleDelete(role.role_id)}
-              >
-                {sizedIcon(Trash, '50')}
-              </Button>
+            <Box key={role.role_id} direction="Column" gap="100">
+              <Box alignItems="Center" justifyContent="SpaceBetween" gap="200">
+                <Text size="T300">{role.name}</Text>
+                <Box gap="100">
+                  <Button
+                    type="button"
+                    size="300"
+                    variant="Secondary"
+                    fill="Soft"
+                    radii="400"
+                    onClick={() =>
+                      setEditingRole((prev) => (prev?.role_id === role.role_id ? undefined : role))
+                    }
+                  >
+                    {sizedIcon(Shield, '50')}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="300"
+                    variant="Critical"
+                    fill="Soft"
+                    radii="400"
+                    disabled={deleting}
+                    onClick={() => handleDelete(role.role_id)}
+                  >
+                    {sizedIcon(Trash, '50')}
+                  </Button>
+                </Box>
+              </Box>
+              {editingRole?.role_id === role.role_id && (
+                <RolePermissionsEditor
+                  projectId={projectId}
+                  role={role}
+                  onClose={() => setEditingRole(undefined)}
+                />
+              )}
             </Box>
           ))}
         </Box>

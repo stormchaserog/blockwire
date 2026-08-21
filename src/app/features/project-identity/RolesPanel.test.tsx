@@ -21,6 +21,12 @@ const { fetchRoles, createRole, deleteRole } = vi.hoisted(() => ({
 
 vi.mock('$utils/blockwire/projects', () => ({ fetchRoles, createRole, deleteRole }));
 
+vi.mock('./RolePermissionsEditor', () => ({
+  RolePermissionsEditor: ({ role }: { role: RoleRecord }) => (
+    <div>permissions-editor-for-{role.name}</div>
+  ),
+}));
+
 afterEach(() => {
   vi.clearAllMocks();
 });
@@ -106,7 +112,9 @@ describe('RolesPanel', () => {
     render(<RolesPanel projectId={42} />);
 
     await screen.findByText('Social Manager');
-    fireEvent.click(screen.getByRole('button', { name: '' }));
+    // Two icon-only buttons per role now (permissions toggle, then delete)
+    // -- delete is the second one.
+    fireEvent.click(screen.getAllByRole('button', { name: '' })[1]!);
 
     await waitFor(() => expect(deleteRole).toHaveBeenCalledWith(mockMatrixClient, 42, 1));
     await waitFor(() => expect(screen.getByText('No custom roles yet.')).toBeInTheDocument());
@@ -117,5 +125,44 @@ describe('RolesPanel', () => {
     render(<RolesPanel projectId={42} />);
 
     expect(await screen.findByText('Could not load roles for this project.')).toBeInTheDocument();
+  });
+
+  it('opens the permissions editor for a role when its shield button is clicked', async () => {
+    fetchRoles.mockResolvedValue([roleA, roleB]);
+    render(<RolesPanel projectId={42} />);
+
+    await screen.findByText('Social Manager');
+    // First icon-only button on Social Manager's row is the permissions toggle.
+    fireEvent.click(screen.getAllByRole('button', { name: '' })[0]!);
+
+    expect(await screen.findByText('permissions-editor-for-Social Manager')).toBeInTheDocument();
+    expect(screen.queryByText('permissions-editor-for-Moderator')).not.toBeInTheDocument();
+  });
+
+  it('closes an open permissions editor when its shield button is clicked again', async () => {
+    fetchRoles.mockResolvedValue([roleA]);
+    render(<RolesPanel projectId={42} />);
+
+    await screen.findByText('Social Manager');
+    const shieldButton = screen.getAllByRole('button', { name: '' })[0]!;
+    fireEvent.click(shieldButton);
+    await screen.findByText('permissions-editor-for-Social Manager');
+
+    fireEvent.click(shieldButton);
+    expect(screen.queryByText('permissions-editor-for-Social Manager')).not.toBeInTheDocument();
+  });
+
+  it("only ever shows one role's permissions editor open at a time", async () => {
+    fetchRoles.mockResolvedValue([roleA, roleB]);
+    render(<RolesPanel projectId={42} />);
+
+    await screen.findByText('Social Manager');
+    const [socialManagerShield, , moderatorShield] = screen.getAllByRole('button', { name: '' });
+    fireEvent.click(socialManagerShield!);
+    await screen.findByText('permissions-editor-for-Social Manager');
+
+    fireEvent.click(moderatorShield!);
+    expect(await screen.findByText('permissions-editor-for-Moderator')).toBeInTheDocument();
+    expect(screen.queryByText('permissions-editor-for-Social Manager')).not.toBeInTheDocument();
   });
 });

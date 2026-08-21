@@ -329,6 +329,20 @@ export const deleteRole = async (
   if (!res.ok) throw new Error(await parseError(res, 'Could not delete this role.'));
 };
 
+export const fetchRolePermissions = async (
+  mx: MatrixClient,
+  projectId: number,
+  roleId: number
+): Promise<string[]> => {
+  const res = await fetch(
+    `${mx.baseUrl}/_blockwire/projects/${projectId}/roles/${roleId}/permissions`,
+    { headers: authHeaders(mx) }
+  );
+  if (!res.ok) throw new Error(await parseError(res, "Could not load this role's permissions."));
+  const body: unknown = await res.json();
+  return Array.isArray(body) ? (body as string[]) : [];
+};
+
 export const setRolePermissions = async (
   mx: MatrixClient,
   projectId: number,
