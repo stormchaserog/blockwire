@@ -42,6 +42,7 @@ import {
   LOBBY_PATH_SEGMENT,
   NOTIFICATIONS_PATH_SEGMENT,
   PROJECT_PATH_SEGMENT,
+  HUB_PATH_SEGMENT,
   ROOM_PATH_SEGMENT,
   SEARCH_PATH_SEGMENT,
   SERVER_PATH_SEGMENT,
@@ -80,6 +81,7 @@ import {
   SpaceRouteRoomProvider,
   SpaceSearch,
   SpaceProject,
+  SpaceHub,
 } from './client/space';
 // Lazy-loaded: auth subtree, settings, inbox/bookmarks, explore
 const AuthLayout = lazy(() => import('./auth').then((m) => ({ default: m.AuthLayout })));
@@ -392,6 +394,7 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
           )}
           <Route path={LOBBY_PATH_SEGMENT} element={<Lobby />} />
           <Route path={PROJECT_PATH_SEGMENT} element={<SpaceProject />} />
+          <Route path={HUB_PATH_SEGMENT} element={<SpaceHub />} />
           <Route path={SEARCH_PATH_SEGMENT} element={<SpaceSearch />} />
           <Route
             path={ROOM_PATH_SEGMENT}

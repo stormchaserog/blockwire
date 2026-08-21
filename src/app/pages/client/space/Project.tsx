@@ -1,9 +1,12 @@
-import { Box, IconButton, Scroll, Text } from 'folds';
+import { Box, IconButton, Scroll, Text, color } from 'folds';
 import {
   ArrowLeft,
   CurrencyCircleDollar,
+  House,
   composerIcon,
   dropzoneIcon,
+  sizedIcon,
+  CaretRight,
 } from '$components/icons/phosphor';
 import { BackRouteHandler } from '$components/BackRouteHandler';
 import { Page, PageContent, PageContentCenter, PageHeader } from '$components/page';
@@ -14,6 +17,7 @@ import { usePowerLevels } from '$hooks/usePowerLevels';
 import { useRoomCreators } from '$hooks/useRoomCreators';
 import { useRoomPermissions } from '$hooks/useRoomPermissions';
 import { EventType } from '$types/matrix-sdk';
+import { getSpaceHubPath } from '$pages/pathUtils';
 import {
   useProjectIdentity,
   ProjectIdentityContent,
@@ -107,6 +111,19 @@ export function SpaceProject() {
           <PageContent>
             <PageContentCenter>
               <Box direction="Column" gap="600">
+                {canManage && (
+                  <Box
+                    as="a"
+                    href={getSpaceHubPath(space.roomId)}
+                    alignItems="Center"
+                    gap="100"
+                    style={{ color: color.Primary.Main, textDecoration: 'none' }}
+                  >
+                    {sizedIcon(House, '50')}
+                    <Text size="T300">Open Project Hub</Text>
+                    {sizedIcon(CaretRight, '50')}
+                  </Box>
+                )}
                 <ProjectIdentityContent
                   project={project}
                   chainAssets={chainAssets}
