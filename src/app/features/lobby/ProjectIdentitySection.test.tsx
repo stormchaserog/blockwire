@@ -57,6 +57,7 @@ vi.mock('$features/project-identity', () => ({
       buy-feed project {projectId} asset {chainAssetId}
     </div>
   ),
+  ProjectBanner: () => null,
 }));
 
 afterEach(() => {

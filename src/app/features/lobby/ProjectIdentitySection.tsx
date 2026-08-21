@@ -9,6 +9,7 @@ import {
 import { getExplorerUrl } from '$utils/blockwire/chainExplorers';
 import {
   ProjectChainAssetPrice, ContractAddressBadge, VerificationBadge, OfficialLinksVault, BuyFeed,
+  ProjectBanner,
 } from '$features/project-identity';
 
 export type ProjectIdentitySectionProps = {
@@ -87,6 +88,7 @@ export function ProjectIdentitySection({ spaceRoomId }: ProjectIdentitySectionPr
 
   return (
     <Box direction="Column" gap="300" style={{ padding: config.space.S400 }}>
+      <ProjectBanner project={project} />
       <Box direction="Column" gap="100">
         <Box alignItems="Center" gap="200">
           <Text size="H4">{project.name}</Text>
