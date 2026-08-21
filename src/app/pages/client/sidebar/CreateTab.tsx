@@ -12,6 +12,7 @@ import { ContainerColor } from '$styles/ContainerColor.css';
 import {
   encodeSearchParamValueArray,
   getCreatePath,
+  getCreateProjectPath,
   getExploreFeaturedPath,
   getExplorePath,
   getExploreServerPath,
@@ -28,6 +29,7 @@ import {
   SquaresFour,
   UsersThree,
   Plus,
+  CurrencyCircleDollar,
 } from '$components/icons/phosphor';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { ScreenSize, useScreenSizeContext } from '$hooks/useScreenSize';
@@ -58,6 +60,11 @@ export function CreateTab() {
 
   const handleCreateSpace = () => {
     openShallowRoute(getCreatePath());
+    setMenuCords(undefined);
+  };
+
+  const handleCreateProject = () => {
+    navigate(getCreateProjectPath());
     setMenuCords(undefined);
   };
 
@@ -132,6 +139,20 @@ export function CreateTab() {
                     >
                       <SettingTile before={composerIcon(SquaresFour)}>
                         <Text size="H6">Create a New Space</Text>
+                      </SettingTile>
+                    </SequenceCard>
+                    <SequenceCard
+                      style={{ padding: config.space.S300 }}
+                      variant="Surface"
+                      direction="Column"
+                      gap="100"
+                      radii="0"
+                      as="button"
+                      type="button"
+                      onClick={handleCreateProject}
+                    >
+                      <SettingTile before={composerIcon(CurrencyCircleDollar)}>
+                        <Text size="H6">Create a New Project</Text>
                       </SettingTile>
                     </SequenceCard>
                     <SequenceCard

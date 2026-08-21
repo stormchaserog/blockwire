@@ -28,6 +28,7 @@ import {
   SPACE_SEARCH_PATH,
   SPACE_PROJECT_PATH,
   CREATE_PATH,
+  CREATE_PROJECT_PATH,
   CREATE_ROOM_PATH,
   BUG_REPORT_PATH,
   NAVIGATE_PATH,
@@ -169,6 +170,7 @@ export const getExploreServerPath = (server: string): string => {
 };
 
 export const getCreatePath = (): string => CREATE_PATH;
+export const getCreateProjectPath = (): string => CREATE_PROJECT_PATH;
 export const getCreateSpacePath = (spaceId?: string): string =>
   spaceId ? withSearchParam(CREATE_PATH, { spaceId }) : CREATE_PATH;
 export const getCreateRoomPath = (spaceId?: string): string =>
