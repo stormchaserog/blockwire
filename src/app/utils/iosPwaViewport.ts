@@ -82,16 +82,16 @@ export function installIosPwaViewportHeight(): void {
     // Focusing a field that sits low on the page makes iOS scroll the whole
     // document to reveal the caret — even with `overflow: hidden`. The app is
     // pinned to the top of the document, so that scroll shoves it up off the
-    // screen and leaves a band of bare body background (the dotted splash
-    // pattern) between the app and the keyboard. The app already shrinks to
-    // sit above the keyboard and scrolls the field into view itself, so the
-    // document scroll is never wanted: undo it.
-    if (keyboardOpen) {
-      const scroller = document.scrollingElement ?? document.documentElement;
-      if (window.scrollY !== 0 || scroller.scrollTop !== 0) {
-        window.scrollTo(0, 0);
-        scroller.scrollTop = 0;
-      }
+    // screen and leaves a band of bare body background between the app and
+    // the keyboard. The app handles keyboard layout itself, so a document
+    // scroll is NEVER wanted — undo it unconditionally, not only when the
+    // keyboard heuristic fires: the AutoFill accessory bar (contact/password
+    // fill) shrinks the layout viewport along with the visual one, which
+    // keeps `keyboardOpen` false while iOS still scrolls the document.
+    const scroller = document.scrollingElement ?? document.documentElement;
+    if (window.scrollY !== 0 || scroller.scrollTop !== 0) {
+      window.scrollTo(0, 0);
+      scroller.scrollTop = 0;
     }
     // Even a one-frame gap flashes the dot pattern; keep the body solid while
     // the keyboard is up so any transient mismatch is invisible.
@@ -114,6 +114,15 @@ export function installIosPwaViewportHeight(): void {
   };
 
   updateHeight();
+
+  // The dotted pattern index.html paints on the body exists only to cover the
+  // blank moment before this bundle runs; the in-app splash screen draws its
+  // own. After boot, the only time the body ever peeks through is a viewport
+  // mismatch (keyboard, AutoFill bar, rotation) — and dots make every one of
+  // those glitches loud. Solid background makes them invisible.
+  document.documentElement.style.backgroundImage = 'none';
+  document.body.style.backgroundImage = 'none';
+
   window.addEventListener('resize', scheduleUpdate);
   window.addEventListener('orientationchange', scheduleUpdate);
   // iOS scrolls the document itself to reveal a focused field low on the
