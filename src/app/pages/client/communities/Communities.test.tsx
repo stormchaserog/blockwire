@@ -30,8 +30,17 @@ vi.mock('$state/hooks/roomList', () => ({
   useOrphanSpaces: () => orphanSpacesMock(),
 }));
 
+const { useRoomsUnreadMock } = vi.hoisted(() => ({
+  // A real spy, not a stub -- this is the only way to catch "did the array
+  // identity stay stable across re-renders", the exact bug this regression
+  // test exists to guard. A stubbed-out useRoomsUnread (as in this file's
+  // other tests) can never surface this class of bug because it never
+  // looks at what was passed in.
+  useRoomsUnreadMock: vi.fn<(roomIds: string[]) => undefined>(() => undefined),
+}));
+
 vi.mock('$state/hooks/unread', () => ({
-  useRoomsUnread: () => undefined,
+  useRoomsUnread: useRoomsUnreadMock,
 }));
 
 vi.mock('$hooks/useRoomMeta', () => ({
@@ -76,5 +85,28 @@ describe('Communities', () => {
       </MemoryRouter>
     );
     expect(screen.queryByText('No communities yet')).not.toBeInTheDocument();
+  });
+
+  it("passes useRoomsUnread a REFERENTIALLY STABLE array across re-renders -- regression test for the freeze this caused in production: useRoomsUnread's internal selector depends on the array by reference (see state/hooks/unread.ts), so a fresh [roomId] literal every render created a new selector every render, which re-subscribed the atom every render, which re-rendered the component: an infinite loop that froze the whole Communities screen", () => {
+    orphanSpacesMock.mockReturnValue(['!wclaw:blockwire.chat']);
+    const { rerender } = render(
+      <MemoryRouter>
+        <Communities />
+      </MemoryRouter>
+    );
+    const firstCallArgs = useRoomsUnreadMock.mock.calls.at(-1)?.[0];
+    expect(firstCallArgs).toEqual(['!wclaw:blockwire.chat']);
+
+    rerender(
+      <MemoryRouter>
+        <Communities />
+      </MemoryRouter>
+    );
+    const secondCallArgs = useRoomsUnreadMock.mock.calls.at(-1)?.[0];
+
+    // The actual regression check: SAME array reference, not just equal
+    // contents. Object.is (===) is exactly what useCallback's dependency
+    // comparison in useRoomsUnread uses internally.
+    expect(secondCallArgs).toBe(firstCallArgs);
   });
 });

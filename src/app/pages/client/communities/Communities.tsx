@@ -30,7 +30,16 @@ function CommunityRowContent({ roomId, room }: { roomId: string; room: Room }) {
   const mx = useMatrixClient();
   const navigate = useNavigate();
   const useAuthentication = useMediaAuthentication();
-  const unread = useRoomsUnread([roomId], roomToUnreadAtom);
+  // useRoomsUnread's internal selector depends on this array BY REFERENCE
+  // (see state/hooks/unread.ts) -- passing a fresh [roomId] literal every
+  // render meant a new selector every render, which re-subscribes the atom
+  // every render, which re-renders this component, which creates another
+  // fresh array: an infinite loop. This is exactly what froze the
+  // Communities screen. Every other caller of useRoomsUnread in the
+  // codebase (HomeTab, DirectTab) already passes a stable, memoized array
+  // -- this one didn't.
+  const unreadRoomIds = useMemo(() => [roomId], [roomId]);
+  const unread = useRoomsUnread(unreadRoomIds, roomToUnreadAtom);
   const name = useRoomName(room);
   const avatarMxc = useRoomAvatar(room);
   const avatarUrl = avatarMxc
