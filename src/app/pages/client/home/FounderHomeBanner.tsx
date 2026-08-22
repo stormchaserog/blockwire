@@ -161,7 +161,7 @@ function OwnedProjectRowContent({ project, room }: { project: ProjectRecord; roo
         )}
         {typeof memberCount === 'number' && (
           <Text size="T200" style={{ color: color.Surface.OnContainer, marginLeft: 'auto' }}>
-            {memberCount.toLocaleString()} members
+            {memberCount.toLocaleString()} member{memberCount === 1 ? '' : 's'}
           </Text>
         )}
       </Box>

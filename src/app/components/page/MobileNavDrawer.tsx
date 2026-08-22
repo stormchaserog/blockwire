@@ -12,6 +12,7 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { lastVisitedRoomAtom } from '$state/room/lastRoom';
 import { usePrefersReducedMotion } from '$hooks/usePrefersReducedMotion';
+import { ScreenSize, useScreenSizeContext } from '$hooks/useScreenSize';
 import {
   DIRECT_PATH,
   DIRECT_ROOM_PATH,
@@ -58,6 +59,7 @@ export function MobileNavDrawer({ nav, rail, bottomNav, children }: MobileNavDra
   const reduceMotion = usePrefersReducedMotion();
   const location = useLocation();
   const navigate = useNavigate();
+  const screenSize = useScreenSizeContext();
   const setLastRoom = useSetAtom(lastVisitedRoomAtom);
   const lastRoom = useAtomValue(lastVisitedRoomAtom);
 
@@ -476,7 +478,7 @@ export function MobileNavDrawer({ nav, rail, bottomNav, children }: MobileNavDra
               overflow: 'hidden',
             }}
           >
-            {rail && (
+            {rail && screenSize !== ScreenSize.Mobile && (
               <div style={{ flexShrink: 0, display: 'flex', overflow: 'hidden' }}>{rail}</div>
             )}
             <div style={{ flexGrow: 1, minWidth: 0, display: 'flex', overflow: 'hidden' }}>
