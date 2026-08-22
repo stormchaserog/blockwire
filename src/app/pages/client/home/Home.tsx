@@ -277,18 +277,23 @@ export function Home() {
       isMobile={isMobile}
       oldSidebar={oldSidebar}
     >
-      {isMobile && <HomeGreeting />}
-      {isMobile && isFounder && ownedProjects && (
-        <>
-          <TasksNeedAttention ownedProjects={ownedProjects} />
-          <FounderHomeBanner ownedProjects={ownedProjects} />
-        </>
-      )}
+      {isMobile && noRoomToDisplay && <HomeGreeting />}
       {noRoomToDisplay ? (
         <HomeEmpty />
       ) : (
         <PageNavContent scrollRef={scrollRef}>
           <Box direction="Column" gap="300">
+            {/* Greeting and founder surfaces live INSIDE the scroll content:
+             *  as fixed flex siblings above it they get compressed when the
+             *  page is tall (text overlapping text), and the design mock
+             *  scrolls the whole Home feed as one surface anyway. */}
+            {isMobile && <HomeGreeting />}
+            {isMobile && isFounder && ownedProjects && (
+              <>
+                <TasksNeedAttention ownedProjects={ownedProjects} />
+                <FounderHomeBanner ownedProjects={ownedProjects} />
+              </>
+            )}
             {/* Design mock's mobile Home: rich community cards for every
              *  joined Space (token line, unread, member pill) followed by
              *  the Discover Projects scroller, both above the flat
