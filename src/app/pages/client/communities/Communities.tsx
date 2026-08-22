@@ -15,6 +15,7 @@ import { mxcUrlToHttp } from '$utils/matrix';
 import { useMediaAuthentication } from '$hooks/useMediaAuthentication';
 import { RoomAvatar } from '$components/room-avatar';
 import { nameInitials } from '$utils/common';
+import { formatCompactCount } from '$utils/formatCompactCount';
 import { getSpaceLobbyPath } from '$pages/pathUtils';
 import { Page, PageContent, PageContentCenter, PageHeader } from '$components/page';
 import { chipIcon, sizedIcon, Lock, MagnifyingGlass, UsersThree } from '$components/icons/phosphor';
@@ -160,26 +161,11 @@ function CommunityCardContent({
           )}
         </Box>
         {memberCount > 0 ? (
-          <Box alignItems="Center" gap="200">
-            <Text size="T200" priority="300" truncate>
-              {`${memberCount} ${memberCount === 1 ? 'member' : 'members'}`}
-            </Text>
-            {onlineCount > 0 && (
-              <Box as="span" shrink="No" alignItems="Center" gap="100">
-                <span
-                  style={{
-                    width: '0.5rem',
-                    height: '0.5rem',
-                    borderRadius: '50%',
-                    background: color.Success.Main,
-                  }}
-                />
-                <Text as="span" size="T200" style={{ color: color.Success.Main }} truncate>
-                  {`${onlineCount} online`}
-                </Text>
-              </Box>
-            )}
-          </Box>
+          <Text size="T200" priority="300" truncate>
+            {`${formatCompactCount(memberCount)} ${memberCount === 1 ? 'member' : 'members'}${
+              onlineCount > 0 ? ` • ${formatCompactCount(onlineCount)} online` : ''
+            }`}
+          </Text>
         ) : (
           privateSpace && (
             <Text size="T200" priority="300" truncate>
