@@ -537,6 +537,23 @@ function migrateParsedLocalStorage(parsed: Record<string, unknown>): void {
     delete parsed.pixelatedImageRendering;
   }
 
+  // The Bubble layout became the new default (was Modern/0) -- but this
+  // function only runs against localStorage that ALREADY exists, meaning
+  // every existing session has messageLayout: 0 baked in from before this
+  // change (useSetSetting persists the FULL settings object on every
+  // single write, so this value is present even for users who never
+  // touched the layout setting specifically -- there's no way to tell
+  // "deliberately chose Modern" from "incidental leftover of changing
+  // something else entirely"). Given that ambiguity, migrate everyone
+  // still on the pre-existing default forward to Bubble, once, here --
+  // exactly like every other value migration in this function. Anyone
+  // who explicitly picks Compact (1) or Bubble (2) again afterward keeps
+  // that choice; this only ever fires once per client, since after this
+  // runs the persisted value is no longer bare "0" from before the flip.
+  if (parsed.messageLayout === 0) {
+    parsed.messageLayout = 2;
+  }
+
   if (
     typeof parsed.themeChatAutoPreviewAnyUrl !== 'boolean' &&
     typeof parsed.themeChatPreviewAnyUrl === 'boolean'
