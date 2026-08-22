@@ -18,6 +18,7 @@ import { roomToParentsAtom } from '$state/room/roomToParents';
 import { roomToUnreadAtom } from '$state/room/roomToUnread';
 import { useRoomsUnread } from '$state/hooks/unread';
 import { useStateEvent } from '$hooks/useStateEvent';
+import { useDexScreenerTokenImage } from '$features/project-identity/useDexScreenerTokenImage';
 import type { Room } from '$types/matrix-sdk';
 
 function formatPrice(price: number | null): string | null {
@@ -55,6 +56,15 @@ function OwnedProjectRowContent({ project, room }: { project: ProjectRecord; roo
 
   const [primaryAsset, setPrimaryAsset] = useState<ProjectChainAsset | null | undefined>(undefined);
   const [snapshot, setSnapshot] = useState<TokenSnapshot | null>(null);
+
+  // Fallback pfp for the many projects that never uploaded an avatar but
+  // do have a token: DexScreener's token image. Only consulted when the
+  // project's own avatar_url is absent.
+  const tokenImageUrl = useDexScreenerTokenImage(
+    avatarUrl ? null : primaryAsset?.chain,
+    avatarUrl ? null : primaryAsset?.contract_address
+  );
+  const displayAvatarUrl = avatarUrl ?? tokenImageUrl ?? undefined;
 
   useEffect(() => {
     setPrimaryAsset(undefined);
@@ -114,8 +124,12 @@ function OwnedProjectRowContent({ project, room }: { project: ProjectRecord; roo
     >
       <Box alignItems="Center" gap="200">
         <Avatar size="400" radii="300">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt={project.name} style={{ width: '100%', height: '100%' }} />
+          {displayAvatarUrl ? (
+            <img
+              src={displayAvatarUrl}
+              alt={project.name}
+              style={{ width: '100%', height: '100%' }}
+            />
           ) : (
             <Text size="H5">{nameInitials(project.name)}</Text>
           )}

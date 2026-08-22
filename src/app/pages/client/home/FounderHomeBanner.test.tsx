@@ -1,9 +1,10 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi, afterEach } from 'vitest';
+import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import type * as ReactRouterDom from 'react-router-dom';
 import type { ProjectRecord, ProjectChainAsset } from '$utils/blockwire/projects';
 import type * as ProjectsModule from '$utils/blockwire/projects';
+import { clearDexScreenerTokenImageCacheForTesting } from '$features/project-identity/useDexScreenerTokenImage';
 import { FounderHomeBanner } from './FounderHomeBanner';
 
 const rooms: Record<string, unknown> = {
@@ -28,8 +29,12 @@ vi.mock('$hooks/useMediaAuthentication', () => ({
   useMediaAuthentication: () => false,
 }));
 
+// A stable alive callback, matching the real useAlive's useCallback-stable
+// return -- an unstable mock (new function per render) would re-trigger
+// every effect that lists `alive` in its deps, looping the fetch effects.
+const stableAlive = () => true;
 vi.mock('$hooks/useAlive', () => ({
-  useAlive: () => () => true,
+  useAlive: () => stableAlive,
 }));
 
 vi.mock('$state/hooks/roomList', () => ({
@@ -92,7 +97,17 @@ const projectB: ProjectRecord = {
   space_room_id: '!missing-room:blockwire.chat',
 };
 
+// The DexScreener pfp-fallback hook uses global fetch directly; stub it so
+// no test ever touches the real network, and default to "no pairs".
+const fetchMock = vi.fn<typeof fetch>(async () => ({ ok: true, json: async () => [] }) as Response);
+
+beforeEach(() => {
+  vi.stubGlobal('fetch', fetchMock);
+  clearDexScreenerTokenImageCacheForTesting();
+});
+
 afterEach(() => {
+  vi.unstubAllGlobals();
   vi.clearAllMocks();
 });
 
@@ -179,5 +194,37 @@ describe('FounderHomeBanner', () => {
     );
 
     await waitFor(() => expect(screen.getByText('+18.4%')).toBeInTheDocument());
+  });
+
+  it("falls back to the token's DexScreener image as the card pfp when the project has no avatar_url", async () => {
+    fetchChainAssets.mockResolvedValueOnce([
+      {
+        id: 7,
+        project_id: 1,
+        chain: 'solana',
+        contract_address: 'E4um9bJTEd463EaiwyNdcDrQK2Q75xyTRczu5Ym5pump',
+        token_symbol: 'WCLAW',
+        token_decimals: 9,
+        verified_control_state: 'unverified',
+        created_at: new Date().toISOString(),
+      },
+    ]);
+    fetchChainAssetSnapshot.mockRejectedValueOnce(new Error('no snapshot'));
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [{ info: { imageUrl: 'https://dd.dexscreener.com/wclaw.png' } }],
+    } as Response);
+
+    render(
+      <MemoryRouter>
+        <FounderHomeBanner ownedProjects={[projectA]} />
+      </MemoryRouter>
+    );
+
+    const img = await screen.findByAltText<HTMLImageElement>('WCLAW Labs');
+    expect(img.src).toBe('https://dd.dexscreener.com/wclaw.png');
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.dexscreener.com/tokens/v1/solana/E4um9bJTEd463EaiwyNdcDrQK2Q75xyTRczu5Ym5pump'
+    );
   });
 });

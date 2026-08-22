@@ -24,6 +24,18 @@ vi.mock('$hooks/useAlive', () => ({
   useAlive: () => stableAlive,
 }));
 
+vi.mock('$hooks/useMediaAuthentication', () => ({
+  useMediaAuthentication: () => false,
+}));
+
+// The rows' DexScreener pfp-fallback hook uses global fetch directly; stub
+// it so no test touches the real network. Default: no pairs, so rows fall
+// back to initials exactly as before.
+const dexFetchMock = vi.fn<typeof fetch>(
+  async () => ({ ok: true, json: async () => [] }) as Response
+);
+vi.stubGlobal('fetch', dexFetchMock);
+
 const { fetchChainAssets, fetchProjectLinks } = vi.hoisted(() => ({
   fetchChainAssets: vi.fn<(mx: unknown, projectId: number) => Promise<ProjectChainAsset[]>>(
     async () => []
