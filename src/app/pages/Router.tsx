@@ -326,7 +326,7 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
         <Route
           path={HOME_PATH}
           element={
-            <PageRoot rail={<SidebarNav />} bottomNav={<UserQuickToolsProvider />} nav={<Home />}>
+            <PageRoot rail={<SidebarNav />} nav={<Home />}>
               <Outlet />
             </PageRoot>
           }
@@ -348,7 +348,7 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
         <Route
           path={DIRECT_PATH}
           element={
-            <PageRoot rail={<SidebarNav />} bottomNav={<UserQuickToolsProvider />} nav={<Direct />}>
+            <PageRoot rail={<SidebarNav />} nav={<Direct />}>
               <Outlet />
             </PageRoot>
           }
@@ -368,11 +368,7 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
           path={SPACE_PATH}
           element={
             <RouteSpaceProvider>
-              <PageRoot
-                rail={<SidebarNav />}
-                bottomNav={<UserQuickToolsProvider />}
-                nav={<Space />}
-              >
+              <PageRoot rail={<SidebarNav />} nav={<Space />}>
                 <Outlet />
               </PageRoot>
             </RouteSpaceProvider>
@@ -412,7 +408,6 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
           element={
             <PageRoot
               rail={<SidebarNav />}
-              bottomNav={<UserQuickToolsProvider />}
               nav={
                 <Suspense fallback={<SplashScreen>{null}</SplashScreen>}>
                   <Explore />
