@@ -1,0 +1,129 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Box, Text, color, config } from 'folds';
+import type { ProjectRecord } from '$utils/blockwire/projects';
+import { fetchChainAssets, fetchProjectLinks } from '$utils/blockwire/projects';
+import { getSpaceHubPath } from '$pages/pathUtils';
+import { useMatrixClient } from '$hooks/useMatrixClient';
+import { useAlive } from '$hooks/useAlive';
+import { sizedIcon, CaretRight, Checks } from '$components/icons/phosphor';
+
+export type SetupProgress = {
+  done: number;
+  total: number;
+};
+
+/** Mirrors the Hub page's Setup Completeness checklist (Hub.tsx) exactly --
+ *  same five items, same predicates -- so the count shown on Home always
+ *  matches what the founder sees when they tap through to the Hub. Every
+ *  item is a real, current fact from the project record + its chain assets
+ *  and official links; nothing simulated. */
+export function computeSetupProgress(
+  project: ProjectRecord,
+  chainAssetCount: number,
+  linkCount: number
+): SetupProgress {
+  const checklist = [
+    !!project.description,
+    !!project.ticker,
+    chainAssetCount > 0,
+    linkCount > 0,
+    project.owner_verification_state === 'verified',
+  ];
+  return { done: checklist.filter(Boolean).length, total: checklist.length };
+}
+
+type TaskRow = {
+  project: ProjectRecord;
+  progress: SetupProgress;
+};
+
+function TaskProjectRow({ project, progress }: TaskRow) {
+  const navigate = useNavigate();
+
+  return (
+    <Box
+      alignItems="Center"
+      gap="200"
+      style={{
+        padding: config.space.S300,
+        borderRadius: config.radii.R400,
+        backgroundColor: color.SurfaceVariant.Container,
+        cursor: 'pointer',
+      }}
+      onClick={() => navigate(getSpaceHubPath(project.space_room_id))}
+    >
+      <Box grow="Yes" direction="Column" gap="0">
+        <Text size="T400" truncate>
+          {project.name}
+        </Text>
+        <Text size="T200" style={{ color: color.Surface.OnContainer }}>
+          {progress.done} of {progress.total} setup tasks done
+        </Text>
+      </Box>
+      {sizedIcon(CaretRight, '100')}
+    </Box>
+  );
+}
+
+/** UI Bible §7 (Founder and Team Home): "What needs me today?" -- this is
+ *  the first real "Tasks" surface on Home, and it is deliberately limited
+ *  to the one task system that actually exists: the Hub's setup checklist.
+ *  One row per owned project whose checklist is incomplete, linking
+ *  straight to that project's Hub. Renders nothing at all (no empty shell,
+ *  no spinner) while loading, when a project's data could not be fetched
+ *  (an unreachable gateway must not claim tasks are outstanding), or when
+ *  every owned project is fully set up. */
+export function TasksNeedAttention({ ownedProjects }: { ownedProjects: ProjectRecord[] }) {
+  const mx = useMatrixClient();
+  const alive = useAlive();
+  const [rows, setRows] = useState<TaskRow[] | undefined>(undefined);
+
+  useEffect(() => {
+    setRows(undefined);
+    Promise.all(
+      ownedProjects.map(async (project): Promise<TaskRow | null> => {
+        try {
+          const [assets, links] = await Promise.all([
+            fetchChainAssets(mx, project.project_id),
+            fetchProjectLinks(mx, project.project_id),
+          ]);
+          const progress = computeSetupProgress(project, assets.length, links.length);
+          return progress.done < progress.total ? { project, progress } : null;
+        } catch {
+          // Unknown state is not the same as "tasks outstanding" -- skip the
+          // project rather than show a row built on a failed fetch.
+          return null;
+        }
+      })
+    ).then((results) => {
+      if (alive()) setRows(results.filter((row): row is TaskRow => row !== null));
+    });
+  }, [mx, ownedProjects, alive]);
+
+  if (!rows || rows.length === 0) return null;
+
+  return (
+    <Box
+      direction="Column"
+      gap="200"
+      style={{
+        margin: `${config.space.S300} ${config.space.S300} 0`,
+      }}
+    >
+      <Box alignItems="Center" gap="100">
+        {sizedIcon(Checks, '100')}
+        <Text size="L400">Tasks need attention</Text>
+      </Box>
+      <Box direction="Column" gap="200">
+        {rows.map((row) => (
+          <TaskProjectRow
+            key={row.project.project_id}
+            project={row.project}
+            progress={row.progress}
+          />
+        ))}
+      </Box>
+    </Box>
+  );
+}
