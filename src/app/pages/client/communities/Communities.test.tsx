@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import type * as Jotai from 'jotai';
@@ -6,7 +7,16 @@ import type { Room } from '$types/matrix-sdk';
 import { Communities } from './Communities';
 
 const rooms: Record<string, Partial<Room>> = {
-  '!wclaw:blockwire.chat': { name: 'WCLAW Labs', roomId: '!wclaw:blockwire.chat' },
+  '!wclaw:blockwire.chat': {
+    name: 'WCLAW Labs',
+    roomId: '!wclaw:blockwire.chat',
+    getJoinedMemberCount: () => 42,
+  },
+  '!sol:blockwire.chat': {
+    name: 'Solana Devs',
+    roomId: '!sol:blockwire.chat',
+    getJoinedMemberCount: () => 0,
+  },
 };
 
 const mockMatrixClient = {
@@ -74,6 +84,46 @@ describe('Communities', () => {
         <Communities />
       </MemoryRouter>
     );
+    expect(screen.getByText('WCLAW Labs')).toBeInTheDocument();
+  });
+
+  it('shows the joined member count as a second line on each card', () => {
+    orphanSpacesMock.mockReturnValue(['!wclaw:blockwire.chat']);
+    render(
+      <MemoryRouter>
+        <Communities />
+      </MemoryRouter>
+    );
+    expect(screen.getByText('42 members')).toBeInTheDocument();
+  });
+
+  it('omits the member count line entirely (no "0 members") when the count is unavailable', () => {
+    orphanSpacesMock.mockReturnValue(['!sol:blockwire.chat']);
+    render(
+      <MemoryRouter>
+        <Communities />
+      </MemoryRouter>
+    );
+    expect(screen.getByText('Solana Devs')).toBeInTheDocument();
+    expect(screen.queryByText('0 members')).not.toBeInTheDocument();
+  });
+
+  it('filters the community list by name, case-insensitively, as the user types in search', async () => {
+    const user = userEvent.setup();
+    orphanSpacesMock.mockReturnValue(['!wclaw:blockwire.chat', '!sol:blockwire.chat']);
+    render(
+      <MemoryRouter>
+        <Communities />
+      </MemoryRouter>
+    );
+    expect(screen.getByText('WCLAW Labs')).toBeInTheDocument();
+    expect(screen.getByText('Solana Devs')).toBeInTheDocument();
+
+    await user.type(screen.getByPlaceholderText('Search communities'), 'solana');
+    expect(screen.queryByText('WCLAW Labs')).not.toBeInTheDocument();
+    expect(screen.getByText('Solana Devs')).toBeInTheDocument();
+
+    await user.clear(screen.getByPlaceholderText('Search communities'));
     expect(screen.getByText('WCLAW Labs')).toBeInTheDocument();
   });
 

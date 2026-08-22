@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Avatar, Box, Scroll, Text, color } from 'folds';
+import { Avatar, Box, Input, Scroll, Text, color } from 'folds';
 import { useAtomValue } from 'jotai';
 import type { Room } from '$types/matrix-sdk';
 import { useMatrixClient } from '$hooks/useMatrixClient';
@@ -16,17 +16,26 @@ import { RoomAvatar } from '$components/room-avatar';
 import { nameInitials } from '$utils/common';
 import { getSpaceLobbyPath } from '$pages/pathUtils';
 import { Page, PageContent, PageContentCenter, PageHeader } from '$components/page';
-import { sizedIcon, UsersThree } from '$components/icons/phosphor';
+import { chipIcon, sizedIcon, MagnifyingGlass, UsersThree } from '$components/icons/phosphor';
 import { factoryRoomIdByActivity } from '$utils/sort';
+import * as css from './style.css';
 
-function CommunityRow({ roomId }: { roomId: string }) {
+function CommunityCard({ roomId, filter }: { roomId: string; filter: string }) {
   const mx = useMatrixClient();
   const room = mx.getRoom(roomId);
   if (!room) return null;
-  return <CommunityRowContent roomId={roomId} room={room} />;
+  return <CommunityCardContent roomId={roomId} room={room} filter={filter} />;
 }
 
-function CommunityRowContent({ roomId, room }: { roomId: string; room: Room }) {
+function CommunityCardContent({
+  roomId,
+  room,
+  filter,
+}: {
+  roomId: string;
+  room: Room;
+  filter: string;
+}) {
   const mx = useMatrixClient();
   const navigate = useNavigate();
   const useAuthentication = useMediaAuthentication();
@@ -45,12 +54,18 @@ function CommunityRowContent({ roomId, room }: { roomId: string; room: Room }) {
   const avatarUrl = avatarMxc
     ? (mxcUrlToHttp(mx, avatarMxc, useAuthentication, 96, 96, 'crop') ?? undefined)
     : undefined;
+  const memberCount = room.getJoinedMemberCount();
+
+  // Client-side search filter: hide (don't unmount-crash) cards whose name
+  // doesn't contain the query. Hooks above always run so the unread atom
+  // subscription stays stable while typing.
+  if (filter && !name.toLowerCase().includes(filter)) return null;
 
   return (
     <Box
+      className={css.CommunityCard}
       alignItems="Center"
       gap="300"
-      style={{ padding: '0.75rem 0', cursor: 'pointer' }}
       onClick={() => navigate(getSpaceLobbyPath(roomId))}
     >
       <Avatar size="400" radii="300">
@@ -63,25 +78,31 @@ function CommunityRowContent({ roomId, room }: { roomId: string; room: Room }) {
       </Avatar>
       <Box grow="Yes" direction="Column" gap="0">
         <Text size="T400" truncate>
-          {name}
+          <b>{name}</b>
         </Text>
+        {memberCount > 0 && (
+          <Text size="T200" priority="300" truncate>
+            {`${memberCount} members`}
+          </Text>
+        )}
       </Box>
       {!!unread && unread.total > 0 && (
         <Box
+          shrink="No"
+          alignItems="Center"
+          justifyContent="Center"
           style={{
-            minWidth: '1.25rem',
             height: '1.25rem',
             borderRadius: '1.25rem',
             background: unread.highlight > 0 ? color.Critical.Main : color.Secondary.Main,
             color: unread.highlight > 0 ? color.Critical.OnContainer : color.Secondary.OnContainer,
             fontSize: '0.75rem',
             fontWeight: 700,
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '0 0.375rem',
+            padding: '0 0.5rem',
+            whiteSpace: 'nowrap',
           }}
         >
-          {unread.total > 99 ? '99+' : unread.total}
+          {`${unread.total > 99 ? '99+' : unread.total} unread`}
         </Box>
       )}
     </Box>
@@ -100,6 +121,8 @@ export function Communities() {
   const mx = useMatrixClient();
   const roomToParents = useAtomValue(roomToParentsAtom);
   const orphanSpaces = useOrphanSpaces(mx, allRoomsAtom, roomToParents);
+  const [searchInput, setSearchInput] = useState('');
+  const filter = searchInput.trim().toLowerCase();
 
   const sortedSpaces = useMemo(
     () => Array.from(orphanSpaces).toSorted(factoryRoomIdByActivity(mx)),
@@ -126,10 +149,21 @@ export function Communities() {
                   </Text>
                 </Box>
               ) : (
-                <Box direction="Column">
-                  {sortedSpaces.map((roomId) => (
-                    <CommunityRow key={roomId} roomId={roomId} />
-                  ))}
+                <Box direction="Column" gap="400">
+                  <Input
+                    size="400"
+                    variant="Surface"
+                    radii="400"
+                    placeholder="Search communities"
+                    before={chipIcon(MagnifyingGlass)}
+                    value={searchInput}
+                    onChange={(evt) => setSearchInput(evt.currentTarget.value)}
+                  />
+                  <Box direction="Column" gap="200">
+                    {sortedSpaces.map((roomId) => (
+                      <CommunityCard key={roomId} roomId={roomId} filter={filter} />
+                    ))}
+                  </Box>
                 </Box>
               )}
             </PageContentCenter>
