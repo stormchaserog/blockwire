@@ -60,6 +60,8 @@ import { useClientConfig } from '$hooks/useClientConfig';
 import { getMxIdServer } from '$utils/mxIdHelper';
 import { NavMenu } from '$components/nav/NavMenu';
 import { useMenuAnchor } from '$hooks/useMenuAnchor';
+import { useMyOwnedProjects } from '$hooks/useMyOwnedProjects';
+import { FounderHomeBanner } from './FounderHomeBanner';
 
 type HomeMenuProps = {
   requestClose: () => void;
@@ -187,6 +189,7 @@ export function Home() {
   const openShallowRoute = useOpenShallowRoute();
   const searchSelected = useHomeSearchSelected();
   const noRoomToDisplay = rooms.length === 0;
+  const { ownedProjects, isFounder } = useMyOwnedProjects();
 
   // Message activity is internal SDK state (getLastActiveTimestamp) invisible
   // to React, so without a nudge the "newest on top" list freezes in the
@@ -270,6 +273,9 @@ export function Home() {
       isMobile={isMobile}
       oldSidebar={oldSidebar}
     >
+      {isMobile && isFounder && ownedProjects && (
+        <FounderHomeBanner ownedProjects={ownedProjects} />
+      )}
       {noRoomToDisplay ? (
         <HomeEmpty />
       ) : (
