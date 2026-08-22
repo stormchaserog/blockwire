@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Avatar, Box, Input, Scroll, Text, color } from 'folds';
 import { useAtomValue } from 'jotai';
 import type { MatrixClient, Room, UserEventHandlerMap } from '$types/matrix-sdk';
-import { UserEvent } from '$types/matrix-sdk';
+import { JoinRule, UserEvent } from '$types/matrix-sdk';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { roomToParentsAtom } from '$state/room/roomToParents';
 import { allRoomsAtom } from '$state/room-list/roomList';
@@ -17,9 +17,41 @@ import { RoomAvatar } from '$components/room-avatar';
 import { nameInitials } from '$utils/common';
 import { getSpaceLobbyPath } from '$pages/pathUtils';
 import { Page, PageContent, PageContentCenter, PageHeader } from '$components/page';
-import { chipIcon, sizedIcon, MagnifyingGlass, UsersThree } from '$components/icons/phosphor';
+import { chipIcon, sizedIcon, Lock, MagnifyingGlass, UsersThree } from '$components/icons/phosphor';
 import { factoryRoomIdByActivity } from '$utils/sort';
 import * as css from './style.css';
+
+/** The chip row's filter facets. Client-side only, local state, no
+ *  persistence -- composes with (does not replace) the search filter. */
+const COMMUNITY_FILTERS = ['All', 'Joined', 'Favorites', 'Teams'] as const;
+type CommunityFilter = (typeof COMMUNITY_FILTERS)[number];
+
+/** "Teams" per the design mock are private spaces: invite-only or knock.
+ *  Same joinRule read as useLocalRoomSummary (hooks/useLocalRoomSummary.ts). */
+const isPrivateSpace = (room: Room): boolean => {
+  const joinRule = room.getJoinRule();
+  return joinRule === JoinRule.Invite || joinRule === JoinRule.Knock;
+};
+
+const matchesCommunityFilter = (room: Room, chip: CommunityFilter): boolean => {
+  switch (chip) {
+    case 'Joined':
+      return room.getMyMembership() === 'join';
+    case 'Favorites':
+      // Room#tags is a Record keyed by tag name (matrix-js-sdk models/room).
+      return !!room.tags && 'm.favourite' in room.tags;
+    case 'Teams':
+      return isPrivateSpace(room);
+    default:
+      return true;
+  }
+};
+
+const EMPTY_FILTER_TEXT: Record<Exclude<CommunityFilter, 'All'>, string> = {
+  Joined: 'No joined communities yet',
+  Favorites: 'No favorites yet',
+  Teams: 'No teams yet',
+};
 
 function CommunityCard({ roomId, filter }: { roomId: string; filter: string }) {
   const mx = useMatrixClient();
@@ -94,6 +126,7 @@ function CommunityCardContent({
     : undefined;
   const memberCount = room.getJoinedMemberCount();
   const onlineCount = useOnlineMemberCount(room);
+  const privateSpace = isPrivateSpace(room);
 
   // Client-side search filter: hide (don't unmount-crash) cards whose name
   // doesn't contain the query. Hooks above always run so the unread atom
@@ -116,10 +149,17 @@ function CommunityCardContent({
         />
       </Avatar>
       <Box grow="Yes" direction="Column" gap="0">
-        <Text size="T400" truncate>
-          <b>{name}</b>
-        </Text>
-        {memberCount > 0 && (
+        <Box alignItems="Center" gap="100">
+          <Text size="T400" truncate>
+            <b>{name}</b>
+          </Text>
+          {privateSpace && (
+            <Box as="span" shrink="No" alignItems="Center" data-testid="private-space-lock">
+              {chipIcon(Lock)}
+            </Box>
+          )}
+        </Box>
+        {memberCount > 0 ? (
           <Box alignItems="Center" gap="200">
             <Text size="T200" priority="300" truncate>
               {`${memberCount} members`}
@@ -140,6 +180,12 @@ function CommunityCardContent({
               </Box>
             )}
           </Box>
+        ) : (
+          privateSpace && (
+            <Text size="T200" priority="300" truncate>
+              Private Team Space
+            </Text>
+          )
         )}
       </Box>
       {!!unread && unread.total > 0 && (
@@ -179,10 +225,24 @@ export function Communities() {
   const orphanSpaces = useOrphanSpaces(mx, allRoomsAtom, roomToParents);
   const [searchInput, setSearchInput] = useState('');
   const filter = searchInput.trim().toLowerCase();
+  const [activeChip, setActiveChip] = useState<CommunityFilter>('All');
 
   const sortedSpaces = useMemo(
     () => Array.from(orphanSpaces).toSorted(factoryRoomIdByActivity(mx)),
     [mx, orphanSpaces]
+  );
+
+  // Chip facet applies at the list level (whole rooms in or out); the search
+  // filter stays inside the cards (see CommunityCardContent) so both compose.
+  const chipFilteredSpaces = useMemo(
+    () =>
+      activeChip === 'All'
+        ? sortedSpaces
+        : sortedSpaces.filter((roomId) => {
+            const room = mx.getRoom(roomId);
+            return !!room && matchesCommunityFilter(room, activeChip);
+          }),
+    [mx, sortedSpaces, activeChip]
   );
 
   return (
@@ -215,11 +275,37 @@ export function Communities() {
                     value={searchInput}
                     onChange={(evt) => setSearchInput(evt.currentTarget.value)}
                   />
-                  <Box direction="Column" gap="200">
-                    {sortedSpaces.map((roomId) => (
-                      <CommunityCard key={roomId} roomId={roomId} filter={filter} />
+                  <div className={css.ChipRow}>
+                    {COMMUNITY_FILTERS.map((chip) => (
+                      <button
+                        key={chip}
+                        type="button"
+                        className={css.FilterChip}
+                        aria-pressed={activeChip === chip}
+                        onClick={() => setActiveChip(chip)}
+                      >
+                        <Text as="span" size="T300">
+                          {chip}
+                        </Text>
+                      </button>
                     ))}
-                  </Box>
+                  </div>
+                  {activeChip !== 'All' && chipFilteredSpaces.length === 0 ? (
+                    <Box
+                      direction="Column"
+                      gap="100"
+                      alignItems="Center"
+                      style={{ padding: '2rem 0' }}
+                    >
+                      <Text size="H5">{EMPTY_FILTER_TEXT[activeChip]}</Text>
+                    </Box>
+                  ) : (
+                    <Box direction="Column" gap="200">
+                      {chipFilteredSpaces.map((roomId) => (
+                        <CommunityCard key={roomId} roomId={roomId} filter={filter} />
+                      ))}
+                    </Box>
+                  )}
                 </Box>
               )}
             </PageContentCenter>
