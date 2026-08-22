@@ -1,4 +1,5 @@
 const IOS_PWA_VIEWPORT_HEIGHT = '--sable-ios-pwa-viewport-height';
+const IOS_KEYBOARD_OPEN_CLASS = 'ios-keyboard-open';
 const MIN_KEYBOARD_HEIGHT = 100;
 
 const isStandaloneIosPwa = (): boolean =>
@@ -64,14 +65,37 @@ export function installIosPwaViewportHeight(): void {
   const updateHeight = () => {
     frame = 0;
     const viewport = window.visualViewport;
+    const editableFocused = isEditableFocused();
+    const layoutHeight = window.innerHeight;
+    const visualHeight = viewport?.height ?? window.innerHeight;
     const height = Math.round(
       computeViewportHeight({
-        layoutHeight: window.innerHeight,
-        visualHeight: viewport?.height ?? window.innerHeight,
+        layoutHeight,
+        visualHeight,
         visualOffsetTop: viewport?.offsetTop ?? 0,
-        editableFocused: isEditableFocused(),
+        editableFocused,
       })
     );
+
+    const keyboardOpen = editableFocused && layoutHeight - visualHeight > MIN_KEYBOARD_HEIGHT;
+
+    // Focusing a field that sits low on the page makes iOS scroll the whole
+    // document to reveal the caret — even with `overflow: hidden`. The app is
+    // pinned to the top of the document, so that scroll shoves it up off the
+    // screen and leaves a band of bare body background (the dotted splash
+    // pattern) between the app and the keyboard. The app already shrinks to
+    // sit above the keyboard and scrolls the field into view itself, so the
+    // document scroll is never wanted: undo it.
+    if (keyboardOpen) {
+      const scroller = document.scrollingElement ?? document.documentElement;
+      if (window.scrollY !== 0 || scroller.scrollTop !== 0) {
+        window.scrollTo(0, 0);
+        scroller.scrollTop = 0;
+      }
+    }
+    // Even a one-frame gap flashes the dot pattern; keep the body solid while
+    // the keyboard is up so any transient mismatch is invisible.
+    document.documentElement.classList.toggle(IOS_KEYBOARD_OPEN_CLASS, keyboardOpen);
 
     // Writing this property relayouts the entire app, so only write it when
     // the answer actually changed. Without this, every settle timer and every
@@ -92,6 +116,9 @@ export function installIosPwaViewportHeight(): void {
   updateHeight();
   window.addEventListener('resize', scheduleUpdate);
   window.addEventListener('orientationchange', scheduleUpdate);
+  // iOS scrolls the document itself to reveal a focused field low on the
+  // page; updateHeight undoes that, so it has to hear about it.
+  window.addEventListener('scroll', scheduleUpdate);
   window.visualViewport?.addEventListener('resize', scheduleUpdate);
   document.addEventListener('focusin', scheduleUpdate);
   document.addEventListener('focusout', scheduleUpdate);
