@@ -162,7 +162,7 @@ function CommunityCardContent({
         {memberCount > 0 ? (
           <Box alignItems="Center" gap="200">
             <Text size="T200" priority="300" truncate>
-              {`${memberCount} members`}
+              {`${memberCount} ${memberCount === 1 ? 'member' : 'members'}`}
             </Text>
             {onlineCount > 0 && (
               <Box as="span" shrink="No" alignItems="Center" gap="100">

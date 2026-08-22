@@ -1,15 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Avatar, Box, Text, color, config } from 'folds';
+import { Box, Text, color, config } from 'folds';
 import type { ProjectRecord, ProjectChainAsset } from '$utils/blockwire/projects';
 import { fetchChainAssets, fetchProjectLinks } from '$utils/blockwire/projects';
 import { getSpaceHubPath } from '$pages/pathUtils';
-import { mxcUrlToHttp } from '$utils/matrix';
 import { useMatrixClient } from '$hooks/useMatrixClient';
-import { useMediaAuthentication } from '$hooks/useMediaAuthentication';
 import { useAlive } from '$hooks/useAlive';
-import { useDexScreenerTokenImage } from '$features/project-identity/useDexScreenerTokenImage';
-import { nameInitials } from '$utils/common';
 import { sizedIcon, CaretRight, Checks } from '$components/icons/phosphor';
 
 export type SetupProgress = {
@@ -47,21 +43,8 @@ type TaskRow = {
   primaryAsset: ProjectChainAsset | null;
 };
 
-function TaskProjectRow({ project, progress, primaryAsset }: TaskRow) {
-  const mx = useMatrixClient();
+function TaskProjectRow({ project, progress }: TaskRow) {
   const navigate = useNavigate();
-  const useAuthentication = useMediaAuthentication();
-
-  // Same pfp fallback chain as the FounderHomeBanner cards: the project's
-  // own avatar, else the token's DexScreener image, else initials.
-  const avatarUrl = project.avatar_url
-    ? (mxcUrlToHttp(mx, project.avatar_url, useAuthentication, 64, 64, 'crop') ?? undefined)
-    : undefined;
-  const tokenImageUrl = useDexScreenerTokenImage(
-    avatarUrl ? null : primaryAsset?.chain,
-    avatarUrl ? null : primaryAsset?.contract_address
-  );
-  const displayAvatarUrl = avatarUrl ?? tokenImageUrl ?? undefined;
 
   return (
     <Box
@@ -75,17 +58,6 @@ function TaskProjectRow({ project, progress, primaryAsset }: TaskRow) {
       }}
       onClick={() => navigate(getSpaceHubPath(project.space_room_id))}
     >
-      <Avatar size="300" radii="300">
-        {displayAvatarUrl ? (
-          <img
-            src={displayAvatarUrl}
-            alt={project.name}
-            style={{ width: '100%', height: '100%' }}
-          />
-        ) : (
-          <Text size="H6">{nameInitials(project.name)}</Text>
-        )}
-      </Avatar>
       <Box grow="Yes" direction="Column" gap="0">
         <Text size="T400" truncate>
           {project.name}

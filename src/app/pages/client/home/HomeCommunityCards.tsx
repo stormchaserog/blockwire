@@ -200,7 +200,9 @@ function CommunityHomeCardContent({ roomId, room }: { roomId: string; room: Room
         <Box grow="Yes" justifyContent="End">
           <Badge variant="Primary" fill="Soft" radii="Pill" size="500">
             <Text size="L400">
-              {isTeamSpace ? 'Team' : `${formatCompactCount(memberCount)} members`}
+              {isTeamSpace
+                ? 'Team'
+                : `${formatCompactCount(memberCount)} ${memberCount === 1 ? 'member' : 'members'}`}
             </Text>
           </Badge>
         </Box>
