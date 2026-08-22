@@ -6,7 +6,7 @@ import { useAlive } from '$hooks/useAlive';
 import { useMediaAuthentication } from '$hooks/useMediaAuthentication';
 import { fetchDiscoverProjects, type ProjectRecord } from '$utils/blockwire/projects';
 import { mxcUrlToHttp } from '$utils/matrix';
-import { nameInitials } from '$utils/common';
+import { nameInitials, formatTicker } from '$utils/common';
 import { getSpaceLobbyPath } from '$pages/pathUtils';
 import { Page, PageContent, PageContentCenter, PageHeader } from '$components/page';
 import { sizedIcon, Compass } from '$components/icons/phosphor';
@@ -39,7 +39,7 @@ function DiscoverProjectRow({ project }: { project: ProjectRecord }) {
         </Text>
         {project.ticker && (
           <Text size="T200" style={{ color: color.Surface.OnContainer }} truncate>
-            ${project.ticker}
+            {formatTicker(project.ticker)}
           </Text>
         )}
       </Box>

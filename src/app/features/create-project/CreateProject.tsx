@@ -156,9 +156,17 @@ export function CreateProjectForm({ onCreate }: CreateProjectFormProps) {
     const name = nameInput?.value.trim();
     if (!name) return;
 
+    // The app's own render convention (see ProjectIdentityContent.tsx,
+    // FounderHomeBanner.tsx) always prepends "$" itself -- storing a
+    // ticker that already includes one produces a real "$$WCLAW" bug on
+    // every card that shows it. Strip it here, once, at the source,
+    // rather than patching every render site.
+    const rawTicker = tickerInput?.value.trim();
+    const ticker = rawTicker ? rawTicker.replace(/^\$+/, '') || undefined : undefined;
+
     create({
       name,
-      ticker: tickerInput?.value.trim() || undefined,
+      ticker,
       description: descriptionTextArea?.value.trim() || undefined,
       contractAddress: contractAddressInput?.value.trim() || undefined,
     }).then((project) => {

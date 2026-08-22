@@ -116,6 +116,18 @@ export const nameInitials = (str: string | undefined | null, len = 1): string =>
   return Array.from(str).slice(0, len).join('') || '';
 };
 
+/** Every ticker display site prepends its own "$" -- this strips any
+ *  leading "$" the STORED value might already carry (from data entered
+ *  before CreateProject.tsx normalized on input, or any other write
+ *  path), so a corrupted "$WCLAW" row renders as "$WCLAW", not
+ *  "$$WCLAW". Returns null for a null/blank ticker so callers can keep
+ *  their existing `{ticker && ...}` guard unchanged. */
+export const formatTicker = (ticker: string | null | undefined): string | null => {
+  if (!ticker) return null;
+  const stripped = ticker.replace(/^\$+/, '');
+  return stripped ? `$${stripped}` : null;
+};
+
 export const randomStr = (len = 12): string => {
   let str = '';
   const minCode = 'A'.charCodeAt(0);

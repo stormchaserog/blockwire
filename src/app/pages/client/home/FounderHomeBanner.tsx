@@ -10,7 +10,7 @@ import { mxcUrlToHttp } from '$utils/matrix';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { useMediaAuthentication } from '$hooks/useMediaAuthentication';
 import { useAlive } from '$hooks/useAlive';
-import { nameInitials } from '$utils/common';
+import { nameInitials, formatTicker } from '$utils/common';
 import { sizedIcon, House, SealCheck } from '$components/icons/phosphor';
 import { useSpaceChildren, useRecursiveChildScopeFactory } from '$state/hooks/roomList';
 import { allRoomsAtom } from '$state/room-list/roomList';
@@ -131,7 +131,7 @@ function OwnedProjectRowContent({ project, room }: { project: ProjectRecord; roo
           <Box alignItems="Center" gap="100">
             {project.ticker && (
               <Text size="T200" style={{ color: color.Surface.OnContainer }}>
-                ${project.ticker}
+                {formatTicker(project.ticker)}
               </Text>
             )}
             {primaryAsset && (

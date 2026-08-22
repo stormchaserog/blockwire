@@ -4,6 +4,7 @@ import { describe, it, expect } from 'vitest';
 import {
   binarySearch,
   bytesToSize,
+  formatTicker,
   millisecondsToMinutesAndSeconds,
   nameInitials,
   parseGeoUri,
@@ -170,5 +171,23 @@ describe('trimLeadingSlash / trimTrailingSlash / trimSlash', () => {
     ['/', ''],
   ])('trimSlash(%s) → %s', (input, expected) => {
     expect(trimSlash(input)).toBe(expected);
+  });
+});
+
+describe('formatTicker', () => {
+  // Regression: every render site (ProjectIdentityContent, Discover,
+  // FounderHomeBanner) prepends its own "$" -- a stored ticker that
+  // already has one produced a real "$$WCLAW" bug on live production
+  // data, caught from a screenshot.
+  it.each([
+    ['WCLAW', '$WCLAW'],
+    ['$WCLAW', '$WCLAW'],
+    ['$$WCLAW', '$WCLAW'],
+    [null, null],
+    [undefined, null],
+    ['', null],
+    ['$', null],
+  ])('formatTicker(%s) → %s', (input, expected) => {
+    expect(formatTicker(input)).toBe(expected);
   });
 });

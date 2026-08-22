@@ -1,5 +1,6 @@
 import { Box, Chip, Text, color, config } from 'folds';
 import { getExplorerUrl } from '$utils/blockwire/chainExplorers';
+import { formatTicker } from '$utils/common';
 import type {
   ProjectChainAsset,
   ProjectLinkRecord,
@@ -43,7 +44,7 @@ export function ProjectIdentityContent({
           <Text size="H4">{project.name}</Text>
           {project.ticker && (
             <Text size="T300" style={{ color: color.Surface.OnContainer }}>
-              ${project.ticker}
+              {formatTicker(project.ticker)}
             </Text>
           )}
           {/* UI Bible §18: "Project Owner Verified" is a DIFFERENT precise
