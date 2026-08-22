@@ -1,6 +1,7 @@
 import type { FormEventHandler } from 'react';
 import { useCallback } from 'react';
 import { RoomType, type MatrixError } from '$types/matrix-sdk';
+import { CustomStateEvent } from '$types/matrix/room';
 import { Box, color, Input, Text, TextArea } from 'folds';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { AsyncStatus, useAsyncCallback } from '$hooks/useAsyncCallback';
@@ -96,6 +97,40 @@ export function CreateProjectForm({ onCreate }: CreateProjectFormProps) {
           } catch {
             /* the project itself succeeded; onCreate below still fires */
           }
+        }
+
+        // UI Bible §8: project navigation is Chat/Updates/Hub/Info. "Chat"
+        // has always meant the space's own room hierarchy (Lobby), but
+        // nothing auto-creates a canonical room for "Updates" -- a fresh
+        // project has ZERO child rooms until someone manually adds one, so
+        // there is no reliable existing room to treat as the announcements
+        // channel. Rather than build a fragile "guess which room is
+        // Updates" heuristic, create one, explicitly, every time: a normal
+        // room named "Updates" as a child of the new space. SpaceUpdates.tsx
+        // reads its pinned messages as the actual announcements feed.
+        // Same error tolerance as the contract-address step above: a
+        // project without an Updates room is still a real, usable project.
+        try {
+          const spaceRoom = mx.getRoom(spaceRoomId);
+          if (spaceRoom) {
+            const updatesRoomId = await createRoom(mx, {
+              version: '1',
+              access: CreateRoomAccess.Restricted,
+              parent: spaceRoom,
+              name: 'Updates',
+              topic: 'Official announcements for this project.',
+              knock: false,
+              allowFederation: true,
+            });
+            await mx.sendStateEvent(
+              spaceRoomId,
+              CustomStateEvent.BlockWireSpaceUpdatesRoom,
+              { room_id: updatesRoomId },
+              ''
+            );
+          }
+        } catch {
+          /* the project itself succeeded; onCreate below still fires */
         }
 
         return project;

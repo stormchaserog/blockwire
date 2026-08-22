@@ -22,6 +22,7 @@ import {
   useProjectIdentity,
   ProjectIdentityContent,
   ManageProjectPanel,
+  ProjectTabBar,
 } from '$features/project-identity';
 
 function ProjectHeader({ title }: { title: string }) {
@@ -84,6 +85,7 @@ export function SpaceProject() {
     return (
       <Page>
         <ProjectHeader title="Project" />
+        <ProjectTabBar />
         <Box grow="Yes" alignItems="Center" justifyContent="Center">
           <Text size="T300">Loading…</Text>
         </Box>
@@ -95,6 +97,7 @@ export function SpaceProject() {
     return (
       <Page>
         <ProjectHeader title="Project" />
+        <ProjectTabBar />
         <Box grow="Yes" alignItems="Center" justifyContent="Center" direction="Column" gap="100">
           <Text size="H4">No project yet</Text>
           <Text size="T300">This space doesn&apos;t have a project bound to it.</Text>
@@ -106,6 +109,7 @@ export function SpaceProject() {
   return (
     <Page>
       <ProjectHeader title={project.name} />
+      <ProjectTabBar />
       <Box style={{ position: 'relative' }} grow="Yes">
         <Scroll hideTrack visibility="Hover">
           <PageContent>

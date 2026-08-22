@@ -38,6 +38,10 @@ type RoomBannerContent = {
   url?: string;
 };
 
+type BlockWireSpaceUpdatesRoomContent = {
+  room_id: string;
+};
+
 type BookmarkIndexContent = {
   version: 1;
   revision: number;
@@ -71,6 +75,7 @@ declare module 'matrix-js-sdk/lib/@types/event' {
     [prefix.MATRIX_SABLE_UNSTABLE_STATE_COSMETICS_MEMBER_PRONOUNS_PROPERTY_NAME]: RoomCosmeticsPronounsEventContent;
     [prefix.MATRIX_SABLE_UNSTABLE_STATE_ROOM_ABBREVIATIONS_PROPERTY_NAME]: RoomAbbreviationsContent;
     [prefix.MATRIX_UNSTABLE_STATE_ROOM_BANNER_PROPERTY_NAME]: RoomBannerContent;
+    'chat.blockwire.space.updates_room': BlockWireSpaceUpdatesRoomContent;
   }
 
   interface AccountDataEvents {

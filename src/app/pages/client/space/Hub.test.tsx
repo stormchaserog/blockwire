@@ -67,6 +67,10 @@ vi.mock('$features/project-identity/RolesPanel', () => ({
   RolesPanel: () => <div>roles-panel</div>,
 }));
 
+vi.mock('$features/project-identity/ProjectTabBar', () => ({
+  ProjectTabBar: () => <div>project-tab-bar</div>,
+}));
+
 const { fetchProjectBySpace, fetchChainAssets, fetchProjectLinks } = vi.hoisted(() => ({
   fetchProjectBySpace: vi.fn<(mx: unknown, spaceRoomId: string) => Promise<ProjectRecord | null>>(),
   fetchChainAssets: vi.fn<(mx: unknown, projectId: number) => Promise<ProjectChainAsset[]>>(),

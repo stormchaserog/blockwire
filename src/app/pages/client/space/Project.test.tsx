@@ -78,6 +78,9 @@ vi.mock('$features/project-identity/WhaleAlerts', () => ({ WhaleAlerts: () => nu
 vi.mock('$features/project-identity/ManageProjectPanel', () => ({
   ManageProjectPanel: () => <div>manage-project-panel</div>,
 }));
+vi.mock('$features/project-identity/ProjectTabBar', () => ({
+  ProjectTabBar: () => <div>project-tab-bar</div>,
+}));
 
 afterEach(() => {
   vi.clearAllMocks();

@@ -19,7 +19,7 @@ import { useRoomPermissions } from '$hooks/useRoomPermissions';
 import { EventType } from '$types/matrix-sdk';
 import { getSpaceProjectPath } from '$pages/pathUtils';
 import { useMyProjectPermissions } from '$hooks/useMyProjectPermissions';
-import { useProjectIdentity, RolesPanel } from '$features/project-identity';
+import { useProjectIdentity, RolesPanel, ProjectTabBar } from '$features/project-identity';
 
 function HubHeader({ title }: { title: string }) {
   const screenSize = useScreenSizeContext();
@@ -110,6 +110,7 @@ export function SpaceHub() {
     return (
       <Page>
         <HubHeader title="Hub" />
+        <ProjectTabBar />
         <Box grow="Yes" alignItems="Center" justifyContent="Center">
           <Text size="T300">Loading…</Text>
         </Box>
@@ -121,6 +122,7 @@ export function SpaceHub() {
     return (
       <Page>
         <HubHeader title="Hub" />
+        <ProjectTabBar />
         <Box grow="Yes" alignItems="Center" justifyContent="Center" direction="Column" gap="100">
           <Text size="H4">No project yet</Text>
           <Text size="T300">This space doesn&apos;t have a project bound to it.</Text>
@@ -133,6 +135,7 @@ export function SpaceHub() {
     return (
       <Page>
         <HubHeader title="Hub" />
+        <ProjectTabBar />
         <Box grow="Yes" alignItems="Center" justifyContent="Center" direction="Column" gap="100">
           <Text size="H4">Hub is for project admins</Text>
           <Text size="T300">You don&apos;t have permission to view this project&apos;s Hub.</Text>
@@ -153,6 +156,7 @@ export function SpaceHub() {
   return (
     <Page>
       <HubHeader title={`${project.name} Hub`} />
+      <ProjectTabBar />
       <Box style={{ position: 'relative' }} grow="Yes">
         <Scroll hideTrack visibility="Hover">
           <PageContent>

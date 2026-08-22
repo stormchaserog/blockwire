@@ -63,6 +63,7 @@ import { useDnDMonitor } from './DnD';
 import { LobbyHero } from './LobbyHero';
 import { LobbyHeader } from './LobbyHeader';
 import { ProjectIdentitySection } from './ProjectIdentitySection';
+import { ProjectTabBar } from '$features/project-identity';
 import { SpaceHierarchyNavItem } from './SpaceHierarchyNavItem';
 import { CustomAccountDataEvent } from '$types/matrix/accountData';
 
@@ -607,6 +608,7 @@ export function Lobby() {
             showProfile={!onTop}
             powerLevels={roomsPowerLevels.get(space.roomId) ?? {}}
           />
+          <ProjectTabBar />
           <Box style={{ position: 'relative' }} grow="Yes">
             <Scroll ref={scrollRef} hideTrack visibility="Hover">
               <PageContent>

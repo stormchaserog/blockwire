@@ -3,4 +3,5 @@ export * from './Space';
 export * from './Search';
 export * from './Project';
 export * from './Hub';
+export * from './Updates';
 export * from './RoomProvider';

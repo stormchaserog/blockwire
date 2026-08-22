@@ -20,6 +20,13 @@ export const CustomStateEvent = {
   RoomCosmeticsPronouns: 'moe.sable.room.cosmetics.pronouns',
   RoomAbbreviations: 'moe.sable.room.abbreviations',
   RoomBanner: 'page.codeberg.everypizza.room.banner',
+  /** Set on a Project's Space room, pointing at the child room that acts as
+   *  its "Updates" (announcements) feed per UI Bible §8's Chat/Updates/
+   *  Hub/Info project nav. State key is always empty string -- one Updates
+   *  room per project. A custom state event, not name-matching a room
+   *  called "Updates", so it survives renames and stays unambiguous even
+   *  if a project happens to have another room with that name. */
+  BlockWireSpaceUpdatesRoom: 'chat.blockwire.space.updates_room',
 } as const;
 export type CustomStateEvent = (typeof CustomStateEvent)[keyof typeof CustomStateEvent];
 

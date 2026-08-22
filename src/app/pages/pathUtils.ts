@@ -29,6 +29,7 @@ import {
   SPACE_SEARCH_PATH,
   SPACE_PROJECT_PATH,
   SPACE_HUB_PATH,
+  SPACE_UPDATES_PATH,
   CREATE_PATH,
   CREATE_PROJECT_PATH,
   CREATE_ROOM_PATH,
@@ -154,6 +155,12 @@ export const getSpaceHubPath = (spaceIdOrAlias: string): string => {
     spaceIdOrAlias,
   };
   return generatePath(SPACE_HUB_PATH, params);
+};
+export const getSpaceUpdatesPath = (spaceIdOrAlias: string): string => {
+  const params = {
+    spaceIdOrAlias,
+  };
+  return generatePath(SPACE_UPDATES_PATH, params);
 };
 export const getSpaceRoomPath = (
   spaceIdOrAlias: string,

@@ -11,3 +11,4 @@ export * from './ProjectIdentityContent';
 export * from './ManageProjectPanel';
 export * from './RolesPanel';
 export * from './RolePermissionsEditor';
+export * from './ProjectTabBar';
