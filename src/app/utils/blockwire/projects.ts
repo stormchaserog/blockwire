@@ -164,6 +164,16 @@ export const fetchMyProjects = async (mx: MatrixClient): Promise<ProjectRecord[]
   return Array.isArray(body) ? (body as ProjectRecord[]) : [];
 };
 
+/** UI Bible §16 (Discover): public, unauthenticated project directory --
+ *  deliberately no authHeaders here, matching the server route
+ *  (GET /_blockwire/projects/discover) which never calls bearer(). */
+export const fetchDiscoverProjects = async (mx: MatrixClient): Promise<ProjectRecord[]> => {
+  const res = await fetch(`${mx.baseUrl}/_blockwire/projects/discover`);
+  if (!res.ok) throw new Error(await parseError(res, 'Could not load Discover.'));
+  const body: unknown = await res.json();
+  return Array.isArray(body) ? (body as ProjectRecord[]) : [];
+};
+
 /** THE permission check the UI should gate on — never a local role/owner
  *  guess. Call this once per project view and hide/disable actions the
  *  response doesn't list, exactly like CLAUDE.md's "never trust

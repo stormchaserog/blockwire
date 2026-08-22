@@ -113,6 +113,7 @@ const Invites = lazy(() => import('./client/inbox').then((m) => ({ default: m.In
 const Bookmarks = lazy(() => import('./client/inbox').then((m) => ({ default: m.Bookmarks })));
 
 const Explore = lazy(() => import('./client/explore').then((m) => ({ default: m.Explore })));
+const Discover = lazy(() => import('./client/explore').then((m) => ({ default: m.Discover })));
 const FeaturedRooms = lazy(() =>
   import('./client/explore').then((m) => ({ default: m.FeaturedRooms }))
 );
@@ -413,7 +414,7 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
               rail={<SidebarNav />}
               nav={
                 <Suspense fallback={<SplashScreen>{null}</SplashScreen>}>
-                  <Explore />
+                  {mobile ? <Discover /> : <Explore />}
                 </Suspense>
               }
             >
