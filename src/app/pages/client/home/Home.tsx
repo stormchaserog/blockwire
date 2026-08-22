@@ -64,6 +64,8 @@ import { useMyOwnedProjects } from '$hooks/useMyOwnedProjects';
 import { FounderHomeBanner } from './FounderHomeBanner';
 import { HomeGreeting } from './HomeGreeting';
 import { TasksNeedAttention } from './TasksNeedAttention';
+import { HomeCommunityCards } from './HomeCommunityCards';
+import { DiscoverProjects } from './DiscoverProjects';
 
 type HomeMenuProps = {
   requestClose: () => void;
@@ -287,6 +289,18 @@ export function Home() {
       ) : (
         <PageNavContent scrollRef={scrollRef}>
           <Box direction="Column" gap="300">
+            {/* Design mock's mobile Home: rich community cards for every
+             *  joined Space (token line, unread, member pill) followed by
+             *  the Discover Projects scroller, both above the flat
+             *  conversation list. Desktop keeps its lean nav-list layout —
+             *  these card surfaces are mobile-Home furniture, mirroring
+             *  how the greeting/founder banners above are gated. */}
+            {isMobile && (
+              <>
+                <HomeCommunityCards />
+                <DiscoverProjects />
+              </>
+            )}
             {/* UI Bible §7's "curated home feed" direction, and the mobile
              *  bottom nav (Phase 1) already covers Explore/Discover as its
              *  own tab -- so on mobile this whole block is either dead
