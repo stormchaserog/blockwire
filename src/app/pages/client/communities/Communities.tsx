@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, Box, Input, Scroll, Text, color } from 'folds';
 import { useAtomValue } from 'jotai';
-import type { Room } from '$types/matrix-sdk';
+import type { MatrixClient, Room, UserEventHandlerMap } from '$types/matrix-sdk';
+import { UserEvent } from '$types/matrix-sdk';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { roomToParentsAtom } from '$state/room/roomToParents';
 import { allRoomsAtom } from '$state/room-list/roomList';
@@ -25,6 +26,43 @@ function CommunityCard({ roomId, filter }: { roomId: string; filter: string }) {
   const room = mx.getRoom(roomId);
   if (!room) return null;
   return <CommunityCardContent roomId={roomId} room={room} filter={filter} />;
+}
+
+/** Presence lookups walk EVERY joined member of the space, so cap where we
+ *  even attempt it -- a 20k-member community would mean 20k `mx.getUser()`
+ *  calls on every presence event tick. Above the cap the online line is
+ *  simply omitted (a fuzzy "lots online" is worth less than the cycles). */
+const ONLINE_COUNT_MEMBER_CAP = 500;
+
+const countOnlineMembers = (mx: MatrixClient, room: Room): number => {
+  if (room.getJoinedMemberCount() > ONLINE_COUNT_MEMBER_CAP) return 0;
+  return room
+    .getJoinedMembers()
+    .filter((member) => mx.getUser(member.userId)?.presence === 'online').length;
+};
+
+/** Live count of joined members whose Matrix presence is 'online'.
+ *  Same listen/cleanup shape as useUserPresence (hooks/useUserPresence.ts),
+ *  but on the client itself: matrix-js-sdk re-emits every User's
+ *  UserEvent.Presence on the MatrixClient, which is the only sane place to
+ *  listen when the answer aggregates over a whole room's membership. */
+function useOnlineMemberCount(room: Room): number {
+  const mx = useMatrixClient();
+  const getCount = useCallback(() => countOnlineMembers(mx, room), [mx, room]);
+  const [count, setCount] = useState(getCount);
+
+  useEffect(() => {
+    setCount(getCount());
+    const handlePresence: UserEventHandlerMap[UserEvent.Presence] = () => {
+      setCount(getCount());
+    };
+    mx.on(UserEvent.Presence, handlePresence);
+    return () => {
+      mx.removeListener(UserEvent.Presence, handlePresence);
+    };
+  }, [mx, getCount]);
+
+  return count;
 }
 
 function CommunityCardContent({
@@ -55,6 +93,7 @@ function CommunityCardContent({
     ? (mxcUrlToHttp(mx, avatarMxc, useAuthentication, 96, 96, 'crop') ?? undefined)
     : undefined;
   const memberCount = room.getJoinedMemberCount();
+  const onlineCount = useOnlineMemberCount(room);
 
   // Client-side search filter: hide (don't unmount-crash) cards whose name
   // doesn't contain the query. Hooks above always run so the unread atom
@@ -81,9 +120,26 @@ function CommunityCardContent({
           <b>{name}</b>
         </Text>
         {memberCount > 0 && (
-          <Text size="T200" priority="300" truncate>
-            {`${memberCount} members`}
-          </Text>
+          <Box alignItems="Center" gap="200">
+            <Text size="T200" priority="300" truncate>
+              {`${memberCount} members`}
+            </Text>
+            {onlineCount > 0 && (
+              <Box as="span" shrink="No" alignItems="Center" gap="100">
+                <span
+                  style={{
+                    width: '0.5rem',
+                    height: '0.5rem',
+                    borderRadius: '50%',
+                    background: color.Success.Main,
+                  }}
+                />
+                <Text as="span" size="T200" style={{ color: color.Success.Main }} truncate>
+                  {`${onlineCount} online`}
+                </Text>
+              </Box>
+            )}
+          </Box>
         )}
       </Box>
       {!!unread && unread.total > 0 && (

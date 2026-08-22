@@ -1,26 +1,58 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import type * as Jotai from 'jotai';
 import type { Room } from '$types/matrix-sdk';
+import { UserEvent } from '$types/matrix-sdk';
 import { Communities } from './Communities';
+
+const memberIds = (ids: string[]) => ids.map((userId) => ({ userId }));
 
 const rooms: Record<string, Partial<Room>> = {
   '!wclaw:blockwire.chat': {
     name: 'WCLAW Labs',
     roomId: '!wclaw:blockwire.chat',
     getJoinedMemberCount: () => 42,
+    getJoinedMembers: () =>
+      memberIds(['@a:blockwire.chat', '@b:blockwire.chat', '@c:blockwire.chat']) as never,
   },
   '!sol:blockwire.chat': {
     name: 'Solana Devs',
     roomId: '!sol:blockwire.chat',
     getJoinedMemberCount: () => 0,
+    getJoinedMembers: () => [],
   },
+  '!quiet:blockwire.chat': {
+    name: 'Quiet Corner',
+    roomId: '!quiet:blockwire.chat',
+    getJoinedMemberCount: () => 2,
+    getJoinedMembers: () => memberIds(['@b:blockwire.chat', '@zzz:blockwire.chat']) as never,
+  },
+  '!mega:blockwire.chat': {
+    name: 'Mega Space',
+    roomId: '!mega:blockwire.chat',
+    // Over the 500-member cap: the online count must be skipped entirely,
+    // so getJoinedMembers throwing proves the walk never even started.
+    getJoinedMemberCount: () => 20000,
+    getJoinedMembers: () => {
+      throw new Error('membership walk must not run above the online-count cap');
+    },
+  },
+};
+
+const presenceByUserId: Record<string, string> = {
+  '@a:blockwire.chat': 'online',
+  '@b:blockwire.chat': 'offline',
+  '@c:blockwire.chat': 'online',
 };
 
 const mockMatrixClient = {
   getRoom: (roomId: string) => rooms[roomId] ?? null,
+  getUser: (userId: string) =>
+    userId in presenceByUserId ? { userId, presence: presenceByUserId[userId] } : null,
+  on: vi.fn<(event: unknown, handler: () => void) => void>(),
+  removeListener: vi.fn<(event: unknown, handler: () => void) => void>(),
 };
 
 vi.mock('$hooks/useMatrixClient', () => ({
@@ -158,5 +190,75 @@ describe('Communities', () => {
     // contents. Object.is (===) is exactly what useCallback's dependency
     // comparison in useRoomsUnread uses internally.
     expect(secondCallArgs).toBe(firstCallArgs);
+  });
+
+  it('shows a green online count next to the member line, counting only members whose presence is online', () => {
+    orphanSpacesMock.mockReturnValue(['!wclaw:blockwire.chat']);
+    render(
+      <MemoryRouter>
+        <Communities />
+      </MemoryRouter>
+    );
+    // @a and @c are online, @b is offline.
+    expect(screen.getByText('2 online')).toBeInTheDocument();
+  });
+
+  it('omits the online indicator entirely (never "0 online") when nobody is online or presence is unknown', () => {
+    // Quiet Corner: @b is offline, @zzz has no User object (presence unavailable).
+    orphanSpacesMock.mockReturnValue(['!quiet:blockwire.chat']);
+    render(
+      <MemoryRouter>
+        <Communities />
+      </MemoryRouter>
+    );
+    expect(screen.getByText('2 members')).toBeInTheDocument();
+    expect(screen.queryByText(/online/)).not.toBeInTheDocument();
+  });
+
+  it('skips the online computation entirely for communities above the member cap (the mock throws if the membership walk runs)', () => {
+    orphanSpacesMock.mockReturnValue(['!mega:blockwire.chat']);
+    render(
+      <MemoryRouter>
+        <Communities />
+      </MemoryRouter>
+    );
+    expect(screen.getByText('20000 members')).toBeInTheDocument();
+    expect(screen.queryByText(/online/)).not.toBeInTheDocument();
+  });
+
+  it('subscribes to client-level UserEvent.Presence, recounts when it fires, and unsubscribes on unmount', () => {
+    mockMatrixClient.on.mockClear();
+    mockMatrixClient.removeListener.mockClear();
+    orphanSpacesMock.mockReturnValue(['!wclaw:blockwire.chat']);
+    const { unmount } = render(
+      <MemoryRouter>
+        <Communities />
+      </MemoryRouter>
+    );
+    expect(screen.getByText('2 online')).toBeInTheDocument();
+
+    const presenceCall = mockMatrixClient.on.mock.calls.find(
+      ([event]) => event === UserEvent.Presence
+    );
+    expect(presenceCall).toBeDefined();
+    const handler = presenceCall?.[1] as () => void;
+
+    // @b comes online; the live count follows the presence event.
+    presenceByUserId['@b:blockwire.chat'] = 'online';
+    try {
+      act(() => {
+        handler();
+      });
+      expect(screen.getByText('3 online')).toBeInTheDocument();
+    } finally {
+      presenceByUserId['@b:blockwire.chat'] = 'offline';
+    }
+
+    unmount();
+    expect(
+      mockMatrixClient.removeListener.mock.calls.some(
+        ([event, fn]) => event === UserEvent.Presence && fn === handler
+      )
+    ).toBe(true);
   });
 });
