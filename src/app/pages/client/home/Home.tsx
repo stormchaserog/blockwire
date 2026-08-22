@@ -62,6 +62,8 @@ import { NavMenu } from '$components/nav/NavMenu';
 import { useMenuAnchor } from '$hooks/useMenuAnchor';
 import { useMyOwnedProjects } from '$hooks/useMyOwnedProjects';
 import { FounderHomeBanner } from './FounderHomeBanner';
+import { HomeGreeting } from './HomeGreeting';
+import { TasksNeedAttention } from './TasksNeedAttention';
 
 type HomeMenuProps = {
   requestClose: () => void;
@@ -273,8 +275,12 @@ export function Home() {
       isMobile={isMobile}
       oldSidebar={oldSidebar}
     >
+      {isMobile && <HomeGreeting />}
       {isMobile && isFounder && ownedProjects && (
-        <FounderHomeBanner ownedProjects={ownedProjects} />
+        <>
+          <TasksNeedAttention ownedProjects={ownedProjects} />
+          <FounderHomeBanner ownedProjects={ownedProjects} />
+        </>
       )}
       {noRoomToDisplay ? (
         <HomeEmpty />
