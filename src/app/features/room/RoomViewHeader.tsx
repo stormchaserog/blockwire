@@ -57,6 +57,7 @@ import { roomIdToThreadBrowserAtomFamily } from '$state/room/roomToThreadBrowser
 import { roomIdToOpenThreadAtomFamily } from '$state/room/roomToOpenThread';
 import { useCallPreferences } from '$state/hooks/callPreferences';
 import { useCallStartCapabilities } from '$features/call/useCallStartCapabilities';
+import { RoomHeaderProjectName } from '$features/project-identity/RoomHeaderProjectName';
 import { RoomPinMenu } from './room-pin-menu';
 import * as css from './RoomViewHeader.css';
 import { RoomCallButton } from './RoomCallButton';
@@ -360,9 +361,11 @@ export function RoomViewHeader({ callView }: Readonly<{ callView?: boolean }>) {
             </Avatar>
           )}
           <Box direction="Column" style={{ minWidth: 0 }}>
-            <Text size={topic ? 'H5' : 'H3'} truncate>
-              {name}
-            </Text>
+            <RoomHeaderProjectName
+              spaceRoomId={space?.roomId ?? null}
+              name={name}
+              textSize={topic ? 'H5' : 'H3'}
+            />
             {topic && (
               <UseStateProvider initial={false}>
                 {(viewTopic, setViewTopic) => (
