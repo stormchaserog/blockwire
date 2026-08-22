@@ -65,6 +65,14 @@ body {
     #root {
       height: var(--sable-ios-pwa-viewport-height, 100dvh);
     }
+
+    /* While the iOS keyboard is up, any transient gap between the shrunken app
+       and the keyboard would flash the dotted splash pattern painted on the
+       body by index.html. Solid background keeps those frames invisible. */
+    html.ios-keyboard-open,
+    html.ios-keyboard-open body {
+      background-image: none;
+    }
   }
 }
 
