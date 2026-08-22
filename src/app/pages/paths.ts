@@ -54,6 +54,8 @@ export const HOME_JOIN_PATH = `/home/${JOIN_PATH_SEGMENT}`;
 export const HOME_SEARCH_PATH = `/home/${SEARCH_PATH_SEGMENT}`;
 export const HOME_ROOM_PATH = `/home/${ROOM_PATH_SEGMENT}`;
 
+export const COMMUNITIES_PATH = '/communities/';
+
 export const DIRECT_PATH = '/direct/';
 export type DirectCreateSearchParams = {
   userId?: string;

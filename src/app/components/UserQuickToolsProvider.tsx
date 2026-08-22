@@ -1,9 +1,9 @@
 import { ScreenSize, useScreenSizeContext } from '$hooks/useScreenSize';
-import { UserQuickTools } from '$pages/client/sidebar/UserQuickTools';
+import { MobileBottomNav } from '$pages/client/MobileBottomNav';
 
 export function UserQuickToolsProvider() {
   const screenSize = useScreenSizeContext();
   const compact = screenSize === ScreenSize.Mobile;
   if (!compact) return null;
-  return <UserQuickTools compact />;
+  return <MobileBottomNav />;
 }

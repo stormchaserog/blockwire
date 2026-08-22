@@ -13,6 +13,7 @@ import {
   EXPLORE_SERVER_PATH,
   HOME_JOIN_PATH,
   HOME_PATH,
+  COMMUNITIES_PATH,
   HOME_ROOM_PATH,
   HOME_SEARCH_PATH,
   LOGIN_PATH,
@@ -100,6 +101,7 @@ export const getResetPasswordPath = (server?: string): string => {
 };
 
 export const getHomePath = (): string => HOME_PATH;
+export const getCommunitiesPath = (): string => COMMUNITIES_PATH;
 export const getHomeJoinPath = (): string => HOME_JOIN_PATH;
 export const getHomeSearchPath = (): string => HOME_SEARCH_PATH;
 export const getHomeRoomPath = (roomIdOrAlias: string, eventId?: string): string => {

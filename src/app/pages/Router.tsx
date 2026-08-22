@@ -13,6 +13,7 @@ import type { ClientConfig } from '$hooks/useClientConfig';
 import { ErrorPage } from '$components/DefaultErrorPage';
 import { Room } from '$features/room';
 import { Lobby } from '$features/lobby';
+import { Communities } from './client/communities/Communities';
 import { PageRoot } from '$components/page';
 import { ScreenSize } from '$hooks/useScreenSize';
 import { ReceiveSelfDeviceVerification } from '$components/DeviceVerification';
@@ -30,6 +31,7 @@ import {
   DIRECT_PATH,
   EXPLORE_PATH,
   HOME_PATH,
+  COMMUNITIES_PATH,
   LOGIN_PATH,
   INBOX_PATH,
   REGISTER_PATH,
@@ -410,6 +412,7 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
           element={
             <PageRoot
               rail={<SidebarNav />}
+              bottomNav={<UserQuickToolsProvider />}
               nav={
                 <Suspense fallback={<SplashScreen>{null}</SplashScreen>}>
                   <Explore />
@@ -465,6 +468,7 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
         <Route path={NAVIGATE_PATH} element={<Navigate />} />
         <Route path={INVITE_PATH} element={<InviteLanding />} />
         <Route path={PROFILE_PATH} element={<ProfileMobile />} />
+        <Route path={COMMUNITIES_PATH} element={<Communities />} />
         <Route
           path={SETTINGS_PATH}
           element={
