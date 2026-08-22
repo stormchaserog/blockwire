@@ -317,7 +317,17 @@ export const defaultSettings: Settings = {
   editorButtonOrder: [...EDITOR_BUTTON_ORDER_DEFAULT],
   composerToolbarOpen: false,
   alwaysInlineEditor: false,
-  messageLayout: 0,
+  // UI Bible §1's north star: "Telegram simplicity. Slack clarity...
+  // BlockWire polish" -- and this session's explicit direction to feel
+  // like Telegram/iMessage. The Bubble layout (rounded speech bubbles
+  // with a pointed tail toward the sender's side, see
+  // components/message/layout/Bubble.tsx) already existed, fully built
+  // and correct, but defaulted OFF: new users landed on "Modern" (flat
+  // rows, no bubbles at all) and had to know to dig through Settings to
+  // find the one that actually looks like every messaging app people
+  // already know. Changed the DEFAULT, not the mechanism -- Settings
+  // still lets anyone switch back to Modern or Compact.
+  messageLayout: MessageLayout.Bubble,
   messageSpacing: '400',
   hideMembershipEvents: false,
   hideNickAvatarEvents: true,
