@@ -165,14 +165,14 @@ describe('Communities', () => {
     expect(screen.getByText('WCLAW Labs')).toBeInTheDocument();
   });
 
-  it('shows the joined member count as a second line on each card', () => {
+  it('shows the joined member count as a second line on each card, dot-joined with the online count', () => {
     orphanSpacesMock.mockReturnValue(['!wclaw:blockwire.chat']);
     render(
       <MemoryRouter>
         <Communities />
       </MemoryRouter>
     );
-    expect(screen.getByText('42 members')).toBeInTheDocument();
+    expect(screen.getByText('42 members • 2 online')).toBeInTheDocument();
   });
 
   it('omits the member count line entirely (no "0 members") when the count is unavailable', () => {
@@ -238,7 +238,7 @@ describe('Communities', () => {
     expect(secondCallArgs).toBe(firstCallArgs);
   });
 
-  it('shows a green online count next to the member line, counting only members whose presence is online', () => {
+  it('shows a muted, dot-separated online count on the member line, counting only members whose presence is online', () => {
     orphanSpacesMock.mockReturnValue(['!wclaw:blockwire.chat']);
     render(
       <MemoryRouter>
@@ -246,7 +246,7 @@ describe('Communities', () => {
       </MemoryRouter>
     );
     // @a and @c are online, @b is offline.
-    expect(screen.getByText('2 online')).toBeInTheDocument();
+    expect(screen.getByText('42 members • 2 online')).toBeInTheDocument();
   });
 
   it('omits the online indicator entirely (never "0 online") when nobody is online or presence is unknown', () => {
@@ -268,7 +268,7 @@ describe('Communities', () => {
         <Communities />
       </MemoryRouter>
     );
-    expect(screen.getByText('20000 members')).toBeInTheDocument();
+    expect(screen.getByText('20.0K members')).toBeInTheDocument();
     expect(screen.queryByText(/online/)).not.toBeInTheDocument();
   });
 
@@ -281,7 +281,7 @@ describe('Communities', () => {
         <Communities />
       </MemoryRouter>
     );
-    expect(screen.getByText('2 online')).toBeInTheDocument();
+    expect(screen.getByText('42 members • 2 online')).toBeInTheDocument();
 
     const presenceCall = mockMatrixClient.on.mock.calls.find(
       ([event]) => event === UserEvent.Presence
@@ -295,7 +295,7 @@ describe('Communities', () => {
       act(() => {
         handler();
       });
-      expect(screen.getByText('3 online')).toBeInTheDocument();
+      expect(screen.getByText('42 members • 3 online')).toBeInTheDocument();
     } finally {
       presenceByUserId['@b:blockwire.chat'] = 'offline';
     }
