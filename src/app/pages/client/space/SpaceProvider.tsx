@@ -8,6 +8,7 @@ import { useResolvedSelectedSpace } from '$hooks/router/useResolvedRoomId';
 import { SpaceProvider } from '$hooks/useSpace';
 import { JoinBeforeNavigate } from '$features/join-before-navigate';
 import { useSearchParamsViaServers } from '$hooks/router/useSearchParamsViaServers';
+import { useLeaveRedirect } from '$hooks/useLeaveRedirect';
 
 type RouteSpaceProviderProps = {
   children: ReactNode;
@@ -22,6 +23,11 @@ export function RouteSpaceProvider({ children }: RouteSpaceProviderProps) {
 
   const { roomId: selectedSpaceId, resolving } = useResolvedSelectedSpace();
   const space = mx.getRoom(selectedSpaceId);
+
+  // If the user leaves/deletes the space they are currently inside
+  // (including while on Hub/Project pages under it), exit to Home
+  // instead of stranding them on the Join fallback.
+  useLeaveRedirect(space);
 
   if (resolving) return <Spinner variant="Secondary" size="600" />;
 

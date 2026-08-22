@@ -11,6 +11,7 @@ import { getAllParents, getSpaceChildren } from '$utils/room/hierarchy';
 import { roomToParentsAtom } from '$state/room/roomToParents';
 import { allRoomsAtom } from '$state/room-list/roomList';
 import { useSearchParamsViaServers } from '$hooks/router/useSearchParamsViaServers';
+import { useLeaveRedirect } from '$hooks/useLeaveRedirect';
 import { mDirectAtom } from '$state/mDirectList';
 import { settingsAtom } from '$state/settings';
 import { useSetting } from '$state/hooks/settings';
@@ -38,6 +39,10 @@ export function SpaceRouteRoomProvider({
   const viaServers = useSearchParamsViaServers();
   const { roomId, resolving } = useResolvedRoomIdOrAlias(roomIdOrAlias);
   const room = mx.getRoom(roomId);
+
+  // If the user leaves/deletes the room they are currently viewing,
+  // exit to Home instead of stranding them on the Join fallback.
+  useLeaveRedirect(room);
 
   if (resolving) return <Spinner variant="Secondary" size="600" />;
 
