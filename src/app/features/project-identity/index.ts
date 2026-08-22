@@ -7,6 +7,7 @@ export * from './BuyFeed';
 export * from './ProjectBanner';
 export * from './WhaleAlerts';
 export * from './useProjectIdentity';
+export * from './useDexScreenerTokenImage';
 export * from './ProjectIdentityContent';
 export * from './ManageProjectPanel';
 export * from './RolesPanel';

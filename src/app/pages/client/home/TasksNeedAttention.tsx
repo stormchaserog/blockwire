@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Text, color, config } from 'folds';
-import type { ProjectRecord } from '$utils/blockwire/projects';
+import { Avatar, Box, Text, color, config } from 'folds';
+import type { ProjectRecord, ProjectChainAsset } from '$utils/blockwire/projects';
 import { fetchChainAssets, fetchProjectLinks } from '$utils/blockwire/projects';
 import { getSpaceHubPath } from '$pages/pathUtils';
+import { mxcUrlToHttp } from '$utils/matrix';
 import { useMatrixClient } from '$hooks/useMatrixClient';
+import { useMediaAuthentication } from '$hooks/useMediaAuthentication';
 import { useAlive } from '$hooks/useAlive';
+import { useDexScreenerTokenImage } from '$features/project-identity/useDexScreenerTokenImage';
+import { nameInitials } from '$utils/common';
 import { sizedIcon, CaretRight, Checks } from '$components/icons/phosphor';
 
 export type SetupProgress = {
@@ -36,10 +40,28 @@ export function computeSetupProgress(
 type TaskRow = {
   project: ProjectRecord;
   progress: SetupProgress;
+  /** The project's first chain asset, if any -- carried along so the row
+   *  can fall back to the token's DexScreener image as its pfp without a
+   *  second chain-assets fetch (this component already fetched them to
+   *  compute the checklist). */
+  primaryAsset: ProjectChainAsset | null;
 };
 
-function TaskProjectRow({ project, progress }: TaskRow) {
+function TaskProjectRow({ project, progress, primaryAsset }: TaskRow) {
+  const mx = useMatrixClient();
   const navigate = useNavigate();
+  const useAuthentication = useMediaAuthentication();
+
+  // Same pfp fallback chain as the FounderHomeBanner cards: the project's
+  // own avatar, else the token's DexScreener image, else initials.
+  const avatarUrl = project.avatar_url
+    ? (mxcUrlToHttp(mx, project.avatar_url, useAuthentication, 64, 64, 'crop') ?? undefined)
+    : undefined;
+  const tokenImageUrl = useDexScreenerTokenImage(
+    avatarUrl ? null : primaryAsset?.chain,
+    avatarUrl ? null : primaryAsset?.contract_address
+  );
+  const displayAvatarUrl = avatarUrl ?? tokenImageUrl ?? undefined;
 
   return (
     <Box
@@ -53,6 +75,17 @@ function TaskProjectRow({ project, progress }: TaskRow) {
       }}
       onClick={() => navigate(getSpaceHubPath(project.space_room_id))}
     >
+      <Avatar size="300" radii="300">
+        {displayAvatarUrl ? (
+          <img
+            src={displayAvatarUrl}
+            alt={project.name}
+            style={{ width: '100%', height: '100%' }}
+          />
+        ) : (
+          <Text size="H6">{nameInitials(project.name)}</Text>
+        )}
+      </Avatar>
       <Box grow="Yes" direction="Column" gap="0">
         <Text size="T400" truncate>
           {project.name}
@@ -89,7 +122,9 @@ export function TasksNeedAttention({ ownedProjects }: { ownedProjects: ProjectRe
             fetchProjectLinks(mx, project.project_id),
           ]);
           const progress = computeSetupProgress(project, assets.length, links.length);
-          return progress.done < progress.total ? { project, progress } : null;
+          return progress.done < progress.total
+            ? { project, progress, primaryAsset: assets[0] ?? null }
+            : null;
         } catch {
           // Unknown state is not the same as "tasks outstanding" -- skip the
           // project rather than show a row built on a failed fetch.
@@ -121,6 +156,7 @@ export function TasksNeedAttention({ ownedProjects }: { ownedProjects: ProjectRe
             key={row.project.project_id}
             project={row.project}
             progress={row.progress}
+            primaryAsset={row.primaryAsset}
           />
         ))}
       </Box>
