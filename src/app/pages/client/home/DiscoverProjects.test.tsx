@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
@@ -12,14 +13,29 @@ const joinedRooms: Record<string, { getMyMembership: () => string }> = {
   '!joined:blockwire.chat': { getMyMembership: () => 'join' },
 };
 
+const { joinRoomMock } = vi.hoisted(() => ({
+  joinRoomMock: vi.fn<(roomId: string) => Promise<unknown>>(),
+}));
+
 const mockMatrixClient = {
   baseUrl: 'https://matrix.blockwire.chat',
   getAccessToken: () => 'test-token',
   getRoom: (roomId: string) => joinedRooms[roomId] ?? null,
+  joinRoom: joinRoomMock,
 };
 
 vi.mock('$hooks/useMatrixClient', () => ({
   useMatrixClient: () => mockMatrixClient,
+}));
+
+// jsdom's tabbable can't find focusable nodes, so the real FocusTrap throws
+// on activation -- same passthrough mock ModalOverlay.test.tsx uses.
+const { FocusTrapPassthrough } = vi.hoisted(() => ({
+  FocusTrapPassthrough: ({ children }: { children: ReactNode }) => children,
+}));
+vi.mock('focus-trap-react', () => ({
+  default: FocusTrapPassthrough,
+  FocusTrap: FocusTrapPassthrough,
 }));
 
 vi.mock('$hooks/useMediaAuthentication', () => ({
@@ -177,7 +193,7 @@ describe('DiscoverProjects', () => {
     await waitFor(() => expect(screen.getByText('-4.2%')).toBeInTheDocument());
   });
 
-  it('navigates to the project space when a card is tapped', async () => {
+  it('opens the branded preview sheet (not a navigation) when a card is tapped', async () => {
     fetchDiscoverProjects.mockResolvedValue([
       makeProject(1, 'Moon Machine', '!moon:blockwire.chat'),
     ]);
@@ -186,6 +202,40 @@ describe('DiscoverProjects', () => {
 
     await waitFor(() => expect(screen.getByText('Moon Machine')).toBeInTheDocument());
     fireEvent.click(screen.getByText('Moon Machine'));
-    expect(navigateMock).toHaveBeenCalledWith('/!moon%3Ablockwire.chat/lobby');
+
+    expect(navigateMock).not.toHaveBeenCalled();
+    expect(screen.getByText('Join Community')).toBeInTheDocument();
+    expect(screen.getByText('Cancel')).toBeInTheDocument();
+  });
+
+  it("joins the space and navigates from the preview sheet's Join Community button", async () => {
+    fetchDiscoverProjects.mockResolvedValue([
+      makeProject(1, 'Moon Machine', '!moon:blockwire.chat'),
+    ]);
+    joinRoomMock.mockResolvedValue({ roomId: '!moon:blockwire.chat' });
+
+    renderDiscover();
+
+    await waitFor(() => expect(screen.getByText('Moon Machine')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Moon Machine'));
+    fireEvent.click(screen.getByText('Join Community'));
+
+    await waitFor(() => expect(joinRoomMock).toHaveBeenCalledWith('!moon:blockwire.chat'));
+    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/!moon%3Ablockwire.chat/lobby'));
+  });
+
+  it('closes the preview sheet without joining when Cancel is tapped', async () => {
+    fetchDiscoverProjects.mockResolvedValue([
+      makeProject(1, 'Moon Machine', '!moon:blockwire.chat'),
+    ]);
+
+    renderDiscover();
+
+    await waitFor(() => expect(screen.getByText('Moon Machine')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Moon Machine'));
+    fireEvent.click(screen.getByText('Cancel'));
+
+    expect(joinRoomMock).not.toHaveBeenCalled();
+    await waitFor(() => expect(screen.queryByText('Join Community')).not.toBeInTheDocument());
   });
 });
