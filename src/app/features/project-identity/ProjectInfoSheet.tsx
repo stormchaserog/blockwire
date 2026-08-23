@@ -1,15 +1,19 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Avatar, Box, Button, IconButton, Text, color, config } from 'folds';
+import { Avatar, Box, Button, IconButton, Text, color } from 'folds';
 import {
-  ArrowSquareOut,
+  ArrowUpRight,
   Check,
   Copy,
   CurrencyCircleDollar,
+  Globe,
   Info,
   Presentation,
   ShareNetwork,
+  Stack,
+  X,
+  XLogo,
   sizedIcon,
 } from '$components/icons/phosphor';
 import { formatTicker, nameInitials } from '$utils/common';
@@ -24,6 +28,9 @@ import type {
 } from '$utils/blockwire/projects';
 import { VerificationBadge } from './VerificationBadge';
 import { ProjectChainAssetPrice } from './ProjectChainAssetPrice';
+import { Sparkline } from './Sparkline';
+import { useTokenPriceHistory } from './useTokenPriceHistory';
+import * as css from './ProjectInfoSheet.css';
 
 /** '8xR…pump' style: first 3 + ellipsis + last 4. Deliberately shorter
  *  than ContractAddressBadge's 6+4 -- this sheet's details list has a
@@ -87,16 +94,6 @@ type ActionTileProps = {
  *  icon above label, equal widths. Rendered as an anchor when `href` is
  *  given (external links open in a new tab) and a button otherwise. */
 function ActionTile({ icon, label, onClick, href }: ActionTileProps) {
-  const style = {
-    padding: `${config.space.S300} ${config.space.S100}`,
-    borderRadius: config.radii.R400,
-    backgroundColor: color.SurfaceVariant.Container,
-    color: color.SurfaceVariant.OnContainer,
-    border: 'none',
-    textDecoration: 'none',
-    cursor: 'pointer',
-  } as const;
-
   const content = (
     <>
       {icon}
@@ -117,7 +114,7 @@ function ActionTile({ icon, label, onClick, href }: ActionTileProps) {
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        style={style}
+        className={css.ActionTile}
       >
         {content}
       </Box>
@@ -132,7 +129,7 @@ function ActionTile({ icon, label, onClick, href }: ActionTileProps) {
       alignItems="Center"
       gap="100"
       onClick={onClick}
-      style={style}
+      className={css.ActionTile}
     >
       {content}
     </Box>
@@ -144,14 +141,11 @@ type DetailRowProps = {
   children: ReactNode;
 };
 
+/** Label muted left / value + small trailing icon right, with a hairline
+ *  divider between rows (last row undivided via the css :last-child). */
 function DetailRow({ label, children }: DetailRowProps) {
   return (
-    <Box
-      alignItems="Center"
-      justifyContent="SpaceBetween"
-      gap="300"
-      style={{ padding: `${config.space.S200} 0` }}
-    >
+    <Box alignItems="Center" justifyContent="SpaceBetween" gap="300" className={css.DetailRow}>
       <Text size="T300" style={{ color: color.Surface.OnContainer }}>
         {label}
       </Text>
@@ -177,9 +171,11 @@ export type ProjectInfoSheetProps = {
  *  the "who am I actually in a room with" summary, one tap away, without
  *  leaving the conversation (the full page remains at /project/).
  *
- *  Purely presentational: the caller (RoomHeaderProjectInfo) owns the
- *  data fetch and the open/close state, keeping this testable with plain
- *  fixture records the way TokenPriceCard is. */
+ *  Presentational except for the sparkline history (GeckoTerminal, cached
+ *  + never-throwing in useTokenPriceHistory): the caller
+ *  (RoomHeaderProjectInfo) owns the record fetch and open/close state,
+ *  keeping this testable with plain fixture records the way
+ *  TokenPriceCard is. */
 export function ProjectInfoSheet({
   project,
   chainAssets,
@@ -196,6 +192,8 @@ export function ProjectInfoSheet({
   const chainName = asset ? capitalizeChain(asset.chain) : null;
   const subtitle = [ticker, chainName].filter(Boolean).join(' • ');
   const verified = project.owner_verification_state === 'verified';
+
+  const priceHistory = useTokenPriceHistory(asset?.chain, asset?.contract_address);
 
   const dexscreenerUrl = asset
     ? `https://dexscreener.com/${asset.chain.toLowerCase()}/${asset.contract_address}`
@@ -227,57 +225,62 @@ export function ProjectInfoSheet({
   };
 
   return (
-    <Box direction="Column" gap="400" style={{ padding: config.space.S400 }}>
-      <Box alignItems="Center" gap="300">
-        <Avatar size="500">
+    <Box direction="Column" gap="400" className={css.Sheet}>
+      <IconButton
+        className={css.CloseIconButton}
+        size="300"
+        variant="Background"
+        radii="Pill"
+        aria-label="Close"
+        onClick={onClose}
+      >
+        {sizedIcon(X, '100')}
+      </IconButton>
+
+      <Box direction="Column" alignItems="Center" gap="200">
+        <Avatar size="500" className={css.HeroAvatar}>
           {project.avatar_url ? (
-            <img
-              src={project.avatar_url}
-              alt={project.name}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
+            <img src={project.avatar_url} alt={project.name} className={css.HeroAvatarImg} />
           ) : (
             <Text size="H4">{nameInitials(project.name)}</Text>
           )}
         </Avatar>
-        <Box direction="Column" gap="100" grow="Yes" style={{ minWidth: 0 }}>
-          <Box alignItems="Center" gap="200">
-            <Text size="H4" truncate>
-              {project.name}
-            </Text>
-            <VerificationBadge
-              state={project.owner_verification_state}
-              label="Project Owner Verified"
-            />
-          </Box>
-          {subtitle && (
-            <Text size="T300" style={{ color: color.Surface.OnContainer }}>
-              {subtitle}
-            </Text>
-          )}
+        <Box alignItems="Center" justifyContent="Center" gap="200" style={{ maxWidth: '100%' }}>
+          <Text size="H4" align="Center" truncate>
+            <b>{project.name}</b>
+          </Text>
+          <VerificationBadge
+            state={project.owner_verification_state}
+            label="Project Owner Verified"
+          />
         </Box>
-      </Box>
-
-      {verified && (
-        <Box shrink="No" alignItems="Center">
-          <Box
-            alignItems="Center"
-            gap="100"
-            style={{
-              padding: `${config.space.S100} ${config.space.S300}`,
-              borderRadius: config.radii.Pill,
-              backgroundColor: color.Success.Container,
-            }}
-          >
+        {subtitle && (
+          <Text size="T300" align="Center" style={{ color: color.Surface.OnContainer }}>
+            {subtitle}
+          </Text>
+        )}
+        {verified && (
+          <Box shrink="No" alignItems="Center" className={css.VerifiedChip}>
             {sizedIcon(Check, '50', { style: { color: color.Success.OnContainer } })}
             <Text size="T200" style={{ color: color.Success.OnContainer }}>
               Verified Project
             </Text>
           </Box>
-        </Box>
-      )}
+        )}
+      </Box>
 
-      {asset && <ProjectChainAssetPrice projectId={project.project_id} chainAssetId={asset.id} />}
+      {asset && (
+        <ProjectChainAssetPrice
+          projectId={project.project_id}
+          chainAssetId={asset.id}
+          variant="sheet"
+          sparkline={
+            priceHistory && priceHistory.length > 1 ? (
+              <Sparkline history={priceHistory} />
+            ) : undefined
+          }
+        />
+      )}
 
       <Box gap="200">
         {dexscreenerUrl && (
@@ -296,7 +299,7 @@ export function ProjectInfoSheet({
         <ActionTile icon={sizedIcon(ShareNetwork, '200')} label="Share" onClick={handleShare} />
       </Box>
 
-      <Box direction="Column">
+      <Box direction="Column" className={css.DetailsCard}>
         {asset && (
           <DetailRow label="Contract Address">
             <Text size="T300" style={{ fontFamily: 'monospace' }}>
@@ -304,7 +307,7 @@ export function ProjectInfoSheet({
             </Text>
             <IconButton
               size="300"
-              variant="Background"
+              variant="SurfaceVariant"
               radii="300"
               aria-label={copied ? 'Copied' : 'Copy contract address'}
               onClick={handleCopyAddress}
@@ -318,6 +321,7 @@ export function ProjectInfoSheet({
         {chainName && (
           <DetailRow label="Chain">
             <Text size="T300">{chainName}</Text>
+            {sizedIcon(Stack, '100', { style: { color: color.Surface.OnContainer } })}
           </DetailRow>
         )}
         {explorerUrl && (
@@ -329,12 +333,12 @@ export function ProjectInfoSheet({
               href={explorerUrl}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: color.Primary.Main, textDecoration: 'none' }}
+              className={css.DetailLink}
             >
               <Text size="T300" style={{ color: 'inherit' }}>
                 Solscan
               </Text>
-              {sizedIcon(ArrowSquareOut, '100')}
+              {sizedIcon(ArrowUpRight, '100')}
             </Box>
           </DetailRow>
         )}
@@ -347,12 +351,12 @@ export function ProjectInfoSheet({
               href={websiteLink.url}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: color.Primary.Main, textDecoration: 'none' }}
+              className={css.DetailLink}
             >
               <Text size="T300" style={{ color: 'inherit' }}>
                 {websiteHost}
               </Text>
-              {sizedIcon(ArrowSquareOut, '100')}
+              {sizedIcon(Globe, '100')}
             </Box>
           </DetailRow>
         )}
@@ -365,18 +369,19 @@ export function ProjectInfoSheet({
               href={xLink.url}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: color.Primary.Main, textDecoration: 'none' }}
+              className={css.DetailLink}
             >
               <Text size="T300" style={{ color: 'inherit' }}>
                 {xHandle}
               </Text>
-              {sizedIcon(ArrowSquareOut, '100')}
+              {sizedIcon(XLogo, '100')}
             </Box>
           </DetailRow>
         )}
         {firstSeen && (
           <DetailRow label="First Seen">
             <Text size="T300">{firstSeen}</Text>
+            {sizedIcon(Copy, '100', { style: { color: color.Surface.OnContainer } })}
           </DetailRow>
         )}
       </Box>

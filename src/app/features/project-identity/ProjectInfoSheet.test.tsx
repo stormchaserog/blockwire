@@ -1,16 +1,62 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
+import type { ReactNode } from 'react';
 import type {
   ProjectChainAsset,
   ProjectLinkRecord,
   ProjectRecord,
 } from '$utils/blockwire/projects';
 import { ProjectInfoSheet } from './ProjectInfoSheet';
+import { clearTokenPriceHistoryCacheForTesting } from './useTokenPriceHistory';
 
 vi.mock('./ProjectChainAssetPrice', () => ({
-  ProjectChainAssetPrice: () => <div>price-card</div>,
+  // Render the sparkline prop so the sheet's sparkline wiring is testable
+  // without the price card's own Matrix-client fetch.
+  ProjectChainAssetPrice: ({ sparkline }: { sparkline?: ReactNode }) => (
+    <div>
+      price-card
+      {sparkline}
+    </div>
+  ),
 }));
+
+const fetchMock = vi.fn<typeof fetch>();
+
+function geckoResponses(closesNewestFirst: number[]) {
+  fetchMock
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: [{ attributes: { address: 'PoolAddr' } }] }),
+    } as Response)
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        data: {
+          attributes: {
+            ohlcv_list: closesNewestFirst.map((close, i) => [
+              1700000000 - i * 3600,
+              1,
+              2,
+              0.5,
+              close,
+              1000,
+            ]),
+          },
+        },
+      }),
+    } as Response);
+}
+
+beforeEach(() => {
+  vi.stubGlobal('fetch', fetchMock);
+  clearTokenPriceHistoryCacheForTesting();
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.clearAllMocks();
+});
 
 const project: ProjectRecord = {
   project_id: 7,
@@ -157,5 +203,24 @@ describe('ProjectInfoSheet', () => {
     fireEvent.click(screen.getByText('Close'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders a green sparkline from GeckoTerminal history when price is up over 24h', async () => {
+    // Newest-first closes: latest 3 vs oldest 1 → up trend.
+    geckoResponses([3, 2.5, 2, 1.5, 1]);
+    renderSheet();
+
+    const sparkline = await screen.findByTestId('price-sparkline');
+    expect(sparkline).toHaveAttribute('data-trend', 'up');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('omits the sparkline but keeps the price card when the history fetch fails', async () => {
+    fetchMock.mockRejectedValue(new Error('gecko down'));
+    renderSheet();
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(screen.getByText('price-card')).toBeInTheDocument();
+    expect(screen.queryByTestId('price-sparkline')).not.toBeInTheDocument();
   });
 });
