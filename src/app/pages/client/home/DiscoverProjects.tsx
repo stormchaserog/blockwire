@@ -4,13 +4,15 @@ import { Avatar, Box, Text, color } from 'folds';
 import type { ProjectRecord, ProjectChainAsset } from '$utils/blockwire/projects';
 import { fetchDiscoverProjects, fetchChainAssets } from '$utils/blockwire/projects';
 import { fetchChainAssetSnapshot, type TokenSnapshot } from '$utils/blockwire/chainAssets';
-import { getExplorePath, getSpaceLobbyPath } from '$pages/pathUtils';
+import { getExplorePath } from '$pages/pathUtils';
 import { mxcUrlToHttp } from '$utils/matrix';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { useMediaAuthentication } from '$hooks/useMediaAuthentication';
 import { useAlive } from '$hooks/useAlive';
 import { nameInitials, formatTicker } from '$utils/common';
 import { useDexScreenerTokenImage } from '$features/project-identity/useDexScreenerTokenImage';
+import { ModalOverlay } from '$components/modal-overlay/ModalOverlay';
+import { ProjectPreviewSheet } from './ProjectPreviewSheet';
 import * as css from './HomeCommunityCards.css';
 
 const DISCOVER_CAP = 10;
@@ -28,11 +30,11 @@ function DiscoverChange({ percent }: { percent: number | null }) {
 
 function DiscoverProjectCard({ project }: { project: ProjectRecord }) {
   const mx = useMatrixClient();
-  const navigate = useNavigate();
   const useAuthentication = useMediaAuthentication();
   const alive = useAlive();
   const [primaryAsset, setPrimaryAsset] = useState<ProjectChainAsset | null>(null);
   const [snapshot, setSnapshot] = useState<TokenSnapshot | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     setPrimaryAsset(null);
@@ -67,34 +69,49 @@ function DiscoverProjectCard({ project }: { project: ProjectRecord }) {
   const ticker = formatTicker(project.ticker ?? primaryAsset?.token_symbol)?.toUpperCase() ?? null;
 
   return (
-    <Box
-      className={css.DiscoverCard}
-      direction="Column"
-      alignItems="Center"
-      gap="100"
-      onClick={() => navigate(getSpaceLobbyPath(project.space_room_id))}
-    >
-      <Avatar size="400" radii="300">
-        {displayAvatarUrl ? (
-          <img
-            src={displayAvatarUrl}
-            alt={project.name}
-            style={{ width: '100%', height: '100%' }}
-          />
-        ) : (
-          <Text size="H5">{nameInitials(project.name)}</Text>
-        )}
-      </Avatar>
-      <Text size="T300" align="Center" truncate style={{ maxWidth: '100%' }}>
-        <b>{project.name}</b>
-      </Text>
-      {ticker && (
-        <Text size="T200" style={{ color: color.Surface.OnContainer }}>
-          {ticker}
+    <>
+      <Box
+        className={css.DiscoverCard}
+        direction="Column"
+        alignItems="Center"
+        gap="100"
+        onClick={() => setPreviewOpen(true)}
+      >
+        <Avatar size="400" radii="300">
+          {displayAvatarUrl ? (
+            <img
+              src={displayAvatarUrl}
+              alt={project.name}
+              style={{ width: '100%', height: '100%' }}
+            />
+          ) : (
+            <Text size="H5">{nameInitials(project.name)}</Text>
+          )}
+        </Avatar>
+        <Text size="T300" align="Center" truncate style={{ maxWidth: '100%' }}>
+          <b>{project.name}</b>
         </Text>
-      )}
-      <DiscoverChange percent={snapshot?.priceChangePercent.h24 ?? null} />
-    </Box>
+        {ticker && (
+          <Text size="T200" style={{ color: color.Surface.OnContainer }}>
+            {ticker}
+          </Text>
+        )}
+        <DiscoverChange percent={snapshot?.priceChangePercent.h24 ?? null} />
+      </Box>
+      <ModalOverlay
+        open={previewOpen}
+        requestClose={() => setPreviewOpen(false)}
+        mobile="sheet"
+        size="300"
+      >
+        <ProjectPreviewSheet
+          project={project}
+          chainAsset={primaryAsset}
+          avatarUrl={displayAvatarUrl}
+          onClose={() => setPreviewOpen(false)}
+        />
+      </ModalOverlay>
+    </>
   );
 }
 
