@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Box, Text, color, config } from 'folds';
 import { CaretDown, CaretUp, sizedIcon } from '$components/icons/phosphor';
 import type { TokenSnapshot } from '$utils/blockwire/chainAssets';
@@ -65,9 +66,22 @@ export type TokenPriceCardProps = {
    *  wait or give up). */
   status: 'loading' | 'ready' | 'no-data' | 'error';
   errorMessage?: string;
+  /** 'sheet': the Project Info Sheet's compact layout -- big price over
+   *  the 24h change on the left, sparkline on the right. 'default': the
+   *  full Project Identity Page card with volume/liquidity. */
+  variant?: 'default' | 'sheet';
+  /** Optional sparkline node rendered on the right of the sheet variant.
+   *  Owned by the caller so this card stays network-free and testable. */
+  sparkline?: ReactNode;
 };
 
-export function TokenPriceCard({ snapshot, status, errorMessage }: TokenPriceCardProps) {
+export function TokenPriceCard({
+  snapshot,
+  status,
+  errorMessage,
+  variant = 'default',
+  sparkline,
+}: TokenPriceCardProps) {
   if (status === 'loading') {
     // §32: skeleton for content-heavy screens, not a full-screen blank.
     return (
@@ -145,6 +159,38 @@ export function TokenPriceCard({ snapshot, status, errorMessage }: TokenPriceCar
         <Text size="T200" style={{ color: color.Surface.OnContainer }}>
           Price and volume will appear here once this token starts trading.
         </Text>
+      </Box>
+    );
+  }
+
+  if (variant === 'sheet') {
+    const change = snapshot.priceChangePercent.h24;
+    const changeTone = change !== null && change < 0 ? color.Critical.Main : color.Success.Main;
+    return (
+      <Box
+        alignItems="Center"
+        justifyContent="SpaceBetween"
+        gap="400"
+        style={{
+          padding: config.space.S400,
+          borderRadius: config.radii.R400,
+          backgroundColor: color.SurfaceVariant.Container,
+        }}
+      >
+        <Box direction="Column" gap="100" style={{ minWidth: 0 }}>
+          <Text size="H3" truncate>
+            <b>{formatUsd(snapshot.priceUsd)}</b>
+          </Text>
+          <Box alignItems="Center" gap="100">
+            <Text size="T300" style={{ color: changeTone }}>
+              <b>{formatPercent(change)}</b>
+            </Text>
+            <Text size="T300" style={{ color: color.Surface.OnContainer }}>
+              (24h)
+            </Text>
+          </Box>
+        </Box>
+        {sparkline}
       </Box>
     );
   }

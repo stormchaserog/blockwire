@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { useInterval } from '$hooks/useInterval';
@@ -13,6 +14,10 @@ export type ProjectChainAssetPriceProps = {
    *  response, rather than hammering the endpoint faster than the cache
    *  can ever return anything new. */
   pollIntervalMs?: number;
+  /** Forwarded to TokenPriceCard: 'sheet' renders the compact price +
+   *  sparkline layout used by the Project Info Sheet. */
+  variant?: 'default' | 'sheet';
+  sparkline?: ReactNode;
 };
 
 /** Fetches + refreshes a project's chain-asset snapshot and renders it via
@@ -26,6 +31,8 @@ export function ProjectChainAssetPrice({
   projectId,
   chainAssetId,
   pollIntervalMs = 20_000,
+  variant,
+  sparkline,
 }: ProjectChainAssetPriceProps) {
   const mx = useMatrixClient();
   const alive = useAlive();
@@ -63,5 +70,13 @@ export function ProjectChainAssetPrice({
 
   useInterval(load, pollIntervalMs);
 
-  return <TokenPriceCard snapshot={snapshot} status={status} errorMessage={errorMessage} />;
+  return (
+    <TokenPriceCard
+      snapshot={snapshot}
+      status={status}
+      errorMessage={errorMessage}
+      variant={variant}
+      sparkline={sparkline}
+    />
+  );
 }
