@@ -64,6 +64,12 @@ type BookmarkItemContent = {
   deleted?: boolean;
 };
 
+type BlockWireWatchlistContent = {
+  /** Mint addresses the user has starred OFF the default (Jupiter
+   *  top-trending) Home watchlist. */
+  removed: string[];
+};
+
 declare module 'matrix-js-sdk/lib/@types/event' {
   interface StateEvents {
     [prefix.MATRIX_STATE_ROOM_IMAGE_PACK_PROPERTY_NAME]: PackContent;
@@ -92,5 +98,6 @@ declare module 'matrix-js-sdk/lib/@types/event' {
     [prefix.MATRIX_SABLE_UNSTABLE_BOOKMARKS_INDEX_EVENT]: BookmarkIndexContent;
     [prefix.MATRIX_SABLE_UNSTABLE_BOOKMARK_ITEM_EVENT_PREFIX]: BookmarkItemContent;
     [prefix.MATRIX_SABLE_UNSTABLE_FAVORITE_GIFS]: { gifs: Omit<GifData, 'id'>[] };
+    'chat.blockwire.watchlist': BlockWireWatchlistContent;
   }
 }

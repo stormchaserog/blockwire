@@ -11,7 +11,7 @@ import {
   fetchProjectLinks,
 } from '$utils/blockwire/projects';
 import { fetchChainAssetSnapshot, type TokenSnapshot } from '$utils/blockwire/chainAssets';
-import { getSpaceLobbyPath } from '$pages/pathUtils';
+import { getCommunitiesPath, getSpaceLobbyPath } from '$pages/pathUtils';
 import { mxcUrlToHttp } from '$utils/matrix';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { useMediaAuthentication } from '$hooks/useMediaAuthentication';
@@ -20,7 +20,8 @@ import { useRoomName, useRoomAvatar } from '$hooks/useRoomMeta';
 import { useOnlineMemberCount } from '$hooks/useOnlineMemberCount';
 import { nameInitials, formatTicker } from '$utils/common';
 import { formatCompactCount } from '$utils/formatCompactCount';
-import { sizedIcon, Lock, SealCheck, UsersThree } from '$components/icons/phosphor';
+import { today, yesterday, timeDayMonYear } from '$utils/time';
+import { sizedIcon, CheckSquare, Lock, SealCheck, UsersThree } from '$components/icons/phosphor';
 import {
   useOrphanSpaces,
   useSpaceChildren,
@@ -39,6 +40,18 @@ function formatPrice(price: number | null): string | null {
   if (price === null) return null;
   if (price < 0.01) return `$${price.toFixed(6)}`;
   return `$${price.toFixed(price < 1 ? 4 : 2)}`;
+}
+
+/** Design mock's card timestamp: latest activity in the space, rendered
+ *  "9:32 AM" when it happened today, "Yesterday" for yesterday, and a
+ *  short date ("Aug 21") for anything older. Real SDK timestamps only --
+ *  a space with no timeline activity gets no timestamp at all
+ *  (getLastActiveTimestamp returns Number.MIN_SAFE_INTEGER there). */
+export function formatActivityTimestamp(ts: number): string | null {
+  if (!Number.isFinite(ts) || ts <= 0) return null;
+  if (today(ts)) return timeDayMonYear(ts, 'h:mm A');
+  if (yesterday(ts)) return 'Yesterday';
+  return timeDayMonYear(ts, 'MMM D');
 }
 
 function PriceChange({ percent }: { percent: number | null }) {
@@ -170,21 +183,11 @@ function CommunityHomeCardContent({ roomId, room }: { roomId: string; room: Room
   const chain = primaryAsset ? capitalize(primaryAsset.chain) : null;
   const price = formatPrice(snapshot?.priceUsd ?? null);
 
-  // Footer stats, dot-separated, real data only -- a fragment with a zero /
-  // unavailable value is omitted entirely rather than rendered as "0 x":
-  //   unread (all cards) • tasks need attention (owned-project private
-  //   spaces with an incomplete Hub checklist) • online (public spaces
-  //   under the presence-walk cap).
-  const footerStats: string[] = [];
-  if (unread?.total) footerStats.push(`${formatCompactCount(unread.total)} unread`);
-  if (isPrivate && tasksOutstanding !== null && tasksOutstanding > 0) {
-    footerStats.push(
-      `${tasksOutstanding} ${tasksOutstanding === 1 ? 'task needs' : 'tasks need'} attention`
-    );
-  }
-  if (!isPrivate && onlineCount > 0) {
-    footerStats.push(`${formatCompactCount(onlineCount)} online`);
-  }
+  // Top-right timestamp: the space's latest SDK activity timestamp,
+  // rendered relatively. Omitted when the SDK has no timeline activity.
+  const timestamp = formatActivityTimestamp(room.getLastActiveTimestamp());
+
+  const unreadTotal = unread?.total ?? 0;
 
   return (
     <Box
@@ -193,7 +196,7 @@ function CommunityHomeCardContent({ roomId, room }: { roomId: string; room: Room
       gap="200"
       onClick={() => navigate(getSpaceLobbyPath(roomId))}
     >
-      <Box alignItems="Center" gap="200">
+      <Box alignItems="Start" gap="200">
         <Avatar size="400" radii="300">
           {displayAvatarUrl ? (
             <img src={displayAvatarUrl} alt={name} style={{ width: '100%', height: '100%' }} />
@@ -207,22 +210,36 @@ function CommunityHomeCardContent({ roomId, room }: { roomId: string; room: Room
               <b>{name}</b>
             </Text>
             {project?.owner_verification_state === 'verified' &&
-              sizedIcon(SealCheck, '50', { weight: 'fill', style: { color: color.Success.Main } })}
+              sizedIcon(SealCheck, '50', { weight: 'fill', style: { color: color.Primary.Main } })}
             {isPrivate && sizedIcon(Lock, '50', { style: { color: color.Surface.OnContainer } })}
           </Box>
           {/* Line 2 -- three explicit variants, never fabricated:
            *  project + chain asset: "$TICKER • Solana"
-           *  private non-project:   "Team Space • Private"
-           *  public non-project:    nothing. */}
+           *  private non-project:   "Private Team Space"
+           *  public non-project:    "Public Community" */}
           {project && ticker && chain && (
             <Text size="T200" style={{ color: color.Surface.OnContainer }} truncate>
               {ticker} • {chain}
             </Text>
           )}
-          {isTeamSpace && (
+          {!project && (
             <Text size="T200" style={{ color: color.Surface.OnContainer }} truncate>
-              Team Space • Private
+              {isTeamSpace ? 'Private Team Space' : 'Public Community'}
             </Text>
+          )}
+        </Box>
+        {/* Right column: relative timestamp of the latest activity with the
+         *  unread pill under it -- both real, both omitted when absent. */}
+        <Box direction="Column" alignItems="End" gap="100" shrink="No">
+          {timestamp && (
+            <Text size="T200" style={{ color: color.Surface.OnContainer }}>
+              {timestamp}
+            </Text>
+          )}
+          {unreadTotal > 0 && (
+            <Badge variant="Primary" fill="Solid" radii="Pill" size="500">
+              <Text size="L400">{formatCompactCount(unreadTotal)} unread</Text>
+            </Badge>
           )}
         </Box>
       </Box>
@@ -235,35 +252,48 @@ function CommunityHomeCardContent({ roomId, room }: { roomId: string; room: Room
           <PriceChange percent={snapshot?.priceChangePercent.h24 ?? null} />
         </Box>
       )}
+      {/* Footer: members + online on the left (UsersThree icon, green
+       *  presence dot), founder task nudge on the right. All fragments are
+       *  real-data gated -- online is presence-derived and omitted at 0 or
+       *  on private spaces, tasks only for owned incomplete checklists. */}
       <Box alignItems="Center" gap="200">
-        {footerStats.length > 0 && (
-          <Text size="T200" style={{ color: color.Surface.OnContainer }} truncate>
-            {footerStats.join(' • ')}
+        <Box grow="Yes" alignItems="Center" gap="100">
+          {sizedIcon(UsersThree, '50', { style: { color: color.Surface.OnContainer } })}
+          <Text size="T200" style={{ color: color.Surface.OnContainer }}>
+            {formatCompactCount(memberCount)} {memberCount === 1 ? 'member' : 'members'}
           </Text>
-        )}
-        <Box grow="Yes" shrink="No" justifyContent="End">
-          <Badge variant="Primary" fill="Soft" radii="Pill" size="500">
-            <Text size="L400">
-              {isTeamSpace
-                ? 'Team'
-                : `${formatCompactCount(memberCount)} ${memberCount === 1 ? 'member' : 'members'}`}
-            </Text>
-          </Badge>
+          {!isPrivate && onlineCount > 0 && (
+            <>
+              <span className={css.OnlineDot} aria-hidden="true" />
+              <Text size="T200" style={{ color: color.Surface.OnContainer }}>
+                {formatCompactCount(onlineCount)} online
+              </Text>
+            </>
+          )}
         </Box>
+        {tasksOutstanding !== null && tasksOutstanding > 0 && (
+          <Box alignItems="Center" gap="100" shrink="No">
+            {sizedIcon(CheckSquare, '50', { style: { color: color.Primary.Main } })}
+            <Text size="T200" style={{ color: color.Primary.Main }}>
+              {tasksOutstanding} {tasksOutstanding === 1 ? 'task needs' : 'tasks need'} attention
+            </Text>
+          </Box>
+        )}
       </Box>
     </Box>
   );
 }
 
-/** Design mock's "rich community cards" block for the mobile Home: every
+/** Design mock's "Your Communities" block for the mobile Home: every
  *  joined top-level Space, sorted by recent activity (the same set and
  *  ordering the Communities tab shows -- useOrphanSpaces +
  *  factoryRoomIdByActivity), each rendered as a card that leads with
- *  identity (avatar/verified/lock), then the token line for project-bound
- *  spaces, then the price line, then the dot-separated stats footer +
- *  membership pill. */
+ *  identity (avatar/verified/lock + activity timestamp + unread pill),
+ *  then the token line for project-bound spaces, then the price line,
+ *  then the members/online footer. "View all" jumps to Communities. */
 export function HomeCommunityCards() {
   const mx = useMatrixClient();
+  const navigate = useNavigate();
   const roomToParents = useAtomValue(roomToParentsAtom);
   const orphanSpaces = useOrphanSpaces(mx, allRoomsAtom, roomToParents);
 
@@ -276,9 +306,19 @@ export function HomeCommunityCards() {
 
   return (
     <Box direction="Column" gap="200">
-      <Box alignItems="Center" gap="100">
-        {sizedIcon(UsersThree, '100')}
-        <Text size="L400">Communities</Text>
+      <Box alignItems="Center" gap="200">
+        <Box grow="Yes">
+          <Text size="H6">Your Communities</Text>
+        </Box>
+        <Text
+          as="button"
+          type="button"
+          size="T200"
+          onClick={() => navigate(getCommunitiesPath())}
+          className={css.LinkButton}
+        >
+          View all
+        </Text>
       </Box>
       <Box direction="Column" gap="200">
         {sortedSpaces.map((roomId) => (
