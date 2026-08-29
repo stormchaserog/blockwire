@@ -1,93 +1,160 @@
 import { globalStyle, style } from '@vanilla-extract/css';
 import { DefaultReset, config, toRem } from 'folds';
 
-/** Sign-in is the one screen that commits to a single look regardless of the
- *  viewer's theme: a dark photograph does not have a light-mode counterpart,
- *  and a background that inverts is a background nobody chose. The scrim is
- *  doing real work — text on an unmodified photo is a legibility bug waiting
- *  for the wrong screen and the wrong sunlight, so the image is pushed back
- *  far enough that the form always wins. The URL arrives as --auth-backdrop
- *  so the asset stays in TypeScript where the bundler can fingerprint it. */
+/** BlockWire branded auth (E2E audit polish). Sign-in commits to the app's
+ *  locked dark theme regardless of the viewer's OS setting — the auth pages
+ *  never receive .dark-theme (theme mounts inside the client), so the exact
+ *  theme hexes are restated here: bg #0a0a0f, card #16161f, hairline
+ *  #23232f, accent #7c5cff (light #a08aff), text #f2f2f7, muted #8e8e9a. */
+const BG = '#0a0a0f';
+const CARD = '#16161f';
+const CARD_HOVER = '#1c1c27';
+const HAIRLINE = '#23232f';
+const PURPLE = '#7c5cff';
+const PURPLE_LIGHT = '#a08aff';
+const TEXT = '#f2f2f7';
+const MUTED = '#8e8e9a';
+
 export const AuthLayout = style({
   minHeight: '100%',
-  backgroundColor: '#05070C',
-  color: '#E8ECF3',
+  backgroundColor: BG,
+  color: TEXT,
   padding: config.space.S400,
   paddingRight: config.space.S200,
   paddingBottom: 0,
   position: 'relative',
-  backgroundImage: `linear-gradient(180deg, rgba(5,7,12,0.82) 0%, rgba(5,7,12,0.62) 38%, rgba(5,7,12,0.18) 72%, rgba(5,7,12,0.05) 100%), var(--auth-backdrop)`,
-  backgroundSize: 'cover, cover',
-  // The card lands top-left, so the scrim is heaviest there and lifts toward
-  // the bottom — the Earth's lit limb is the reason to use this picture and
-  // burying it under a flat wash would waste it.
-  backgroundPosition: 'center, center bottom',
-  // Not `fixed`: iOS repaints a fixed background on every scroll frame and it
-  // stutters badly on exactly the devices this screen matters most on.
-  backgroundAttachment: 'scroll, scroll',
-  backgroundRepeat: 'no-repeat, no-repeat',
+  // A single soft purple glow behind the brand block — depth without a
+  // photograph, so the dark theme reads as designed, not as unstyled.
+  backgroundImage: `radial-gradient(ellipse 80% 42% at 50% -4%, rgba(124, 92, 255, 0.16) 0%, rgba(124, 92, 255, 0) 70%)`,
+  backgroundRepeat: 'no-repeat',
 });
 
-export const AuthCard = style({
-  marginTop: '1vh',
-  maxWidth: toRem(460),
-  width: '100%',
-  // Sits on the scene rather than punching a hole in it, but stays opaque
-  // enough that the form is readable before the blur is even applied — the
-  // blur is a finish, never the thing keeping the text legible.
-  backgroundColor: 'rgba(13, 16, 23, 0.86)',
-  backdropFilter: 'blur(18px) saturate(120%)',
-  WebkitBackdropFilter: 'blur(18px) saturate(120%)',
-  color: '#E8ECF3',
-  borderRadius: config.radii.R400,
-  boxShadow: '0 24px 60px rgba(0, 0, 0, 0.55)',
-  border: '1px solid rgba(255, 255, 255, 0.10)',
-  overflow: 'hidden',
-});
-
-export const AuthLogo = style([
+/** Centered brand block above the form card. */
+export const AuthBrand = style([
   DefaultReset,
   {
-    width: toRem(26),
-    height: toRem(26),
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: toRem(8),
+    marginTop: '5vh',
+    marginBottom: toRem(20),
+    textAlign: 'center',
+  },
+]);
 
+export const AuthBrandLogo = style([
+  DefaultReset,
+  {
+    width: toRem(56),
+    height: toRem(56),
     borderRadius: '50%',
   },
 ]);
 
-export const AuthHeader = style({
-  padding: `0 ${config.space.S400}`,
-  borderBottomWidth: config.borderWidth.B300,
+export const AuthBrandWordmark = style([
+  DefaultReset,
+  {
+    fontSize: toRem(28),
+    lineHeight: 1.2,
+    fontWeight: 800,
+    color: TEXT,
+    letterSpacing: '-0.02em',
+  },
+]);
+
+export const AuthBrandWordmarkAccent = style({
+  color: PURPLE,
+});
+
+export const AuthBrandTagline = style([
+  DefaultReset,
+  {
+    fontSize: toRem(14),
+    lineHeight: 1.4,
+    color: MUTED,
+  },
+]);
+
+export const AuthCard = style({
+  maxWidth: toRem(460),
+  width: '100%',
+  backgroundColor: CARD,
+  color: TEXT,
+  borderRadius: toRem(18),
+  boxShadow: '0 24px 60px rgba(0, 0, 0, 0.55)',
+  border: `1px solid ${HAIRLINE}`,
+  overflow: 'hidden',
 });
 
 export const AuthCardContent = style({
   maxWidth: toRem(402),
   width: '100%',
   margin: 'auto',
-  padding: config.space.S400,
-  paddingTop: config.space.S700,
-  paddingBottom: toRem(44),
-  gap: toRem(44),
+  padding: toRem(24),
+  paddingTop: toRem(28),
+  paddingBottom: toRem(36),
+  gap: toRem(36),
+  '@media': {
+    'screen and (max-width: 480px)': {
+      padding: toRem(20),
+      paddingTop: toRem(24),
+      paddingBottom: toRem(28),
+    },
+  },
+});
+
+export const AuthAddingAccountRow = style({
+  padding: `${config.space.S200} ${toRem(24)}`,
+  borderBottom: `1px solid ${HAIRLINE}`,
 });
 
 export const AuthFooter = style({
   padding: config.space.S200,
 });
 
-/** The sign-in button is the first thing anyone is asked to press, and the
- *  theme's stock primary is a lavender that belongs to the upstream client,
- *  not to us. On a black-and-blue photograph it reads as somebody else's
- *  product. Scoped to the auth card so nothing else in the app shifts. */
+/** Dark inputs inside the auth card only: folds' Input takes its palette
+ *  from theme vars the auth pages never receive, so the card restates the
+ *  locked dark-theme input look. Scoped to the card — nothing else shifts. */
+globalStyle(`${AuthCard} input`, {
+  backgroundColor: CARD_HOVER,
+  color: TEXT,
+  caretColor: PURPLE_LIGHT,
+});
+
+globalStyle(`${AuthCard} input::placeholder`, {
+  color: MUTED,
+});
+
+globalStyle(`${AuthCard} div:has(> input)`, {
+  backgroundColor: CARD_HOVER,
+  border: `1px solid ${HAIRLINE}`,
+  boxShadow: 'none',
+});
+
+globalStyle(`${AuthCard} div:has(> input:focus)`, {
+  borderColor: PURPLE,
+  outline: 'none',
+});
+
+/** Primary submit: filled purple pill, white text — the app's locked button
+ *  style. Scoped to the auth card so nothing else in the app shifts. */
 globalStyle(`${AuthCard} button[type="submit"]`, {
-  background: 'linear-gradient(90deg, #0098FF, #7B2BFF)',
+  background: PURPLE,
   color: '#FFFFFF',
   border: 'none',
+  borderRadius: toRem(999),
 });
 
 globalStyle(`${AuthCard} button[type="submit"]:hover`, {
-  filter: 'brightness(1.08)',
+  filter: 'brightness(1.1)',
 });
 
 globalStyle(`${AuthCard} button[type="submit"] span`, {
   color: '#FFFFFF',
+});
+
+/** Links inside the auth card pick up the light accent. */
+globalStyle(`${AuthCard} a`, {
+  color: PURPLE_LIGHT,
 });

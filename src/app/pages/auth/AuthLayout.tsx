@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useCallback, useEffect } from 'react';
-import { Box, Chip, Header, IconButton, Scroll, Spinner, Text, color } from 'folds';
+import { Box, Chip, IconButton, Scroll, Spinner, Text, color } from 'folds';
 import { ArrowClockwiseIcon } from '@phosphor-icons/react';
 import {
   Outlet,
@@ -14,8 +14,6 @@ import {
 
 import { clientAllowedServer, clientDefaultServer, useClientConfig } from '$hooks/useClientConfig';
 import { AsyncStatus, useAsyncCallback } from '$hooks/useAsyncCallback';
-import LogoSVG from '$public/res/svg/logo.svg';
-import AuthBackdrop from '$public/res/bg/auth-space.jpg';
 import { SpecVersionsLoader } from '$components/SpecVersionsLoader';
 import { SpecVersionsProvider } from '$hooks/useSpecVersions';
 import { AutoDiscoveryInfoProvider } from '$hooks/useAutoDiscoveryInfo';
@@ -31,6 +29,7 @@ import { AutoDiscoveryAction, autoDiscovery } from '../../cs-api';
 import type { SpecVersions } from '../../cs-api';
 import { ServerPicker } from './ServerPicker';
 import * as css from './styles.css';
+import { AuthBrand } from './AuthBrand';
 import { AuthFooter } from './AuthFooter';
 import { usePathWithOrigin } from '$hooks/usePathWithOrigin';
 
@@ -212,20 +211,21 @@ export function AuthLayout() {
     <Scroll variant="Background" visibility="Hover" size="300" hideTrack>
       <Box
         className={css.AuthLayout}
-        style={{ ['--auth-backdrop' as string]: `url(${AuthBackdrop})` }}
         direction="Column"
         alignItems="Center"
         justifyContent="SpaceBetween"
         gap="400"
       >
-        <Box direction="Column" className={css.AuthCard}>
-          <Header className={css.AuthHeader} size="600" variant="Surface">
-            <Box grow="Yes" direction="Row" gap="300" alignItems="Center">
-              <img className={css.AuthLogo} src={LogoSVG} alt="BlockWire" />
-              <Text size="H3">{SABLE_PRODUCT_NAME}</Text>
-            </Box>
+        <Box direction="Column" alignItems="Center" style={{ width: '100%' }}>
+          <AuthBrand />
+          <Box direction="Column" className={css.AuthCard}>
             {isAddingAccount && (
-              <Box gap="200" alignItems="Center" style={{ marginLeft: 'auto' }}>
+              <Box
+                className={css.AuthAddingAccountRow}
+                gap="200"
+                alignItems="Center"
+                justifyContent="End"
+              >
                 <Text size="T200" priority="300">
                   Adding account
                 </Text>
@@ -234,62 +234,62 @@ export function AuthLayout() {
                 </Chip>
               </Box>
             )}
-          </Header>
-          <Box className={css.AuthCardContent} direction="Column">
-            {/* The server picker only earns its space when there is a choice
+            <Box className={css.AuthCardContent} direction="Column">
+              {/* The server picker only earns its space when there is a choice
                 to make. BlockWire is one server, so showing a "Homeserver"
                 field labelled blockwire.chat above a form on blockwire.chat
                 asks people to think about infrastructure before they can log
                 in. It comes back automatically if custom servers are ever
                 allowed or a second one is listed. */}
-            {(clientConfig.allowCustomHomeservers ||
-              (clientConfig.homeserverList ?? []).length > 1) && (
-              <Box direction="Column" gap="100">
-                <Text as="label" size="L400" priority="300">
-                  Homeserver
-                </Text>
-                <ServerPicker
-                  server={server}
-                  serverList={clientConfig.homeserverList ?? []}
-                  allowCustomServer={clientConfig.allowCustomHomeservers}
-                  onServerChange={selectServer}
+              {(clientConfig.allowCustomHomeservers ||
+                (clientConfig.homeserverList ?? []).length > 1) && (
+                <Box direction="Column" gap="100">
+                  <Text as="label" size="L400" priority="300">
+                    Homeserver
+                  </Text>
+                  <ServerPicker
+                    server={server}
+                    serverList={clientConfig.homeserverList ?? []}
+                    allowCustomServer={clientConfig.allowCustomHomeservers}
+                    onServerChange={selectServer}
+                  />
+                </Box>
+              )}
+              {discoveryState.status === AsyncStatus.Loading && (
+                <AuthLayoutLoading message="Looking for homeserver..." />
+              )}
+              {discoveryState.status === AsyncStatus.Error && (
+                <AuthLayoutError
+                  message="Failed to find homeserver."
+                  retry={retryHomeserverDiscovery}
                 />
-              </Box>
-            )}
-            {discoveryState.status === AsyncStatus.Loading && (
-              <AuthLayoutLoading message="Looking for homeserver..." />
-            )}
-            {discoveryState.status === AsyncStatus.Error && (
-              <AuthLayoutError
-                message="Failed to find homeserver."
-                retry={retryHomeserverDiscovery}
-              />
-            )}
-            {autoDiscoveryError?.action === AutoDiscoveryAction.FAIL_PROMPT && (
-              <AuthLayoutError
-                message={`Failed to connect. Homeserver configuration found with ${autoDiscoveryError.host} appears unusable.`}
-                retry={retryHomeserverDiscovery}
-              />
-            )}
-            {autoDiscoveryError?.action === AutoDiscoveryAction.FAIL_ERROR && (
-              <AuthLayoutError
-                message="Failed to connect. Homeserver configuration base_url appears invalid."
-                retry={retryHomeserverDiscovery}
-              />
-            )}
-            {discoveryState.status === AsyncStatus.Success && autoDiscoveryInfo && (
-              <AuthServerProvider value={discoveryState.data.serverName}>
-                <AutoDiscoveryInfoProvider value={autoDiscoveryInfo}>
-                  <SpecVersionsLoader
-                    baseUrl={autoDiscoveryInfo['m.homeserver'].base_url}
-                    fallback={renderHomeserverConnectFallback}
-                    error={authHomeserverConnectError}
-                  >
-                    {renderSpecVersions}
-                  </SpecVersionsLoader>
-                </AutoDiscoveryInfoProvider>
-              </AuthServerProvider>
-            )}
+              )}
+              {autoDiscoveryError?.action === AutoDiscoveryAction.FAIL_PROMPT && (
+                <AuthLayoutError
+                  message={`Failed to connect. Homeserver configuration found with ${autoDiscoveryError.host} appears unusable.`}
+                  retry={retryHomeserverDiscovery}
+                />
+              )}
+              {autoDiscoveryError?.action === AutoDiscoveryAction.FAIL_ERROR && (
+                <AuthLayoutError
+                  message="Failed to connect. Homeserver configuration base_url appears invalid."
+                  retry={retryHomeserverDiscovery}
+                />
+              )}
+              {discoveryState.status === AsyncStatus.Success && autoDiscoveryInfo && (
+                <AuthServerProvider value={discoveryState.data.serverName}>
+                  <AutoDiscoveryInfoProvider value={autoDiscoveryInfo}>
+                    <SpecVersionsLoader
+                      baseUrl={autoDiscoveryInfo['m.homeserver'].base_url}
+                      fallback={renderHomeserverConnectFallback}
+                      error={authHomeserverConnectError}
+                    >
+                      {renderSpecVersions}
+                    </SpecVersionsLoader>
+                  </AutoDiscoveryInfoProvider>
+                </AuthServerProvider>
+              )}
+            </Box>
           </Box>
         </Box>
         <AuthFooter />
