@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Avatar, Box, Scroll, Text, color } from 'folds';
+import { Box, Scroll, Text, color } from 'folds';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { useAlive } from '$hooks/useAlive';
 import { useMediaAuthentication } from '$hooks/useMediaAuthentication';
@@ -9,9 +9,15 @@ import { mxcUrlToHttp } from '$utils/matrix';
 import { nameInitials, formatTicker } from '$utils/common';
 import { getSpaceLobbyPath } from '$pages/pathUtils';
 import { Page, PageContent, PageContentCenter, PageHeader } from '$components/page';
-import { sizedIcon, Compass } from '$components/icons/phosphor';
+import { sizedIcon, CaretRight, Compass } from '$components/icons/phosphor';
+import * as css from './Discover.css';
 
-function DiscoverProjectRow({ project }: { project: ProjectRecord }) {
+/** One project as a real card: 52px avatar (initials fallback), name +
+ *  $TICKER, 2-line description, and a chevron affordance. The discover
+ *  endpoint returns no member/online counts today, so no stats row is
+ *  rendered — stats appear only when the API actually returns them, never
+ *  fabricated. */
+function DiscoverProjectCard({ project }: { project: ProjectRecord }) {
   const mx = useMatrixClient();
   const navigate = useNavigate();
   const useAuthentication = useMediaAuthentication();
@@ -20,30 +26,38 @@ function DiscoverProjectRow({ project }: { project: ProjectRecord }) {
     : undefined;
 
   return (
-    <Box
-      alignItems="Center"
-      gap="300"
-      style={{ padding: '0.75rem 0', cursor: 'pointer' }}
+    <div
+      className={css.ProjectCard}
+      role="button"
+      tabIndex={0}
       onClick={() => navigate(getSpaceLobbyPath(project.space_room_id))}
+      onKeyDown={(evt) => {
+        if (evt.key === 'Enter' || evt.key === ' ') {
+          evt.preventDefault();
+          navigate(getSpaceLobbyPath(project.space_room_id));
+        }
+      }}
     >
-      <Avatar size="400" radii="300">
+      <div className={css.ProjectAvatar}>
         {avatarUrl ? (
-          <img src={avatarUrl} alt={project.name} style={{ width: '100%', height: '100%' }} />
+          <img className={css.ProjectAvatarImg} src={avatarUrl} alt={project.name} />
         ) : (
-          <Text size="H6">{nameInitials(project.name)}</Text>
+          <span>{nameInitials(project.name)}</span>
         )}
-      </Avatar>
-      <Box grow="Yes" direction="Column" gap="0">
-        <Text size="T400" truncate>
-          {project.name}
-        </Text>
-        {project.ticker && (
-          <Text size="T200" style={{ color: color.Surface.OnContainer }} truncate>
-            {formatTicker(project.ticker)}
-          </Text>
-        )}
-      </Box>
-    </Box>
+      </div>
+      <div className={css.ProjectBody}>
+        <div className={css.ProjectTitleRow}>
+          <span className={css.ProjectName}>{project.name}</span>
+          {project.ticker && (
+            <span className={css.ProjectTicker}>{formatTicker(project.ticker)}</span>
+          )}
+        </div>
+        {project.description && <div className={css.ProjectDescription}>{project.description}</div>}
+      </div>
+      <div className={css.ProjectChevron} aria-hidden>
+        {sizedIcon(CaretRight, '200')}
+      </div>
+    </div>
   );
 }
 
@@ -123,9 +137,9 @@ export function Discover() {
                   <Text size="L400" style={{ color: color.Surface.OnContainer }}>
                     New
                   </Text>
-                  <Box direction="Column">
+                  <Box direction="Column" gap="200">
                     {projects.map((project) => (
-                      <DiscoverProjectRow key={project.project_id} project={project} />
+                      <DiscoverProjectCard key={project.project_id} project={project} />
                     ))}
                   </Box>
                 </Box>

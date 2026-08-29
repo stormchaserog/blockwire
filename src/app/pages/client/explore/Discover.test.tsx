@@ -51,6 +51,24 @@ describe('Discover', () => {
     expect(screen.getByText('$WCLAW')).toBeInTheDocument();
   });
 
+  it('renders the project description on the card and omits stats the API does not return', async () => {
+    fetchDiscoverProjects.mockResolvedValue([
+      { ...project, description: 'Solana crypto-native AI tech and SMM agency.' },
+    ]);
+    render(
+      <MemoryRouter>
+        <Discover />
+      </MemoryRouter>
+    );
+    await waitFor(() =>
+      expect(screen.getByText('Solana crypto-native AI tech and SMM agency.')).toBeInTheDocument()
+    );
+    // The discover endpoint returns no member/online counts today — the card
+    // must not fabricate a stats row.
+    expect(screen.queryByText(/member/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/online/i)).not.toBeInTheDocument();
+  });
+
   it('shows an honest empty state, not a blank screen, with zero projects', async () => {
     fetchDiscoverProjects.mockResolvedValue([]);
     render(
