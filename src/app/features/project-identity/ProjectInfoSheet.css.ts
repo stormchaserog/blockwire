@@ -127,6 +127,14 @@ export const PriceChangeText = style({
   fontWeight: 600,
 });
 
+/** Approved mock's wide area chart: the sparkline spans the price card's
+ *  FULL width under the stacked price + change, at a fixed 76px height.
+ *  The inner SVG stretches horizontally (Sparkline fullWidth). */
+export const PriceChartArea = style({
+  width: '100%',
+  height: '76px',
+});
+
 export const PriceChangeMuted = style({
   fontSize: '14px',
   color: text2,
@@ -203,4 +211,16 @@ export const DetailLink = style({
   color: purple2,
   fontSize: '14.5px',
   textDecoration: 'none',
+});
+
+/** The Buy Feed tile's in-place bottom sheet body: same #16161f card
+ *  language as the rest of the overview, radius 18 per the mock's larger
+ *  sheet surfaces, capped height so a busy feed scrolls inside the sheet
+ *  instead of growing past the viewport. */
+export const BuyFeedSheet = style({
+  padding: config.space.S400,
+  borderRadius: '18px',
+  backgroundColor: card,
+  maxHeight: '70vh',
+  overflowY: 'auto',
 });

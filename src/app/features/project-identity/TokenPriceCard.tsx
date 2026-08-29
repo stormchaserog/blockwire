@@ -170,8 +170,9 @@ export function TokenPriceCard({
   if (variant === 'sheet') {
     const change = snapshot.priceChangePercent.h24;
     const changeTone = change !== null && change < 0 ? css.mock.red : css.mock.green;
+    const sparklineNode = typeof sparkline === 'function' ? sparkline(change) : sparkline;
     return (
-      <Box alignItems="Center" justifyContent="SpaceBetween" gap="400" className={css.PriceCard}>
+      <Box direction="Column" gap="300" className={css.PriceCard}>
         <Box direction="Column" gap="100" style={{ minWidth: 0 }}>
           <span className={css.PriceValue}>{formatUsd(snapshot.priceUsd)}</span>
           <Box alignItems="Center" gap="100">
@@ -181,7 +182,7 @@ export function TokenPriceCard({
             <span className={css.PriceChangeMuted}>(24h)</span>
           </Box>
         </Box>
-        {typeof sparkline === 'function' ? sparkline(change) : sparkline}
+        {sparklineNode && <div className={css.PriceChartArea}>{sparklineNode}</div>}
       </Box>
     );
   }

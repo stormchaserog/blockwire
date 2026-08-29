@@ -25,8 +25,9 @@ export type ProjectInfoSheetProps = {
  *
  *  The body is the shared ProjectInfoOverview -- the SAME component the
  *  project page's Info tab renders -- so the sheet and the page can never
- *  drift apart. This wrapper only owns sheet chrome: the close icon, the
- *  Close button, and closing itself before an in-app tile navigation. */
+ *  drift apart. This wrapper only owns sheet chrome: the close icon and
+ *  the Close button -- the tiles act in place (Buy Feed opens its own
+ *  sheet, Info scrolls), so nothing here needs to close-before-navigate. */
 export function ProjectInfoSheet({
   project,
   chainAssets,
@@ -55,7 +56,6 @@ export function ProjectInfoSheet({
         selectedAsset={selectedAsset}
         spaceRoomId={spaceRoomId}
         variant="sheet"
-        onBeforeNavigate={onClose}
       />
 
       <Button

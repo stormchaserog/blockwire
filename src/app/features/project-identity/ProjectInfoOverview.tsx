@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Box, IconButton } from 'folds';
+import { useRef, useState } from 'react';
+import { Box, IconButton, Text } from 'folds';
 import {
   ArrowUpRight,
   Check,
@@ -10,8 +9,10 @@ import {
   Globe,
   Info,
   Presentation,
+  SealCheck,
   ShareNetwork,
   Stack,
+  X,
   XLogo,
   sizedIcon,
 } from '$components/icons/phosphor';
@@ -22,7 +23,6 @@ import { mxcUrlToHttp } from '$utils/matrix';
 import { useOptionalMatrixClient } from '$hooks/useMatrixClient';
 import { useMediaAuthentication } from '$hooks/useMediaAuthentication';
 import { getExplorerUrl } from '$utils/blockwire/chainExplorers';
-import { getSpaceProjectPath } from '$pages/pathUtils';
 import type {
   ProjectChainAsset,
   ProjectLinkRecord,
@@ -32,6 +32,9 @@ import { VerificationBadge } from './VerificationBadge';
 import { ProjectChainAssetPrice } from './ProjectChainAssetPrice';
 import { Sparkline } from './Sparkline';
 import { useTokenPriceHistory } from './useTokenPriceHistory';
+import { useJupiterVerification } from './useJupiterVerification';
+import { BuyFeed } from './BuyFeed';
+import { ModalOverlay } from '$components/modal-overlay/ModalOverlay';
 import * as css from './ProjectInfoSheet.css';
 
 /** '8xR…pump' style: first 3 + ellipsis + last 4. Deliberately shorter
@@ -160,14 +163,14 @@ export type ProjectInfoOverviewProps = {
   chainAssets: ProjectChainAsset[];
   links: ProjectLinkRecord[];
   selectedAsset: ProjectChainAsset | null;
+  /** The project's bound space -- kept in the contract so both surfaces
+   *  keep handing the overview its full identity context even though the
+   *  tiles no longer navigate (Buy Feed opens in-place, Info scrolls). */
   spaceRoomId: string;
   /** 'page' renders the Info tab's larger (~88px) hero avatar; 'sheet'
    *  keeps the Project Info Sheet's compact 76px one. Identical content
    *  otherwise -- one source of truth per the locked design mock. */
   variant?: 'sheet' | 'page';
-  /** Called before an in-app tile navigation (the sheet closes itself
-   *  first; the page has nothing to do). */
-  onBeforeNavigate?: () => void;
 };
 
 /** The design-mock project overview shared by the room-header Project
@@ -188,12 +191,11 @@ export function ProjectInfoOverview({
   chainAssets,
   links,
   selectedAsset,
-  spaceRoomId,
   variant = 'sheet',
-  onBeforeNavigate,
 }: ProjectInfoOverviewProps) {
-  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
+  const [buyFeedOpen, setBuyFeedOpen] = useState(false);
+  const detailsCardRef = useRef<HTMLDivElement | null>(null);
   const mx = useOptionalMatrixClient();
   const useAuthentication = useMediaAuthentication();
   // avatar_url may be an mxc:// URI (Matrix media) or a plain https URL.
@@ -212,6 +214,9 @@ export function ProjectInfoOverview({
   const verified = project.owner_verification_state === 'verified';
 
   const priceHistory = useTokenPriceHistory(asset?.chain, asset?.contract_address);
+  // Jupiter verification (solana only). null = unknown (loading, error, or
+  // non-solana) and the row is omitted entirely -- never a fabricated state.
+  const jupiterVerified = useJupiterVerification(asset?.chain, asset?.contract_address);
 
   const dexscreenerUrl = asset
     ? `https://dexscreener.com/${asset.chain.toLowerCase()}/${asset.contract_address}`
@@ -237,9 +242,11 @@ export function ProjectInfoOverview({
     void shareText(shareUrl ? `${project.name} — ${shareUrl}` : project.name);
   };
 
-  const goTo = (path: string) => {
-    onBeforeNavigate?.();
-    navigate(path);
+  // Info: the overview IS the info surface, so the only honest behavior
+  // is scrolling the details card into view rather than a same-page
+  // navigation that feels like a dead button.
+  const handleInfo = () => {
+    detailsCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   return (
@@ -286,20 +293,38 @@ export function ProjectInfoOverview({
         {dexscreenerUrl && (
           <ActionTile icon={sizedIcon(Presentation, '200')} label="Chart" href={dexscreenerUrl} />
         )}
-        <ActionTile
-          icon={sizedIcon(CurrencyCircleDollar, '200')}
-          label="Buy Feed"
-          onClick={() => goTo(getSpaceProjectPath(spaceRoomId))}
-        />
-        <ActionTile
-          icon={sizedIcon(Info, '200')}
-          label="Info"
-          onClick={() => goTo(getSpaceProjectPath(spaceRoomId))}
-        />
+        {asset && (
+          <ActionTile
+            icon={sizedIcon(CurrencyCircleDollar, '200')}
+            label="Buy Feed"
+            onClick={() => setBuyFeedOpen(true)}
+          />
+        )}
+        <ActionTile icon={sizedIcon(Info, '200')} label="Info" onClick={handleInfo} />
         <ActionTile icon={sizedIcon(ShareNetwork, '200')} label="Share" onClick={handleShare} />
       </Box>
 
-      <Box direction="Column" className={css.DetailsCard}>
+      {asset && buyFeedOpen && (
+        <ModalOverlay open requestClose={() => setBuyFeedOpen(false)} mobile="sheet" size="400">
+          <Box direction="Column" gap="300" className={css.BuyFeedSheet}>
+            <Box alignItems="Center" justifyContent="SpaceBetween" gap="300">
+              <Text size="H4">Buy Feed</Text>
+              <IconButton
+                size="300"
+                variant="SurfaceVariant"
+                radii="Pill"
+                aria-label="Close buy feed"
+                onClick={() => setBuyFeedOpen(false)}
+              >
+                {sizedIcon(X, '100')}
+              </IconButton>
+            </Box>
+            <BuyFeed projectId={project.project_id} chainAssetId={asset.id} />
+          </Box>
+        </ModalOverlay>
+      )}
+
+      <Box direction="Column" className={css.DetailsCard} ref={detailsCardRef}>
         {asset && (
           <DetailRow label="Contract Address">
             <span className={css.DetailValue} style={{ fontFamily: 'monospace' }}>
@@ -322,6 +347,22 @@ export function ProjectInfoOverview({
           <DetailRow label="Chain">
             <span className={css.DetailValue}>{chainName}</span>
             {sizedIcon(Stack, '100', { style: { color: css.mock.text2 } })}
+          </DetailRow>
+        )}
+        {jupiterVerified !== null && (
+          <DetailRow label="Jupiter">
+            {jupiterVerified ? (
+              <>
+                <span className={css.DetailValue} style={{ color: css.mock.green }}>
+                  Verified
+                </span>
+                {sizedIcon(SealCheck, '100', { style: { color: css.mock.green } })}
+              </>
+            ) : (
+              <span className={css.DetailValue} style={{ color: css.mock.text2 }}>
+                Not Verified
+              </span>
+            )}
           </DetailRow>
         )}
         {explorerUrl && (

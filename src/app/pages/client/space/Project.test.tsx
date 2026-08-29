@@ -82,6 +82,11 @@ vi.mock('$features/project-identity/WhaleAlerts', () => ({ WhaleAlerts: () => nu
 vi.mock('$features/project-identity/useTokenPriceHistory', () => ({
   useTokenPriceHistory: () => null,
 }));
+// The Jupiter verification hook also fetches; a unit test must never hit
+// the network. null = the row is omitted, which is what these tests want.
+vi.mock('$features/project-identity/useJupiterVerification', () => ({
+  useJupiterVerification: () => null,
+}));
 vi.mock('$features/project-identity/ManageProjectPanel', () => ({
   ManageProjectPanel: () => <div>manage-project-panel</div>,
 }));

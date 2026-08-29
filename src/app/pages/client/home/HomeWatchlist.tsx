@@ -197,7 +197,22 @@ export function HomeWatchlist() {
   return (
     <Box direction="Column" gap="200">
       <span className={css.SectionHeader}>Watchlist</span>
-      <div className={css.WatchlistRow}>
+      {/* Swipe guard: this row scrolls horizontally, which is the same
+       *  gesture MobileNavDrawer treats as swipe-to-open. The drawer's
+       *  capture-phase touch coordinator explicitly blocks gestures that
+       *  start inside a [data-gestures="ignore"] element, so that
+       *  attribute is the authoritative opt-out; touch-action pan-x plus
+       *  stopPropagation keep any other ancestor touch listeners (and the
+       *  browser's own vertical panning) from fighting the scroll. */}
+      <div
+        className={css.WatchlistRow}
+        data-gestures="ignore"
+        data-swipe-opt-out=""
+        style={{ touchAction: 'pan-x' }}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
+      >
         {visible.map((token) => (
           <WatchlistTokenCard key={token.id} token={token} onRemove={handleRemove} />
         ))}

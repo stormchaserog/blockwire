@@ -10,13 +10,25 @@ export type SparklineProps = {
   change24h?: number | null;
   width?: number;
   height?: number;
+  /** Stretch to the parent's full width (the mock's wide area chart):
+   *  `width` then only sets the viewBox coordinate space, and the SVG
+   *  scales horizontally without preserving aspect ratio -- the vertical
+   *  scale stays pinned to `height` so the line weight reads the same at
+   *  any card width. */
+  fullWidth?: boolean;
 };
 
 /** Tiny dependency-free SVG sparkline: a normalized polyline with a
  *  subtle gradient fill under it. Green when the series ends at or above
  *  where it started, red otherwise (matching the 24h change tone next to
  *  it). Purely presentational -- callers omit it when there is no data. */
-export function Sparkline({ history, change24h, width = 100, height = 40 }: SparklineProps) {
+export function Sparkline({
+  history,
+  change24h,
+  width = 100,
+  height = 40,
+  fullWidth = false,
+}: SparklineProps) {
   const gradientId = useId();
   if (history.length < 2) return null;
 
@@ -50,12 +62,14 @@ export function Sparkline({ history, change24h, width = 100, height = 40 }: Spar
     <svg
       data-testid="price-sparkline"
       data-trend={up ? 'up' : 'down'}
-      width={width}
+      data-full-width={fullWidth ? 'true' : undefined}
+      width={fullWidth ? undefined : width}
       height={height}
       viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio={fullWidth ? 'none' : undefined}
       fill="none"
       aria-hidden="true"
-      style={{ flexShrink: 0 }}
+      style={fullWidth ? { display: 'block', width: '100%' } : { flexShrink: 0 }}
     >
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">

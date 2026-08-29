@@ -65,6 +65,12 @@ vi.mock('$features/project-identity/useTokenPriceHistory', () => ({
   useTokenPriceHistory: () => null,
 }));
 
+// The Jupiter verification hook also fetches; a unit test must never hit
+// the network. null = the row is omitted, which is what these tests want.
+vi.mock('$features/project-identity/useJupiterVerification', () => ({
+  useJupiterVerification: () => null,
+}));
+
 vi.mock('$features/project-identity/VerificationBadge', () => ({
   VerificationBadge: ({ state, label }: { state: string; label: string }) =>
     state === 'unverified' ? null : (
