@@ -283,7 +283,9 @@ export function ProjectInfoOverview({
           sparkline={
             priceHistory && priceHistory.length > 1
               ? // oxlint-disable-next-line react/no-unstable-nested-components -- render prop, not a component: TokenPriceCard invokes it inline with the snapshot's 24h change so the sparkline tone always matches the % text
-                (change24h) => <Sparkline history={priceHistory} change24h={change24h} />
+                (change24h) => (
+                  <Sparkline history={priceHistory} change24h={change24h} fullWidth height={76} />
+                )
               : undefined
           }
         />
