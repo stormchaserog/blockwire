@@ -17,7 +17,7 @@ export type ProjectChainAssetPriceProps = {
   /** Forwarded to TokenPriceCard: 'sheet' renders the compact price +
    *  sparkline layout used by the Project Info Sheet. */
   variant?: 'default' | 'sheet';
-  sparkline?: ReactNode;
+  sparkline?: ReactNode | ((change24h: number | null) => ReactNode);
 };
 
 /** Fetches + refreshes a project's chain-asset snapshot and renders it via

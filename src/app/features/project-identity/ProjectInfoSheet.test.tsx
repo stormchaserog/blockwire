@@ -12,11 +12,16 @@ import { clearTokenPriceHistoryCacheForTesting } from './useTokenPriceHistory';
 
 vi.mock('./ProjectChainAssetPrice', () => ({
   // Render the sparkline prop so the sheet's sparkline wiring is testable
-  // without the price card's own Matrix-client fetch.
-  ProjectChainAssetPrice: ({ sparkline }: { sparkline?: ReactNode }) => (
+  // without the price card's own Matrix-client fetch. The render-prop form
+  // receives the snapshot's 24h change; feed it a positive one here.
+  ProjectChainAssetPrice: ({
+    sparkline,
+  }: {
+    sparkline?: ReactNode | ((change24h: number | null) => ReactNode);
+  }) => (
     <div>
       price-card
-      {sparkline}
+      {typeof sparkline === 'function' ? sparkline(18.4) : sparkline}
     </div>
   ),
 }));

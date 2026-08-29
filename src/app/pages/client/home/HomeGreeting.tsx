@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import { Box, IconButton, Text, color, config } from 'folds';
+import { Box, IconButton, config } from 'folds';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { sizedIcon, Bell } from '$components/icons/phosphor';
 import { getInboxNotificationsPath } from '$pages/pathUtils';
 import { getGreetingByHour, getGreetingName } from './greeting';
+import * as css from './HomeCommunityCards.css';
 
 /** UI Bible §7: Home opens with a personal header, not a bare room list.
  *  Greeting varies by local time of day; the name is the user's own Matrix
@@ -27,12 +28,10 @@ export function HomeGreeting() {
       }}
     >
       <Box grow="Yes" direction="Column" gap="100">
-        <Text size="H4">
+        <h1 className={css.GreetingTitle}>
           {greeting}, {name} 👋
-        </Text>
-        <Text size="T300" style={{ color: color.Surface.OnContainer }}>
-          Here&apos;s what&apos;s happening.
-        </Text>
+        </h1>
+        <span className={css.GreetingSub}>Here&apos;s what&apos;s happening.</span>
       </Box>
       <IconButton
         size="300"

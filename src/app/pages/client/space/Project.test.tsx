@@ -16,6 +16,7 @@ const mockMatrixClient = {
 
 vi.mock('$hooks/useMatrixClient', () => ({
   useMatrixClient: () => mockMatrixClient,
+  useOptionalMatrixClient: () => mockMatrixClient,
 }));
 
 vi.mock('$hooks/useSpace', () => ({

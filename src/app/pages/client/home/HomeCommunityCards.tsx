@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAtomValue } from 'jotai';
-import { Avatar, Badge, Box, Text, color } from 'folds';
+import { Box, Text } from 'folds';
 import type { Room } from '$types/matrix-sdk';
 import { JoinRule } from '$types/matrix-sdk';
 import type { ProjectRecord, ProjectChainAsset } from '$utils/blockwire/projects';
@@ -58,10 +58,10 @@ function PriceChange({ percent }: { percent: number | null }) {
   if (percent === null) return null;
   const up = percent >= 0;
   return (
-    <Text size="T200" style={{ color: up ? color.Success.Main : color.Critical.Main }}>
+    <span className={css.CardPriceChange} style={{ color: up ? css.mock.green : css.mock.red }}>
       {up ? '+' : ''}
       {percent.toFixed(1)}%
-    </Text>
+    </span>
   );
 }
 
@@ -196,50 +196,42 @@ function CommunityHomeCardContent({ roomId, room }: { roomId: string; room: Room
       gap="200"
       onClick={() => navigate(getSpaceLobbyPath(roomId))}
     >
-      <Box alignItems="Start" gap="200">
-        <Avatar size="400" radii="300">
+      <Box alignItems="Start" gap="300">
+        <div className={project ? css.CardAvatar : `${css.CardAvatar} ${css.CardAvatarSm}`}>
           {displayAvatarUrl ? (
-            <img src={displayAvatarUrl} alt={name} style={{ width: '100%', height: '100%' }} />
+            <img src={displayAvatarUrl} alt={name} className={css.AvatarImg} />
           ) : (
-            <Text size="H5">{nameInitials(name)}</Text>
+            nameInitials(name, 2)
           )}
-        </Avatar>
+        </div>
         <Box grow="Yes" direction="Column" gap="0">
           <Box alignItems="Center" gap="100">
-            <Text size="T400" truncate>
-              <b>{name}</b>
-            </Text>
+            <span className={css.CardName}>{name}</span>
             {project?.owner_verification_state === 'verified' &&
-              sizedIcon(SealCheck, '50', { weight: 'fill', style: { color: color.Primary.Main } })}
-            {isPrivate && sizedIcon(Lock, '50', { style: { color: color.Surface.OnContainer } })}
+              sizedIcon(SealCheck, '50', { weight: 'fill', style: { color: css.mock.purple2 } })}
+            {isPrivate && sizedIcon(Lock, '50', { style: { color: css.mock.text2 } })}
           </Box>
           {/* Line 2 -- three explicit variants, never fabricated:
            *  project + chain asset: "$TICKER • Solana"
            *  private non-project:   "Private Team Space"
            *  public non-project:    "Public Community" */}
           {project && ticker && chain && (
-            <Text size="T200" style={{ color: color.Surface.OnContainer }} truncate>
+            <span className={css.CardMeta}>
               {ticker} • {chain}
-            </Text>
+            </span>
           )}
           {!project && (
-            <Text size="T200" style={{ color: color.Surface.OnContainer }} truncate>
+            <span className={css.CardMeta}>
               {isTeamSpace ? 'Private Team Space' : 'Public Community'}
-            </Text>
+            </span>
           )}
         </Box>
         {/* Right column: relative timestamp of the latest activity with the
          *  unread pill under it -- both real, both omitted when absent. */}
         <Box direction="Column" alignItems="End" gap="100" shrink="No">
-          {timestamp && (
-            <Text size="T200" style={{ color: color.Surface.OnContainer }}>
-              {timestamp}
-            </Text>
-          )}
+          {timestamp && <span className={css.CardFooter}>{timestamp}</span>}
           {unreadTotal > 0 && (
-            <Badge variant="Primary" fill="Solid" radii="Pill" size="500">
-              <Text size="L400">{formatCompactCount(unreadTotal)} unread</Text>
-            </Badge>
+            <span className={css.UnreadPill}>{formatCompactCount(unreadTotal)} unread</span>
           )}
         </Box>
       </Box>
@@ -248,7 +240,7 @@ function CommunityHomeCardContent({ roomId, room }: { roomId: string; room: Room
        *  onto the ticker line. Rendered only when a real snapshot exists. */}
       {price && (
         <Box alignItems="Baseline" gap="100">
-          <Text size="H5">{price}</Text>
+          <span className={css.CardPrice}>{price}</span>
           <PriceChange percent={snapshot?.priceChangePercent.h24 ?? null} />
         </Box>
       )}
@@ -258,23 +250,21 @@ function CommunityHomeCardContent({ roomId, room }: { roomId: string; room: Room
        *  on private spaces, tasks only for owned incomplete checklists. */}
       <Box alignItems="Center" gap="200">
         <Box grow="Yes" alignItems="Center" gap="100">
-          {sizedIcon(UsersThree, '50', { style: { color: color.Surface.OnContainer } })}
-          <Text size="T200" style={{ color: color.Surface.OnContainer }}>
+          {sizedIcon(UsersThree, '50', { style: { color: css.mock.text2 } })}
+          <span className={css.CardFooter}>
             {formatCompactCount(memberCount)} {memberCount === 1 ? 'member' : 'members'}
-          </Text>
+          </span>
           {!isPrivate && onlineCount > 0 && (
             <>
               <span className={css.OnlineDot} aria-hidden="true" />
-              <Text size="T200" style={{ color: color.Surface.OnContainer }}>
-                {formatCompactCount(onlineCount)} online
-              </Text>
+              <span className={css.CardFooter}>{formatCompactCount(onlineCount)} online</span>
             </>
           )}
         </Box>
         {tasksOutstanding !== null && tasksOutstanding > 0 && (
           <Box alignItems="Center" gap="100" shrink="No">
-            {sizedIcon(CheckSquare, '50', { style: { color: color.Primary.Main } })}
-            <Text size="T200" style={{ color: color.Primary.Main }}>
+            {sizedIcon(CheckSquare, '50', { style: { color: css.mock.purple2 } })}
+            <Text size="T200" style={{ color: css.mock.purple2 }}>
               {tasksOutstanding} {tasksOutstanding === 1 ? 'task needs' : 'tasks need'} attention
             </Text>
           </Box>
@@ -308,7 +298,7 @@ export function HomeCommunityCards() {
     <Box direction="Column" gap="200">
       <Box alignItems="Center" gap="200">
         <Box grow="Yes">
-          <Text size="H6">Your Communities</Text>
+          <span className={css.SectionHeader}>Your Communities</span>
         </Box>
         <Text
           as="button"

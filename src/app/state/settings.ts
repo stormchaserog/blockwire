@@ -290,8 +290,11 @@ export interface Settings {
 
 export const defaultSettings: Settings = {
   shortcutOverrides: {},
-  themeId: undefined,
-  useSystemTheme: true,
+  // BlockWire is dark-first: default every new session to the branded dark
+  // theme instead of following the OS. Users can re-enable system theming
+  // or switch to light in Settings.
+  themeId: 'dark-theme',
+  useSystemTheme: false,
   lightThemeId: undefined,
   darkThemeId: undefined,
   useSystemArboriumTheme: true,

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Box, Text, color } from 'folds';
+import { Box } from 'folds';
 import { getExplorePath } from '$pages/pathUtils';
 import { sizedIcon, Rocket } from '$components/icons/phosphor';
 import * as css from './HomeCommunityCards.css';
@@ -15,24 +15,20 @@ export function DiscoverProjects() {
 
   return (
     <Box className={css.CommunityCard} alignItems="Center" gap="300">
-      <div className={css.DiscoverBannerIcon}>{sizedIcon(Rocket, '100')}</div>
+      <div className={css.DiscoverBannerIcon}>{sizedIcon(Rocket, '200')}</div>
       <Box grow="Yes" direction="Column" gap="0">
-        <Text size="T400">
-          <b>Discover Projects</b>
-        </Text>
-        <Text size="T200" style={{ color: color.Surface.OnContainer }}>
+        <span className={css.DiscoverTitle}>Discover Projects</span>
+        <span className={css.DiscoverSubline}>
           Find trending crypto projects and growing communities.
-        </Text>
+        </span>
       </Box>
-      <Text
-        as="button"
+      <button
         type="button"
-        size="B300"
         className={css.ExploreButton}
         onClick={() => navigate(getExplorePath())}
       >
         Explore
-      </Text>
+      </button>
     </Box>
   );
 }

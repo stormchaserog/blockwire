@@ -10,3 +10,10 @@ export function useMatrixClient(): MatrixClient {
   if (!mx) throw new Error('MatrixClient not initialized!');
   return mx;
 }
+
+/** Null-tolerant variant for components that can render without a client
+ *  (e.g. resolving an optional mxc:// avatar). Prefer useMatrixClient()
+ *  everywhere a client is genuinely required. */
+export function useOptionalMatrixClient(): MatrixClient | null {
+  return useContext(MatrixClientContext);
+}

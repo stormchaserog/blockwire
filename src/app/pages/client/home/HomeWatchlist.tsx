@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Avatar, Box, Text, color } from 'folds';
+import { Box } from 'folds';
 import { useMatrixClient } from '$hooks/useMatrixClient';
 import { useAlive } from '$hooks/useAlive';
 import { sizedIcon, Star } from '$components/icons/phosphor';
@@ -119,22 +119,20 @@ function WatchlistTokenCard({
   return (
     <Box className={css.WatchlistCard} direction="Column" gap="100">
       <Box alignItems="Center" gap="100">
-        <Avatar size="200" radii="Pill">
+        <div className={css.WatchTokenIcon}>
           {showImage ? (
             <img
               src={token.iconUrl ?? undefined}
               alt={token.symbol}
               onError={() => setImageFailed(true)}
-              style={{ width: '100%', height: '100%' }}
+              className={css.AvatarImg}
             />
           ) : (
-            <Text size="T200">{token.symbol.slice(0, 2)}</Text>
+            token.symbol.slice(0, 2)
           )}
-        </Avatar>
-        <Box grow="Yes">
-          <Text size="T300" truncate>
-            <b>{token.symbol}</b>
-          </Text>
+        </div>
+        <Box grow="Yes" style={{ minWidth: 0 }}>
+          <span className={css.WatchSymbol}>{token.symbol}</span>
         </Box>
         <button
           type="button"
@@ -145,14 +143,12 @@ function WatchlistTokenCard({
           {sizedIcon(Star, '50', { weight: 'fill' })}
         </button>
       </Box>
-      <Text size="T300">
-        <b>{formatWatchlistPrice(token.priceUsd)}</b>
-      </Text>
+      <span className={css.WatchPrice}>{formatWatchlistPrice(token.priceUsd)}</span>
       {token.change24h !== null && (
-        <Text size="T200" style={{ color: up ? color.Success.Main : color.Critical.Main }}>
+        <span className={css.WatchChange} style={{ color: up ? css.mock.green : css.mock.red }}>
           {up ? '+' : ''}
           {token.change24h.toFixed(1)}%
-        </Text>
+        </span>
       )}
     </Box>
   );
@@ -200,7 +196,7 @@ export function HomeWatchlist() {
 
   return (
     <Box direction="Column" gap="200">
-      <Text size="H6">Watchlist</Text>
+      <span className={css.SectionHeader}>Watchlist</span>
       <div className={css.WatchlistRow}>
         {visible.map((token) => (
           <WatchlistTokenCard key={token.id} token={token} onRemove={handleRemove} />

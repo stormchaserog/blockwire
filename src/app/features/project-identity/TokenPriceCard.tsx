@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Box, Text, color, config } from 'folds';
 import { CaretDown, CaretUp, sizedIcon } from '$components/icons/phosphor';
 import type { TokenSnapshot } from '$utils/blockwire/chainAssets';
+import * as css from './ProjectInfoSheet.css';
 
 /** Project Identity Page price display (UI Bible §12, §14).
  *
@@ -70,9 +71,12 @@ export type TokenPriceCardProps = {
    *  the 24h change on the left, sparkline on the right. 'default': the
    *  full Project Identity Page card with volume/liquidity. */
   variant?: 'default' | 'sheet';
-  /** Optional sparkline node rendered on the right of the sheet variant.
-   *  Owned by the caller so this card stays network-free and testable. */
-  sparkline?: ReactNode;
+  /** Optional sparkline rendered on the right of the sheet variant.
+   *  Owned by the caller so this card stays network-free and testable.
+   *  A function form receives the snapshot's 24h change so the sparkline
+   *  color can be driven by the exact value the % text shows -- the two
+   *  can never disagree. */
+  sparkline?: ReactNode | ((change24h: number | null) => ReactNode);
 };
 
 export function TokenPriceCard({
@@ -165,32 +169,19 @@ export function TokenPriceCard({
 
   if (variant === 'sheet') {
     const change = snapshot.priceChangePercent.h24;
-    const changeTone = change !== null && change < 0 ? color.Critical.Main : color.Success.Main;
+    const changeTone = change !== null && change < 0 ? css.mock.red : css.mock.green;
     return (
-      <Box
-        alignItems="Center"
-        justifyContent="SpaceBetween"
-        gap="400"
-        style={{
-          padding: config.space.S400,
-          borderRadius: config.radii.R400,
-          backgroundColor: color.SurfaceVariant.Container,
-        }}
-      >
+      <Box alignItems="Center" justifyContent="SpaceBetween" gap="400" className={css.PriceCard}>
         <Box direction="Column" gap="100" style={{ minWidth: 0 }}>
-          <Text size="H3" truncate>
-            <b>{formatUsd(snapshot.priceUsd)}</b>
-          </Text>
+          <span className={css.PriceValue}>{formatUsd(snapshot.priceUsd)}</span>
           <Box alignItems="Center" gap="100">
-            <Text size="T300" style={{ color: changeTone }}>
-              <b>{formatPercent(change)}</b>
-            </Text>
-            <Text size="T300" style={{ color: color.Surface.OnContainer }}>
-              (24h)
-            </Text>
+            <span className={css.PriceChangeText} style={{ color: changeTone }}>
+              {formatPercent(change)}
+            </span>
+            <span className={css.PriceChangeMuted}>(24h)</span>
           </Box>
         </Box>
-        {sparkline}
+        {typeof sparkline === 'function' ? sparkline(change) : sparkline}
       </Box>
     );
   }

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Avatar, Box, IconButton, Text, color } from 'folds';
+import { Box, IconButton } from 'folds';
 import {
   ArrowUpRight,
   Check,
@@ -18,6 +18,9 @@ import {
 import { formatTicker, nameInitials } from '$utils/common';
 import { copyToClipboard } from '$utils/dom';
 import { shareText } from '$utils/share';
+import { mxcUrlToHttp } from '$utils/matrix';
+import { useOptionalMatrixClient } from '$hooks/useMatrixClient';
+import { useMediaAuthentication } from '$hooks/useMediaAuthentication';
 import { getExplorerUrl } from '$utils/blockwire/chainExplorers';
 import { getSpaceProjectPath } from '$pages/pathUtils';
 import type {
@@ -96,10 +99,8 @@ type ActionTileProps = {
 function ActionTile({ icon, label, onClick, href }: ActionTileProps) {
   const content = (
     <>
-      {icon}
-      <Text size="B300" style={{ color: 'inherit' }}>
-        {label}
-      </Text>
+      <span className={css.ActionTileIcon}>{icon}</span>
+      <span className={css.ActionTileLabel}>{label}</span>
     </>
   );
 
@@ -146,9 +147,7 @@ type DetailRowProps = {
 function DetailRow({ label, children }: DetailRowProps) {
   return (
     <Box alignItems="Center" justifyContent="SpaceBetween" gap="300" className={css.DetailRow}>
-      <Text size="T300" style={{ color: color.Surface.OnContainer }}>
-        {label}
-      </Text>
+      <span className={css.DetailKey}>{label}</span>
       <Box alignItems="Center" gap="200">
         {children}
       </Box>
@@ -195,6 +194,16 @@ export function ProjectInfoOverview({
 }: ProjectInfoOverviewProps) {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
+  const mx = useOptionalMatrixClient();
+  const useAuthentication = useMediaAuthentication();
+  // avatar_url may be an mxc:// URI (Matrix media) or a plain https URL.
+  // Never hand a raw mxc:// to <img> -- an unloadable src renders alt text,
+  // which spills outside the avatar circle.
+  const heroAvatarSrc = project.avatar_url
+    ? project.avatar_url.startsWith('mxc://')
+      ? (mx && (mxcUrlToHttp(mx, project.avatar_url, useAuthentication, 176, 176, 'crop') ?? undefined)) || undefined
+      : project.avatar_url
+    : undefined;
 
   const asset = selectedAsset ?? chainAssets[0] ?? null;
   const ticker = formatTicker(project.ticker);
@@ -236,33 +245,25 @@ export function ProjectInfoOverview({
   return (
     <Box direction="Column" gap="400">
       <Box direction="Column" alignItems="Center" gap="200">
-        <Avatar size="500" className={variant === 'page' ? css.HeroAvatarPage : css.HeroAvatar}>
-          {project.avatar_url ? (
-            <img src={project.avatar_url} alt={project.name} className={css.HeroAvatarImg} />
+        <div className={variant === 'page' ? css.HeroAvatarPage : css.HeroAvatar}>
+          {heroAvatarSrc ? (
+            <img src={heroAvatarSrc} alt={project.name} className={css.HeroAvatarImg} />
           ) : (
-            <Text size="H4">{nameInitials(project.name)}</Text>
+            nameInitials(project.name, 2)
           )}
-        </Avatar>
+        </div>
         <Box alignItems="Center" justifyContent="Center" gap="200" style={{ maxWidth: '100%' }}>
-          <Text size="H4" align="Center" truncate>
-            <b>{project.name}</b>
-          </Text>
+          <span className={css.HeroName}>{project.name}</span>
           <VerificationBadge
             state={project.owner_verification_state}
             label="Project Owner Verified"
           />
         </Box>
-        {subtitle && (
-          <Text size="T300" align="Center" style={{ color: color.Surface.OnContainer }}>
-            {subtitle}
-          </Text>
-        )}
+        {subtitle && <span className={css.HeroSubtitle}>{subtitle}</span>}
         {verified && (
           <Box shrink="No" alignItems="Center" className={css.VerifiedChip}>
-            {sizedIcon(Check, '50', { style: { color: color.Success.OnContainer } })}
-            <Text size="T200" style={{ color: color.Success.OnContainer }}>
-              Verified Project
-            </Text>
+            {sizedIcon(Check, '50')}
+            Verified Project
           </Box>
         )}
       </Box>
@@ -273,9 +274,10 @@ export function ProjectInfoOverview({
           chainAssetId={asset.id}
           variant="sheet"
           sparkline={
-            priceHistory && priceHistory.length > 1 ? (
-              <Sparkline history={priceHistory} />
-            ) : undefined
+            priceHistory && priceHistory.length > 1
+              ? // oxlint-disable-next-line react/no-unstable-nested-components -- render prop, not a component: TokenPriceCard invokes it inline with the snapshot's 24h change so the sparkline tone always matches the % text
+                (change24h) => <Sparkline history={priceHistory} change24h={change24h} />
+              : undefined
           }
         />
       )}
@@ -300,9 +302,9 @@ export function ProjectInfoOverview({
       <Box direction="Column" className={css.DetailsCard}>
         {asset && (
           <DetailRow label="Contract Address">
-            <Text size="T300" style={{ fontFamily: 'monospace' }}>
+            <span className={css.DetailValue} style={{ fontFamily: 'monospace' }}>
               {truncateAddress(asset.contract_address)}
-            </Text>
+            </span>
             <IconButton
               size="300"
               variant="SurfaceVariant"
@@ -311,15 +313,15 @@ export function ProjectInfoOverview({
               onClick={handleCopyAddress}
             >
               {copied
-                ? sizedIcon(Check, '100', { style: { color: color.Success.Main } })
+                ? sizedIcon(Check, '100', { style: { color: css.mock.green } })
                 : sizedIcon(Copy, '100')}
             </IconButton>
           </DetailRow>
         )}
         {chainName && (
           <DetailRow label="Chain">
-            <Text size="T300">{chainName}</Text>
-            {sizedIcon(Stack, '100', { style: { color: color.Surface.OnContainer } })}
+            <span className={css.DetailValue}>{chainName}</span>
+            {sizedIcon(Stack, '100', { style: { color: css.mock.text2 } })}
           </DetailRow>
         )}
         {explorerUrl && (
@@ -333,9 +335,9 @@ export function ProjectInfoOverview({
               rel="noopener noreferrer"
               className={css.DetailLink}
             >
-              <Text size="T300" style={{ color: 'inherit' }}>
+              <span className={css.DetailValue} style={{ color: 'inherit' }}>
                 Solscan
-              </Text>
+              </span>
               {sizedIcon(ArrowUpRight, '100')}
             </Box>
           </DetailRow>
@@ -351,9 +353,9 @@ export function ProjectInfoOverview({
               rel="noopener noreferrer"
               className={css.DetailLink}
             >
-              <Text size="T300" style={{ color: 'inherit' }}>
+              <span className={css.DetailValue} style={{ color: 'inherit' }}>
                 {websiteHost}
-              </Text>
+              </span>
               {sizedIcon(Globe, '100')}
             </Box>
           </DetailRow>
@@ -369,17 +371,17 @@ export function ProjectInfoOverview({
               rel="noopener noreferrer"
               className={css.DetailLink}
             >
-              <Text size="T300" style={{ color: 'inherit' }}>
+              <span className={css.DetailValue} style={{ color: 'inherit' }}>
                 {xHandle}
-              </Text>
+              </span>
               {sizedIcon(XLogo, '100')}
             </Box>
           </DetailRow>
         )}
         {firstSeen && (
           <DetailRow label="First Seen">
-            <Text size="T300">{firstSeen}</Text>
-            {sizedIcon(Copy, '100', { style: { color: color.Surface.OnContainer } })}
+            <span className={css.DetailValue}>{firstSeen}</span>
+            {sizedIcon(Copy, '100', { style: { color: css.mock.text2 } })}
           </DetailRow>
         )}
       </Box>

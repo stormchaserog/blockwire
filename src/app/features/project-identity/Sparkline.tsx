@@ -1,9 +1,13 @@
 import { useId } from 'react';
-import { color } from 'folds';
 
 export type SparklineProps = {
   /** Chronological price series (oldest first). */
   history: number[];
+  /** The 24h percent change shown beside the sparkline. When provided,
+   *  the line color follows ITS sign (green >= 0, red < 0) so the
+   *  sparkline and the change text can never disagree; when null/omitted
+   *  the tone falls back to the history's own start-vs-end trend. */
+  change24h?: number | null;
   width?: number;
   height?: number;
 };
@@ -12,7 +16,7 @@ export type SparklineProps = {
  *  subtle gradient fill under it. Green when the series ends at or above
  *  where it started, red otherwise (matching the 24h change tone next to
  *  it). Purely presentational -- callers omit it when there is no data. */
-export function Sparkline({ history, width = 100, height = 40 }: SparklineProps) {
+export function Sparkline({ history, change24h, width = 100, height = 40 }: SparklineProps) {
   const gradientId = useId();
   if (history.length < 2) return null;
 
@@ -35,8 +39,12 @@ export function Sparkline({ history, width = 100, height = 40 }: SparklineProps)
     .map(([x, y]) => `${x.toFixed(2)} ${y.toFixed(2)}`)
     .join(' L ')} L ${last[0].toFixed(2)} ${height} Z`;
 
-  const up = (history[history.length - 1] ?? 0) >= (history[0] ?? 0);
-  const tone = up ? color.Success.Main : color.Critical.Main;
+  const up =
+    typeof change24h === 'number' && Number.isFinite(change24h)
+      ? change24h >= 0
+      : (history[history.length - 1] ?? 0) >= (history[0] ?? 0);
+  // Exact-replica mock greens/reds, matching the 24h change text tone.
+  const tone = up ? '#34d399' : '#f47174';
 
   return (
     <svg

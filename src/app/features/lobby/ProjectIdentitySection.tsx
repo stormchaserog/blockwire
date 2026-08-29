@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Box, Text, color, config } from 'folds';
 import { CaretRight, sizedIcon } from '$components/icons/phosphor';
 import { getSpaceProjectPath } from '$pages/pathUtils';
@@ -5,6 +6,12 @@ import { useProjectIdentity, ProjectIdentityContent } from '$features/project-id
 
 export type ProjectIdentitySectionProps = {
   spaceRoomId: string;
+  /** Rendered INSTEAD of the project identity when the space has no bound
+   *  project (the generic space hero). When a project exists, the project
+   *  identity IS the hero — rendering both stacked the space name + topic
+   *  (often the raw contract address) above the project hero, duplicating
+   *  identity on the Lobby (exact-mock parity fix, 2026-08-29). */
+  fallback?: ReactNode;
 };
 
 /** Rendered inside the Lobby (UI Bible §8: project-specific tools live
@@ -23,14 +30,14 @@ export type ProjectIdentitySectionProps = {
  *  full page, so the content isn't ONLY reachable by scrolling the
  *  Lobby.
  */
-export function ProjectIdentitySection({ spaceRoomId }: ProjectIdentitySectionProps) {
+export function ProjectIdentitySection({ spaceRoomId, fallback }: ProjectIdentitySectionProps) {
   const { project, chainAssets, links, selectedAssetId, setSelectedAssetId, selectedAsset } =
     useProjectIdentity(spaceRoomId);
 
-  // Still checking, or checked and this space has no project: render
-  // nothing. Bible §3/§8: do not show founder/project tooling to a plain
-  // community space.
-  if (!project) return null;
+  // Still checking, or checked and this space has no project: render the
+  // generic space hero (fallback) instead. Bible §3/§8: do not show
+  // founder/project tooling to a plain community space.
+  if (!project) return fallback ?? null;
 
   return (
     <Box direction="Column" gap="0">
