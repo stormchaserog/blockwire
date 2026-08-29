@@ -7,6 +7,163 @@ here. BlockWire's own changes start from the fork point.
 
 ---
 
+## 1.21.0 (2026-08-29)
+
+### Features
+
+* Added Discover: a real project directory on mobile, showing newly launched active projects across all users (backed by a new public API endpoint). Desktop's federation server browser is unchanged.
+* Home is now role-aware: founders (project owners) see a "Your Projects" banner above the room list with one-tap links to each project's Hub. Community members see the unchanged room list.
+* Added the missing forms to actually attach a token contract address or an official link to a project. Buy Feed, Whale Alerts, and the Official Links Vault were built correctly but had no way to receive data until now.
+* Added a real global mobile bottom navigation bar (Home, Communities, Messages, Discover, Profile) — mobile had none before this. Fixed two real bugs: the bar never showed on Home/Direct/Space/Explore themselves, and Discover had zero navigation at all.
+* Add MSC4466 profile sync controls for supported homeservers.
+* Added Project Hub, a real operational home for founders/admins at /:space/hub/, starting with a genuine Setup Completeness checklist computed from real project data. More Hub cards (Community Health, Token Activity, Moderation) land as their underlying data sources are built.
+* Added a real Chat/Updates/Hub/Info tab bar inside every project, styled Telegram/iMessage-style. Built a working Updates (announcements) feed backed by a dedicated room and pinned messages -- previously this concept didn't exist anywhere in the app.
+* Add toggleable, reorderable composer trigger buttons (emoji, gif, sticker) with a drag-and-drop settings list.
+* Added a permission-editing checkbox UI for roles: check/uncheck the specific permissions a role grants (project.edit, social.manage, moderation.act, and 16 others). Fixed a real bug found while testing where a failed save could silently close the editor without showing the error.
+* Added Roles management to the Project Hub: create, list, and delete custom project roles. Gated to users with the role.assign permission (fetched from the server, never guessed client-side).
+* Add in-app account deletion (Settings → Account → Danger zone, with erase option, type-to-confirm, and the standard auth flow; OIDC homeservers are sent to their account dashboard) and public /privacy and /terms pages rendered from the canonical documents in docs/. Both app stores require these to list the app by @stormchaserog in #7
+* Add Account-wide persona toggle in Persona Picker
+* Add persona latching when using shorthands
+* Add persona name colors
+* Add Persona picker in Editor
+* Add PMP shorthand editing in Settings
+* Add the option to remove the fallback from PMPs
+* Allow changing/editing PMP on messages
+* Attach files and media from a bottom sheet on the message input.
+* Clean up the design of Persona settings
+* Project Identity is now a real, bookmarkable page at /project/ inside a space, not just content tucked inside the Lobby. Both surfaces show the same data and stay in sync. by @stormchaserog in #64
+* Update the device display name after login to reflect the current client and build flavor.
+* Replaced the connection status top bar with a small styled popup and added a variant that shows sliding sync initial progress.
+* Impl MSC4461: Storing per-message profiles for users
+* Rework the emoji picker as a bottom sheet that keeps its size when the keyboard opens and can be swiped down to dismiss.
+* Adds Workspace Mode for crypto communities: bind a Matrix Space to an on-chain project, then see it come alive in the Lobby. New Project Identity section shows live price data, contract address ...[truncated] by @stormchaserog in #64
+* Home's founder project cards now show real live data: price + 24h change, aggregate unread count, announcement count, verified badge, and member count -- matching the target reference design.
+
+* Add beta builds for desktop and mobile.
+
+### Fixes
+
+* Add an imperative `confirm()` facade for destructive confirms and route the leave-room confirms onto it.
+* Added a modal for viewing room details on smaller screens.
+* Publish an `obtainium.json` app config with every release so Android builds can be installed and auto-updated through Obtainium.
+* Add account switching and logout actions to the offline screen.
+* Add loading feedback in Persona settings menu
+* Add retry button for homeserver discovery during login
+* Every merge to dev now deploys blockwire.chat automatically through CI, including the domain alias step the manual ritual kept forgetting. Requires the VERCEL_TOKEN repository secret; skips cleanly until it is set by @stormchaserog in #7
+* Cache cross-signing device verification so sliding sync device list updates no longer re-verify every device on every response.
+* Cache room metadata for faster sliding sync warm starts.
+* Fix a crash when opening room cosmetics settings before the room member list has loaded.
+* Changed the default message layout to Bubble (rounded speech bubbles, iMessage/Telegram style) instead of the flat "Modern" layout. Anyone can still switch back in Settings.
+* Escape blockquote data-md=">" because that's good practice
+* Fix video and audio failing to play on Firefox with "no video with supported format and MIME type found".
+* Fixed the "Add to Home Screen" icon on iOS -- Safari's home-screen icon references were pointing at files that do not exist and were silently falling back to a broken state.
+* Keep the message input focused after selecting autocomplete suggestions.
+* Fix being unable to restore key backup on a verified device
+* Made popups on start appear sequentially instead of bombarding all at once.
+* Fix missing profile pictures for bridged users in timeline when using sliding sync.
+* Fixed the new Bubble message layout default not actually applying for existing sessions -- a stale value in localStorage was overriding it. New sessions AND existing ones now get real bubbles unless they've explicitly chosen a different layout.
+* Fix Maps that contain incorrect numbers for lat/lon crashing sable
+* Removed the "Slug" field from Create Project (generated silently now, never shown) and added a Contract Address field so founders can attach a token at creation time instead of hunting for it afterward.
+* Fixed a "$$WCLAW" double-dollar-sign display bug on project tickers, and corrected the underlying corrupted data. Ticker input now strips a leading "$" so this can't recur.
+* Fix room leaving state not updating immediately in UI.
+* Free decrypted images and media from memory instead of holding them until reload
+* Fix encrypted images and GIFs failing to render, and improve media cache handling.
+* Smooth out animation when tapping 'following the conversation'.
+* Fix OIDC/SSO identity reset not being detected or completed by the client.
+* Refill the room member list from the server when sliding sync only delivered lazy-loaded members, so mention autocomplete and the members panel are complete.
+* Fix Markdown checklists rendering as raw `<input>` HTML
+* Fix context menus, message long-press, bottom sheet swipe-to-dismiss, thread reactions, thread root replies, and the direct conversation invite prompt.
+* Fix context menus dismissing themselves instead of opening.
+* Fix the scheduled-messages chip not appearing in a room despite having pending scheduled messages.
+* Fix the navigation drawer sliding permanently out of frame after the keyboard or a focus change scrolls the panel track.
+* Fix keyboard flickering when editing messages.
+* Fixed the desktop sidebar rail showing at the same time as the mobile bottom nav bar on mobile-width viewports -- they're now mutually exclusive as intended. Also fixed a pluralization typo ("1 members") on Home project cards.
+* Show setting selects as dialogs where appropriate, keep a long-pressed room's menu open, and stop wide setting tiles squeezing their title.
+* Improve touch feedback and prevent accidental presses.
+* Recover faster from network switches and flaky connections.
+* Make navigation smoother and room opening faster.
+* Changed the web page title to show the mention count instead of the total unread message count.
+* Restore polls in room timelines.
+* Colour profile sheets with the profile's hero colour again, including the drag handle and navigation bar inset. Restore full scrolling in the pinned-messages sheet.
+* Fix Android, iOS and Linux CI builds broken by the BlockWire rename: regenerate the Android project package for the new bundle id, package the Linux CEF build into /opt/blockwire with BlockWire artifact names, fall back to the workflow token when no bot app is configured, and point the Obtainium config at our repo and APK names by @stormchaserog in #5
+* Fixed accepted invites reappearing after restart on homeservers that keep sending invite state for joined rooms.
+* Fix missing user display names under sliding sync across search, notifications, threads, and replies.
+* Fix display names in read receipts and event details when using sliding sync with member drawer closed.
+* Fix sliding sync not subscribing to call updates.
+* Fix outdated user display names in chats under sliding sync by force-refreshing room member state when the global profile suggests the per-room name is stale.
+* Fix subspaces with emote packs listed as separate spaces under sliding sync.
+* Fixed a real cause of the app getting stuck on an old version: the page you actually load was missing the strict no-cache header that only the literal /index.html path had. Every real page in this app should now always fetch fresh.
+* Fix space icons staying blank on first open with sliding sync.
+* Fix loading space-hosted sticker and emote packs when using sliding sync.
+* Restore locally imported CSS tweaks when syncing settings between devices.
+* Fix thread messages so mentions use nicknames, inline images keep their sizing, and sender profiles come from the cache instead of rendering blank. Room avatars now load reliably.
+* Fix timeline auto-scrolling to new messages when pinned to the bottom.
+* Keep following the timeline when a message grows after it renders
+* Fixed timeline pagination becoming stuck when hidden events are disabled.
+* Stop the timeline loading a room's whole history on open
+* Prevent typing indicator from obscuring messages and stabilize timeline scroll snapping.
+* Various visual tweaks
+* Fix voice recording continuing indefinitely when the record button is rapidly tapped.
+* Stop the microphone when a voice recording is cancelled, deleted, restarted or unmounted before the permission prompt resolves.
+* Fix an inconsistency where a user profile's local time did not respect the "24-Hour Time Format" setting
+* Fixed the CI install step: the pnpm lockfile was missing the newly declared @testing-library/dom dependency, which made every check on every branch fail before running by @stormchaserog in #11
+* Fix overlapping Bookmarks and Bold Text shortcut
+* The emoji, GIF and sticker picker buttons now close the picker when clicked again instead of instantly reopening it — the same fix applies to the add-reaction buttons on messages by @stormchaserog in #8
+* Fix spoilers breaking when using a proxy tag/shorthand
+* Option-picker dialogs on mobile can now be dismissed by tapping outside them (previously iOS and mobile-web users were stuck), and a quick tap on the mic button no longer sends a recording the hold-to-record gesture had already discarded by @stormchaserog in #8
+* Loading history no longer jumps the scroll position, a message that fails to send now actually shows its failure and retry options, and jumping to a reply no longer permanently disables the auto-follow of new messages in busy rooms by @stormchaserog in #8
+* Add support for displaying gzipped lottie (e.g. tgs) files.
+* Typing in the composer is lighter: each keystroke now forces at most one synchronous layout pass instead of two, and multi-line or empty drafts skip layout reads entirely by @stormchaserog in #8
+* Removed the redundant technical action row (Create Room, Join with Address, Explore Spaces, Message Search) from Home on mobile -- the bottom nav already covers navigation, and these were cluttering the curated home feed. Desktop is unchanged.
+* The home conversation list now actually re-sorts as messages arrive instead of freezing in the order it had at startup, and bursts of member joins or power-level changes no longer re-render the whole room view for every single event by @stormchaserog in #8
+* Fix media failing to load until a view is reopened, and load sticker grids faster.
+* Improve encrypted-media loading and error handling on slow connections.
+* Migrate the sidebar, space tab, space folder, and image viewer menus onto useMenuAnchor so they open on long-press as well as right-click.
+* Notification sounds no longer play as media.
+* Fix device verification setup hanging on OAuth homeservers by submitting the `m.oauth` stage type.
+* Add option to always keep the last line of the text editor "inline" with the UI buttons.
+* Improve app startup speed and eliminate initial launch screen flickering.
+* Persona Picker style tweaks
+* Point the release machinery at BlockWire instead of upstream: knope now cuts releases in this repo, the desktop updater checks our releases, AltStore sources carry our developer name, package.json carries our identity, and the infra defaults target blockwire.chat. Added docs/UPSTREAM.md with the tracking policy and the list of identifiers that deliberately still say sable by @stormchaserog in #6
+* Polish the account panel and settings layout.
+* Polish the chat input with adaptive send and recording controls, easier photo attachment, and more reliable uploads.
+* Properly format PMP replies
+* Reduce memory use by pruning inactive room history while keeping it available for pagination.
+* Remove the Source Code button from the welcome screen; it pointed at the upstream project's repository and sat front-and-center on product surface. The source offer stays available at /source and in Settings, where it belongs by @stormchaserog in #7
+* Keep the room options sheet open instead of dismissing it as soon as the pointer leaves the room.
+* Sharing a GIF is dramatically faster: the send now prefers Klipy's much smaller webp encoding, no longer re-downloads its own upload just to compute a blurhash, and shows immediate feedback the moment a GIF is picked. Rooms and spaces closed by a redacted upgrade no longer show a Join button that fails forever - they read as closed by @stormchaserog in #8
+* Fix tapping a sticker silently not sending it.
+* Add swipe-to-edit gestures to messages.
+* Fixed broken styling that ignored the theme: the nickname editor and account-switch checkmark referenced CSS variables that don't exist, settings notices used hardcoded Material blue and orange, and the notifications empty state now matches the rest of the inbox by @stormchaserog in #8
+* Various performance improvements.
+* Wrap membership event reasons in parentheses
+
+* The nightly AltStore manifest now records its version history on a dedicated
+
+* Adapted to tauri-plugin-android-fs-api 29, which flattened the AndroidFs by @dependabot[bot] in #29
+
+* Fixed the desktop app build (src-tauri), which failed to compile with seven by @stormchaserog in #36
+
+* More mobile polish: the room header title truncates instead of pushing the by @stormchaserog in #39
+
+* Fixed several mobile layout issues: Settings no longer opens to a blank by @stormchaserog in #38
+
+* Fixed room and space links being unusable after the react-router v7 upgrade. by @stormchaserog in #35
+
+* The space/room upgrade banner no longer appears when its replacement no longer by @stormchaserog in #34
+
+* Updated 35 dependencies and adapted to two breaking changes that arrived inside by @stormchaserog in #14
+
+* Adapted to react-router-dom 7's NavigateFunction, which can now return by @dependabot[bot] in #24
+
+* Reverted vite to 7.3.5. Vite 8 defaults to its new Rolldown bundler, which by @stormchaserog in #33
+
+* Added the scrollMargin property TypeScript 6's updated DOM lib now requires on by @dependabot[bot] in #28
+
+* Dependency updates now arrive one major at a time. Every Dependabot group was a
+
+* Fixed the Vercel build so deploying from the repository produces the built app by @stormchaserog in #15
+
 ## 1.20.0 (2026-07-17)
 
 ### Security
