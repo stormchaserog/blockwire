@@ -31,7 +31,7 @@ export function HomeGreeting() {
           {greeting}, {name} 👋
         </Text>
         <Text size="T300" style={{ color: color.Surface.OnContainer }}>
-          Here&apos;s what&apos;s happening in your world.
+          Here&apos;s what&apos;s happening.
         </Text>
       </Box>
       <IconButton

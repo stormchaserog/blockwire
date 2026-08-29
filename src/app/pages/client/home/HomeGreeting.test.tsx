@@ -43,7 +43,7 @@ describe('HomeGreeting', () => {
         <HomeGreeting />
       </MemoryRouter>
     );
-    expect(screen.getByText("Here's what's happening in your world.")).toBeInTheDocument();
+    expect(screen.getByText("Here's what's happening.")).toBeInTheDocument();
   });
 
   it('shows a bell button that jumps to the notifications inbox', () => {

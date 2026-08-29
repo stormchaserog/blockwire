@@ -5,7 +5,7 @@ import type * as ReactRouterDom from 'react-router-dom';
 import type { ProjectRecord, ProjectChainAsset } from '$utils/blockwire/projects';
 import type * as ProjectsModule from '$utils/blockwire/projects';
 import { clearDexScreenerTokenImageCacheForTesting } from '$features/project-identity/useDexScreenerTokenImage';
-import { HomeCommunityCards } from './HomeCommunityCards';
+import { HomeCommunityCards, formatActivityTimestamp } from './HomeCommunityCards';
 
 type MockRoom = {
   roomId: string;
@@ -13,6 +13,7 @@ type MockRoom = {
   getJoinedMemberCount: () => number;
   getJoinedMembers: () => { userId: string }[];
   getJoinRule: () => string;
+  getLastActiveTimestamp: () => number;
 };
 
 const makeRoom = (
@@ -20,13 +21,15 @@ const makeRoom = (
   name: string,
   members: number,
   joinRule: string,
-  memberIds: string[] = []
+  memberIds: string[] = [],
+  lastActiveTs: number = Number.MIN_SAFE_INTEGER
 ): MockRoom => ({
   roomId,
   name,
   getJoinedMemberCount: () => members,
   getJoinedMembers: () => memberIds.map((userId) => ({ userId })),
   getJoinRule: () => joinRule,
+  getLastActiveTimestamp: () => lastActiveTs,
 });
 
 const rooms: Record<string, MockRoom> = {
@@ -251,18 +254,17 @@ describe('HomeCommunityCards', () => {
     expect(screen.queryByText(/%$/)).not.toBeInTheDocument();
   });
 
-  it('labels a private non-project space "Team Space • Private" with a "Team" pill', async () => {
+  it('labels a private non-project space "Private Team Space"', async () => {
     orphanSpacesMock.mockReturnValue(['!team:blockwire.chat']);
     fetchProjectBySpace.mockResolvedValue(null);
 
     renderCards();
 
-    await waitFor(() => expect(screen.getByText('Team Space • Private')).toBeInTheDocument());
-    expect(screen.getByText('Team')).toBeInTheDocument();
-    expect(screen.queryByText(/members/)).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('Private Team Space')).toBeInTheDocument());
+    expect(screen.getByText('8 members')).toBeInTheDocument();
   });
 
-  it('omits line 2 entirely for a public non-project space and shows a compact member pill', async () => {
+  it('labels a public non-project space "Public Community" with a members footer', async () => {
     orphanSpacesMock.mockReturnValue(['!public:blockwire.chat']);
     fetchProjectBySpace.mockResolvedValue(null);
 
@@ -270,11 +272,11 @@ describe('HomeCommunityCards', () => {
 
     expect(screen.getByText('Open Lounge')).toBeInTheDocument();
     await waitFor(() => expect(fetchProjectBySpace).toHaveBeenCalled());
-    expect(screen.queryByText(/•/)).not.toBeInTheDocument();
+    expect(screen.getByText('Public Community')).toBeInTheDocument();
     expect(screen.getByText('847 members')).toBeInTheDocument();
   });
 
-  it('shows the member pill in compact K notation for large communities', async () => {
+  it('shows the members footer in compact K notation for large communities', async () => {
     orphanSpacesMock.mockReturnValue(['!wclaw:blockwire.chat']);
     fetchProjectBySpace.mockResolvedValue(wclawProject);
     fetchChainAssets.mockResolvedValue([]);
@@ -285,7 +287,7 @@ describe('HomeCommunityCards', () => {
     await waitFor(() => expect(fetchProjectBySpace).toHaveBeenCalled());
   });
 
-  it('shows the unread stat only when there are unreads', async () => {
+  it('shows the unread pill only when there are unreads', async () => {
     orphanSpacesMock.mockReturnValue(['!public:blockwire.chat']);
     fetchProjectBySpace.mockResolvedValue(null);
     unreadMock.mockReturnValue({ total: 23, highlight: 0 });
@@ -300,7 +302,7 @@ describe('HomeCommunityCards', () => {
     expect(screen.queryByText('0 unread')).not.toBeInTheDocument();
   });
 
-  it('joins unread and online with a dot separator for a public space with online members', async () => {
+  it('shows the online count next to members for a public space with online members', async () => {
     orphanSpacesMock.mockReturnValue(['!lounge:blockwire.chat']);
     fetchProjectBySpace.mockResolvedValue(null);
     unreadMock.mockReturnValue({ total: 8, highlight: 0 });
@@ -310,7 +312,9 @@ describe('HomeCommunityCards', () => {
 
     renderCards();
 
-    expect(screen.getByText('8 unread • 2 online')).toBeInTheDocument();
+    expect(screen.getByText('8 unread')).toBeInTheDocument();
+    expect(screen.getByText('300 members')).toBeInTheDocument();
+    expect(screen.getByText('2 online')).toBeInTheDocument();
     await waitFor(() => expect(fetchProjectBySpace).toHaveBeenCalled());
   });
 
@@ -351,9 +355,8 @@ describe('HomeCommunityCards', () => {
 
     renderCards();
 
-    await waitFor(() =>
-      expect(screen.getByText('4 unread • 3 tasks need attention')).toBeInTheDocument()
-    );
+    expect(screen.getByText('4 unread')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('3 tasks need attention')).toBeInTheDocument());
   });
 
   it('uses the singular "1 task needs attention" when exactly one checklist item is missing', async () => {
@@ -408,6 +411,39 @@ describe('HomeCommunityCards', () => {
     expect(screen.queryByText(/attention/)).not.toBeInTheDocument();
   });
 
+  it('shows the "Your Communities" header with a View all link to Communities', async () => {
+    orphanSpacesMock.mockReturnValue(['!public:blockwire.chat']);
+    fetchProjectBySpace.mockResolvedValue(null);
+
+    renderCards();
+
+    expect(screen.getByText('Your Communities')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('View all'));
+    expect(navigateMock).toHaveBeenCalledWith('/communities/');
+    await waitFor(() => expect(fetchProjectBySpace).toHaveBeenCalled());
+  });
+
+  it('shows a relative activity timestamp only when the SDK has timeline activity', async () => {
+    rooms['!stamped:blockwire.chat'] = makeRoom(
+      '!stamped:blockwire.chat',
+      'Stamped',
+      5,
+      'public',
+      [],
+      Date.now()
+    );
+    orphanSpacesMock.mockReturnValue(['!stamped:blockwire.chat', '!public:blockwire.chat']);
+    fetchProjectBySpace.mockResolvedValue(null);
+
+    renderCards();
+
+    // Today's activity renders as a clock time; the room with no activity
+    // (Number.MIN_SAFE_INTEGER) gets no timestamp at all.
+    expect(screen.getByText(/^\d{1,2}:\d{2} (AM|PM)$/)).toBeInTheDocument();
+    await waitFor(() => expect(fetchProjectBySpace).toHaveBeenCalled());
+    delete rooms['!stamped:blockwire.chat'];
+  });
+
   it('navigates to the space when a card is tapped', async () => {
     orphanSpacesMock.mockReturnValue(['!public:blockwire.chat']);
     fetchProjectBySpace.mockResolvedValue(null);
@@ -417,5 +453,22 @@ describe('HomeCommunityCards', () => {
     fireEvent.click(screen.getByText('Open Lounge'));
     expect(navigateMock).toHaveBeenCalledWith('/!public%3Ablockwire.chat/lobby');
     await waitFor(() => expect(fetchProjectBySpace).toHaveBeenCalled());
+  });
+});
+
+describe('formatActivityTimestamp', () => {
+  it('returns null for the SDK "no activity" sentinel and non-finite input', () => {
+    expect(formatActivityTimestamp(Number.MIN_SAFE_INTEGER)).toBeNull();
+    expect(formatActivityTimestamp(0)).toBeNull();
+    expect(formatActivityTimestamp(Number.NaN)).toBeNull();
+  });
+
+  it('renders a clock time today, "Yesterday" yesterday, and a short date beyond', () => {
+    const now = Date.now();
+    expect(formatActivityTimestamp(now)).toMatch(/^\d{1,2}:\d{2} (AM|PM)$/);
+    expect(formatActivityTimestamp(now - 24 * 60 * 60 * 1000)).toBe('Yesterday');
+    expect(formatActivityTimestamp(now - 10 * 24 * 60 * 60 * 1000)).toMatch(
+      /^[A-Z][a-z]{2} \d{1,2}$/
+    );
   });
 });

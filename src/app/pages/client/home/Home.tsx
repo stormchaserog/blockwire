@@ -66,6 +66,7 @@ import { HomeGreeting } from './HomeGreeting';
 import { TasksNeedAttention } from './TasksNeedAttention';
 import { HomeCommunityCards } from './HomeCommunityCards';
 import { DiscoverProjects } from './DiscoverProjects';
+import { HomeWatchlist } from './HomeWatchlist';
 
 type HomeMenuProps = {
   requestClose: () => void;
@@ -294,9 +295,10 @@ export function Home() {
                 <FounderHomeBanner ownedProjects={ownedProjects} />
               </>
             )}
-            {/* Design mock's mobile Home: rich community cards for every
-             *  joined Space (token line, unread, member pill) followed by
-             *  the Discover Projects scroller, both above the flat
+            {/* Design mock's mobile Home ("image 3"): rich community cards
+             *  for every joined Space (timestamp, unread pill, price line,
+             *  members/online footer), the Discover Projects banner, and
+             *  the Watchlist token scroller, all above the flat
              *  conversation list. Desktop keeps its lean nav-list layout —
              *  these card surfaces are mobile-Home furniture, mirroring
              *  how the greeting/founder banners above are gated. */}
@@ -304,6 +306,7 @@ export function Home() {
               <>
                 <HomeCommunityCards />
                 <DiscoverProjects />
+                <HomeWatchlist />
               </>
             )}
             {/* UI Bible §7's "curated home feed" direction, and the mobile
