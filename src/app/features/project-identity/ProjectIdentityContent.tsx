@@ -1,18 +1,10 @@
-import { Box, Chip, Text, color, config } from 'folds';
-import { getExplorerUrl } from '$utils/blockwire/chainExplorers';
-import { formatTicker } from '$utils/common';
+import { Box, Chip, Text, config } from 'folds';
 import type {
   ProjectChainAsset,
   ProjectLinkRecord,
   ProjectRecord,
 } from '$utils/blockwire/projects';
-import { ProjectChainAssetPrice } from './ProjectChainAssetPrice';
-import { ContractAddressBadge } from './ContractAddressBadge';
-import { VerificationBadge } from './VerificationBadge';
-import { OfficialLinksVault } from './OfficialLinksVault';
-import { BuyFeed } from './BuyFeed';
-import { ProjectBanner } from './ProjectBanner';
-import { WhaleAlerts } from './WhaleAlerts';
+import { ProjectInfoOverview } from './ProjectInfoOverview';
 
 export type ProjectIdentityContentProps = {
   project: ProjectRecord;
@@ -23,11 +15,21 @@ export type ProjectIdentityContentProps = {
   selectedAsset: ProjectChainAsset | null;
 };
 
-/** The actual Project Identity Page content (Bible §12/§13/§14/§15/§18),
- *  factored out of ProjectIdentitySection so the Lobby-seeded surface
- *  and the dedicated /project/ route render IDENTICAL content from one
- *  source of truth -- a founder editing a project sees the exact same
- *  thing in both places, never a subtly different subset. */
+/** The Project Identity Page's Info tab content (Bible §12), factored out
+ *  of ProjectIdentitySection so the Lobby-seeded surface and the
+ *  dedicated /project/ route render IDENTICAL content from one source of
+ *  truth -- a founder editing a project sees the exact same thing in both
+ *  places, never a subtly different subset.
+ *
+ *  Per the locked design mock this renders the shared ProjectInfoOverview
+ *  (the same component the room-header Project Info Sheet uses): centered
+ *  hero (avatar, name + verification seal, "$TICKER • Chain", Verified
+ *  Project chip), price + 24h sparkline card, the Chart / Buy Feed /
+ *  Info / Share tile row, and the details card. Identity appears exactly
+ *  ONCE, in the hero -- no separate name/ticker/description block and no
+ *  raw full contract-address string. The Buy/Sell trades feed (Bible §14)
+ *  is deliberately NOT embedded here; it stays reachable via the Buy Feed
+ *  tile rather than rendering as a raw list on this tab. */
 export function ProjectIdentityContent({
   project,
   chainAssets,
@@ -37,41 +39,13 @@ export function ProjectIdentityContent({
   selectedAsset,
 }: ProjectIdentityContentProps) {
   return (
-    <Box direction="Column" gap="300" style={{ padding: config.space.S400 }}>
-      <ProjectBanner project={project} />
-      <Box direction="Column" gap="100">
-        <Box alignItems="Center" gap="200">
-          <Text size="H4">{project.name}</Text>
-          {project.ticker && (
-            <Text size="T300" style={{ color: color.Surface.OnContainer }}>
-              {formatTicker(project.ticker)}
-            </Text>
-          )}
-          {/* UI Bible §18: "Project Owner Verified" is a DIFFERENT precise
-           *  claim than a chain asset's or link's own verified_control_state
-           *  (checked separately, next to that specific contract/link) --
-           *  this reflects whether the human running the PROJECT has proven
-           *  their identity. Renders nothing for 'unverified' (see
-           *  VerificationBadge) so a brand-new, not-yet-checked project
-           *  shows no badge at all, never a fabricated one. */}
-          <VerificationBadge
-            state={project.owner_verification_state}
-            label="Project Owner Verified"
-          />
-        </Box>
-        {project.description && (
-          <Text size="T300" style={{ color: color.Surface.OnContainer }}>
-            {project.description}
-          </Text>
-        )}
-      </Box>
-
+    <Box direction="Column" gap="400" style={{ padding: config.space.S400 }}>
       {/* Chip selector only when there's an actual choice to make -- a
        *  single-asset project (the common case today) shows no selector at
        *  all, same progressive-disclosure principle as the rest of this
        *  section. */}
       {chainAssets.length > 1 && (
-        <Box gap="100" style={{ flexWrap: 'wrap' }}>
+        <Box justifyContent="Center" gap="100" style={{ flexWrap: 'wrap' }}>
           {chainAssets.map((asset) => (
             <Chip
               key={asset.id}
@@ -86,23 +60,14 @@ export function ProjectIdentityContent({
         </Box>
       )}
 
-      {selectedAsset && (
-        <Box direction="Column" gap="200">
-          <ContractAddressBadge
-            asset={selectedAsset}
-            explorerUrl={getExplorerUrl(selectedAsset.chain, selectedAsset.contract_address)}
-          />
-          <VerificationBadge
-            state={selectedAsset.verified_control_state}
-            label="Contract Verified"
-          />
-          <ProjectChainAssetPrice projectId={project.project_id} chainAssetId={selectedAsset.id} />
-          <BuyFeed projectId={project.project_id} chainAssetId={selectedAsset.id} />
-          <WhaleAlerts projectId={project.project_id} chainAssetId={selectedAsset.id} />
-        </Box>
-      )}
-
-      <OfficialLinksVault links={links} />
+      <ProjectInfoOverview
+        project={project}
+        chainAssets={chainAssets}
+        links={links}
+        selectedAsset={selectedAsset}
+        spaceRoomId={project.space_room_id}
+        variant="page"
+      />
     </Box>
   );
 }

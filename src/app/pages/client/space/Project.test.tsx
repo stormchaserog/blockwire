@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, afterEach } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { SpaceProject } from './Project';
 import type {
   ProjectRecord,
@@ -75,6 +76,11 @@ vi.mock('$utils/blockwire/chainExplorers', () => ({
 // and each component's own test file already cover the granular cases.
 vi.mock('$features/project-identity/BuyFeed', () => ({ BuyFeed: () => null }));
 vi.mock('$features/project-identity/WhaleAlerts', () => ({ WhaleAlerts: () => null }));
+// The Info tab's shared overview fetches GeckoTerminal sparkline history;
+// a unit test must never hit the network (the hook has its own test file).
+vi.mock('$features/project-identity/useTokenPriceHistory', () => ({
+  useTokenPriceHistory: () => null,
+}));
 vi.mock('$features/project-identity/ManageProjectPanel', () => ({
   ManageProjectPanel: () => <div>manage-project-panel</div>,
 }));
@@ -85,6 +91,16 @@ vi.mock('$features/project-identity/ProjectTabBar', () => ({
 afterEach(() => {
   vi.clearAllMocks();
 });
+
+// The overview's action tiles navigate via useNavigate, so the page must
+// render inside a router the same way it does in the app.
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <SpaceProject />
+    </MemoryRouter>
+  );
+}
 
 const baseProject: ProjectRecord = {
   project_id: 42,
@@ -104,13 +120,13 @@ const baseProject: ProjectRecord = {
 describe('SpaceProject', () => {
   it('shows a loading state before the project check resolves', () => {
     fetchProjectBySpace.mockReturnValue(new Promise(() => {}));
-    render(<SpaceProject />);
+    renderPage();
     expect(screen.getByText('Loading…')).toBeInTheDocument();
   });
 
   it('shows an explicit "no project" state for a space with none bound -- unlike the Lobby section, this route must never render silently empty', async () => {
     fetchProjectBySpace.mockResolvedValue(null);
-    render(<SpaceProject />);
+    renderPage();
     expect(await screen.findByText('No project yet')).toBeInTheDocument();
   });
 
@@ -119,7 +135,7 @@ describe('SpaceProject', () => {
     fetchChainAssets.mockResolvedValue([]);
     fetchProjectLinks.mockResolvedValue([]);
 
-    render(<SpaceProject />);
+    renderPage();
     await waitFor(() => expect(screen.getAllByText('Test Project')).not.toHaveLength(0));
     // Header title AND the ProjectIdentityContent heading both say the name.
     expect(screen.getAllByText('Test Project').length).toBeGreaterThanOrEqual(1);
@@ -128,7 +144,7 @@ describe('SpaceProject', () => {
 
   it('treats a fetch failure as "no project" rather than crashing the page', async () => {
     fetchProjectBySpace.mockRejectedValue(new Error('network blip'));
-    render(<SpaceProject />);
+    renderPage();
     expect(await screen.findByText('No project yet')).toBeInTheDocument();
   });
 
@@ -138,7 +154,7 @@ describe('SpaceProject', () => {
     fetchChainAssets.mockResolvedValue([]);
     fetchProjectLinks.mockResolvedValue([]);
 
-    render(<SpaceProject />);
+    renderPage();
     expect(await screen.findByText('manage-project-panel')).toBeInTheDocument();
   });
 
@@ -148,7 +164,7 @@ describe('SpaceProject', () => {
     fetchChainAssets.mockResolvedValue([]);
     fetchProjectLinks.mockResolvedValue([]);
 
-    render(<SpaceProject />);
+    renderPage();
     await waitFor(() => expect(screen.getAllByText('Test Project')).not.toHaveLength(0));
     expect(screen.queryByText('manage-project-panel')).not.toBeInTheDocument();
   });

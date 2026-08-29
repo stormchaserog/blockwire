@@ -31,6 +31,19 @@ export const HeroAvatar = style({
   boxShadow: `0 4px 16px 0 rgba(0, 0, 0, 0.35)`,
 });
 
+/** The Info tab's page-sized hero avatar per the locked mock (~88px),
+ *  vs the sheet's more compact 76px. No negative top margin: the page
+ *  hero sits in normal flow, not overlapping a sheet edge. */
+export const HeroAvatarPage = style({
+  width: '88px',
+  height: '88px',
+  borderRadius: '50%',
+  overflow: 'hidden',
+  flexShrink: 0,
+  border: `${config.borderWidth.B600} solid ${color.Surface.Container}`,
+  boxShadow: `0 4px 16px 0 rgba(0, 0, 0, 0.35)`,
+});
+
 export const HeroAvatarImg = style({
   width: '100%',
   height: '100%',

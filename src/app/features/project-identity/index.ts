@@ -9,6 +9,7 @@ export * from './WhaleAlerts';
 export * from './useProjectIdentity';
 export * from './useDexScreenerTokenImage';
 export * from './ProjectIdentityContent';
+export * from './ProjectInfoOverview';
 export * from './ManageProjectPanel';
 export * from './RolesPanel';
 export * from './RolePermissionsEditor';
