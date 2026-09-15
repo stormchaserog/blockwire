@@ -91,7 +91,7 @@
     "i18next-http-backend": "^4.0.1",
     "immer": "^11.1.15",
     "is-hotkey": "^0.2.0",
-    "jotai": "^2.20.2",
+    "jotai": "^3.0.0",
     "katex": "^0.18.1",
     "leaflet": "1.9.4",
     "linkify-react": "^4.3.3",
