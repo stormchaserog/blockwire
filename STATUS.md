@@ -1,5 +1,7 @@
 # BlockWire — where we left off
 
+> Historical handoff. Use [PROJECT_STATUS.md](PROJECT_STATUS.md) for the latest dated source/deployment baseline. Claims below retain their original verification date and are not re-certified by a documentation update.
+
 Last updated: 2026-08-06
 
 > Operational details (addresses, how to reach each box, deploy commands) are in
