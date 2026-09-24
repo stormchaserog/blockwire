@@ -203,7 +203,10 @@ export function ProjectInfoOverview({
   // which spills outside the avatar circle.
   const heroAvatarSrc = project.avatar_url
     ? project.avatar_url.startsWith('mxc://')
-      ? (mx && (mxcUrlToHttp(mx, project.avatar_url, useAuthentication, 176, 176, 'crop') ?? undefined)) || undefined
+      ? (mx &&
+          (mxcUrlToHttp(mx, project.avatar_url, useAuthentication, 176, 176, 'crop') ??
+            undefined)) ||
+        undefined
       : project.avatar_url
     : undefined;
 
