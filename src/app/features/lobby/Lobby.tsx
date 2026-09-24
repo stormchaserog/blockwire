@@ -636,10 +636,7 @@ export function Lobby() {
                     }}
                   >
                     <PageHeroSection ref={heroSectionRef} style={{ paddingTop: 0 }}>
-                      <ProjectIdentitySection
-                        spaceRoomId={space.roomId}
-                        fallback={<LobbyHero />}
-                      />
+                      <ProjectIdentitySection spaceRoomId={space.roomId} fallback={<LobbyHero />} />
                     </PageHeroSection>
                     {vItems.map((vItem) => {
                       const item = hierarchy[vItem.index];
