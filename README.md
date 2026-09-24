@@ -28,7 +28,16 @@ gateway. Users never need to know or care what Matrix is.
 | Push gateway | Web push delivery, private repo |
 | Infrastructure | Homeserver and deploy config, private repo |
 
-Current status and what's next: **[STATUS.md](./STATUS.md)**.
+## Project documentation
+
+- [AGENTS.md](./AGENTS.md): repository scope and working rules.
+- [ARCHITECTURE.md](./ARCHITECTURE.md): client components and service boundaries.
+- [PROJECT_STATUS.md](./PROJECT_STATUS.md): dated source/deployment baseline and next steps.
+- [STATUS.md](./STATUS.md): historical operational handoff, with original verification dates.
+- [DEPLOY.md](./DEPLOY.md): deployment procedure and known traps.
+
+Maintainer: `stormchaserog`. This is the public client repository, not a home for
+private infrastructure, Block Social, Jungle Ops, or WCLAW website code.
 
 ## Development
 
